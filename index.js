@@ -17,8 +17,6 @@ const HOUR_MS = 60 * MIN_MS;
 var intervalLoop = false;
 var pingLounge = false;
 
-// App functionality
-
 /*
 
 {
@@ -32,11 +30,7 @@ var pingLounge = false;
 */
 var hackHourTracker = {};
 
-/**
- * 
- * Initalize the app
- */
-
+// Initalize the app
 
 /**
  * /hour
@@ -51,15 +45,16 @@ app.command('/hack', async ({ ack, body, client }) => {
     // Run the interval at the start of the minute
     setTimeout(() => {
       setInterval(() => {
-        var now = new Date();
+        var now = new Date();        
         console.log(now + " - Checking for hack hours...")
 
         for (var user in hackHourTracker) {
           var user_info = hackHourTracker[user];
-
-          if (now - user_info.hour_start >= HOUR_MS) {
+          var elapsed = new Date(HOUR_MS - (now - user_info.hour_start));
+          
+          if (elapsed.getMinutes() >= 60) {
             // End the user's hack hour
-            var message = `<@${user}> finished working on \n> ${user_info.work}\``;
+            var message = `<@${user}> finished working on \n>${user_info.work}\``;
             client.chat.update({
               channel: HACK_HOUR_CHANNEL,
               ts: user_info.message_ts,
@@ -69,13 +64,19 @@ app.command('/hack', async ({ ack, body, client }) => {
               channel: HACK_HOUR_CHANNEL,
               thread_ts: user_info.message_ts,
               text: `<@${user}> has finished their hack hour!`
-            });0
+            });
 
             delete hackHourTracker[user];
+          }
+          else if (elapsed.getMinutes() % 15 == 0) {
+            client.chat.postMessage({
+              channel: HACK_HOUR_CHANNEL,
+              thread_ts: user_info.message_ts,
+              text: `<@${user}> you have \`${elapsed.getMinutes()}\`!`
+            });            
           } 
           else {
-            var time_left = new Date(HOUR_MS - (now - user_info.hour_start));
-            var message = `<@${user}> has \`${time_left.getMinutes()}\` minutes to work on:\n> ${user_info.work}`;
+            var message = `<@${user}> has \`${elapsed.getMinutes()}\` minutes to work on:\n>${user_info.work}`;
             client.chat.update({
               channel: HACK_HOUR_CHANNEL,
               ts: user_info.message_ts,
@@ -85,7 +86,6 @@ app.command('/hack', async ({ ack, body, client }) => {
         }
       }, MIN_MS);
     }, MIN_MS - Date.now() % (MIN_MS));
-
     intervalLoop = true;
   }
 
@@ -131,6 +131,10 @@ app.command('/hack', async ({ ack, body, client }) => {
 
 });
 
+/**
+ * hackhour_view
+ * View submission handler for the /hack command
+ */
 app.view('hackhour_view', async ({ ack, body, view, client }) => {
   var user = body.user.id;
   var work = view.state.values.desc.desc_input.value;
@@ -152,7 +156,7 @@ app.view('hackhour_view', async ({ ack, body, view, client }) => {
 
   var message = await client.chat.postMessage({
     channel: HACK_HOUR_CHANNEL,
-    text: `<@${user}> is starting their hack hour with the following work:\n> ${work}`
+    text: `<@${user}> has \`60\` minutes to work on:\n>${work}`
   });
 
   hackHourTracker[user] = {
@@ -184,7 +188,7 @@ app.command('/abort', async ({ ack, body, client }) => {
   
   if (user in hackHourTracker) {
     var user_info = hackHourTracker[user];
-    var message = `<@${user}> has aborted working on:\n> ${user_info.work}`;
+    var message = `<@${user}> has aborted working on:\n>${user_info.work}`;
     client.chat.update({
       channel: HACK_HOUR_CHANNEL,
       ts: user_info.message_ts,
@@ -200,6 +204,33 @@ app.command('/abort', async ({ ack, body, client }) => {
   }
 
 });
+
+/**
+ * /work
+ * Have the bot send a message to a channel where the command is run
+ */
+/*app.command('/work', async ({ ack, body, client }) => {
+  // Reject if not the specifc user
+  if (body.user_id != 'U04QD71QWS0') {
+    await ack({
+      response_action: 'errors',
+      errors: {
+        desc: 'Something went wrong /:'
+      }
+    });
+    return;
+  }
+  await ack();
+
+  var channel = body.channel_id;
+  var message = body.text;
+  var result = await client.chat.postMessage({
+    channel: channel,
+    text: message,
+  });
+
+  console.log(result);
+});*/
 
 (async () => {
   await app.start();
