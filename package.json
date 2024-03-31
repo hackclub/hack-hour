@@ -1,0 +1,22 @@
+{
+  "name": "hackhour",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "node --env-file=\".env\" index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techpixel/hackhour.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/techpixel/hackhour/issues"
+  },
+  "homepage": "https://github.com/techpixel/hackhour#readme",
+  "dependencies": {
+    "@slack/bolt": "^3.17.1"
+  }
+}
