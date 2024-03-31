@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run": "node --env-file=\".env\" index.js"
+    "app": "node --env-file=\".env\" index.js"
   },
   "repository": {
     "type": "git",
