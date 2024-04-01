@@ -1,4 +1,5 @@
-const { App } = require('@slack/bolt');
+import bolt from '@slack/bolt'; const { App } = bolt;
+import { JSONFilePreset } from 'lowdb/node';
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -11,9 +12,23 @@ const HACK_HOUR_CHANNEL = 'C06SBHMQU8G';
 const MIN_MS = 60 * 1000;
 const HOUR_MS = 60 * MIN_MS;
 
-// Flags
-var intervalLoop = false;
-var pingLounge = false;
+const DEFAULT_DATA = {
+  "globalFlags": {
+  },
+  "users": {
+    "user_id": {
+      "doneForToday?": false,
+      "totalHours": 0,
+      "userFlags": {}
+    }
+  }
+}
+
+// Database
+const db = await JSONFilePreset('db.json', DEFAULT_DATA)
+
+// Update db.json
+await db.write()
 
 /*
 
@@ -26,7 +41,6 @@ var pingLounge = false;
 }
 
 */
-var hackHourTracker = {};
 
 // Initalize the app
 
@@ -37,53 +51,6 @@ var hackHourTracker = {};
 app.command('/hack', async ({ ack, body, client }) => {
   // Acknowledge the command request
   await ack();
-
-  // Check if the interval loop is running
-  if (!intervalLoop) {
-    // Run the interval at the start of the minute
-    setInterval(() => {
-        var now = new Date();        
-        console.log(now + " - Checking for hack hours...")
-
-        for (var user in hackHourTracker) {
-          var user_info = hackHourTracker[user];
-          var elapsed = new Date(HOUR_MS - (now - user_info.hour_start));
-          
-          if (elapsed.getMinutes() >= 60) {
-            // End the user's hack hour
-            var message = `<@${user}> finished working on \n>${user_info.work}\``;
-            client.chat.update({
-              channel: HACK_HOUR_CHANNEL,
-              ts: user_info.message_ts,
-              text: message
-            });
-            client.chat.postMessage({
-              channel: HACK_HOUR_CHANNEL,
-              thread_ts: user_info.message_ts,
-              text: `<@${user}> has finished their hack hour!`
-            });
-
-            delete hackHourTracker[user];
-          }
-          else if (elapsed.getMinutes() % 15 == 0 && elapsed.getMinutes() > 1) {
-            client.chat.postMessage({
-              channel: HACK_HOUR_CHANNEL,
-              thread_ts: user_info.message_ts,
-              text: `<@${user}> you have \`${elapsed.getMinutes()}\`!`
-            });            
-          } 
-          else {
-            var message = `<@${user}> has \`${elapsed.getMinutes()}\` minutes to work on:\n>${user_info.work}`;
-            client.chat.update({
-              channel: HACK_HOUR_CHANNEL,
-              ts: user_info.message_ts,
-              text: message
-            });
-          }
-        }
-    }, MIN_MS);
-    intervalLoop = true;
-  }
 
   try {
     // Call views.open with the built-in client
@@ -201,25 +168,51 @@ app.command('/abort', async ({ ack, body, client }) => {
 
 });
 
-
-/**
- * /verifyhours
- * Verify your hours 
- */
-app.command('/verifyhours', async ({ ack, body, client }) => {
-  // Send a message visible to only the user who invoked the command in the hack hour channel
-  await ack();
-  await client.chat.postEphemeral({
-    channel: HACK_HOUR_CHANNEL,
-    user: body.user_id,
-    text: 'Error fetching records: You aren\'t enrolled!'
-  });
-
-  // TODO: Wait for UT & HQ to communicate how the API will work
-});
-
 (async () => {
   await app.start();
+
+  // Run the interval at the start of the minute
+  setInterval(() => {
+      var now = new Date();        
+      console.log(now + " - Checking for hack hours...")
+
+      for (var user in hackHourTracker) {
+        var user_info = hackHourTracker[user];
+        var elapsed = new Date(HOUR_MS - (now - user_info.hour_start));
+        
+        if (elapsed.getMinutes() >= 60) {
+          // End the user's hack hour
+          var message = `<@${user}> finished working on \n>${user_info.work}\``;
+          app.client.chat.update({
+            channel: HACK_HOUR_CHANNEL,
+            ts: user_info.message_ts,
+            text: message
+          });
+          app.client.chat.postMessage({
+            channel: HACK_HOUR_CHANNEL,
+            thread_ts: user_info.message_ts,
+            text: `<@${user}> has finished their hack hour!`
+          });
+
+          delete hackHourTracker[user];
+        }
+        else if (elapsed.getMinutes() % 15 == 0 && elapsed.getMinutes() > 1) {
+          app.client.chat.postMessage({
+            channel: HACK_HOUR_CHANNEL,
+            thread_ts: user_info.message_ts,
+            text: `<@${user}> you have \`${elapsed.getMinutes()}\`!`
+          });            
+        } 
+        else {
+          var message = `<@${user}> has \`${elapsed.getMinutes()}\` minutes to work on:\n>${user_info.work}`;
+          app.client.chat.update({
+            channel: HACK_HOUR_CHANNEL,
+            ts: user_info.message_ts,
+            text: message
+          });
+        }
+      }
+  }, MIN_MS);
 
   console.log('⚡️ Bolt app started');
 })();

@@ -1,0 +1,12 @@
+{
+  "globalFlags": {
+    "intervalLoop?": false
+  },
+  "users": {
+    "user_id": {
+      "doneForToday?": false,
+      "totalHours": 0,
+      "userFlags": {}
+    }
+  }
+}

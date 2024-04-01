@@ -2,9 +2,9 @@
   "name": "hackhour",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "exports": "./src/index.js",
   "scripts": {
-    "app": "node --env-file=\".env\" index.js"
+    "app": "node --env-file=\".env\" ./src/index.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/techpixel/hackhour#readme",
   "dependencies": {
-    "@slack/bolt": "^3.17.1"
+    "@slack/bolt": "^3.17.1",
+    "lowdb": "^7.0.1"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=16"
   }
 }
