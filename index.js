@@ -65,7 +65,7 @@ app.command('/hack', async ({ ack, body, client }) => {
 
             delete hackHourTracker[user];
           }
-          else if (elapsed.getMinutes() % 15 == 0) {
+          else if (elapsed.getMinutes() % 15 == 0 && elapsed.getMinutes() > 1) {
             client.chat.postMessage({
               channel: HACK_HOUR_CHANNEL,
               thread_ts: user_info.message_ts,
@@ -201,32 +201,22 @@ app.command('/abort', async ({ ack, body, client }) => {
 
 });
 
-/**
- * /work
- * Have the bot send a message to a channel where the command is run
- */
-/*app.command('/work', async ({ ack, body, client }) => {
-  // Reject if not the specifc user
-  if (body.user_id != 'U04QD71QWS0') {
-    await ack({
-      response_action: 'errors',
-      errors: {
-        desc: 'Something went wrong /:'
-      }
-    });
-    return;
-  }
-  await ack();
 
-  var channel = body.channel_id;
-  var message = body.text;
-  var result = await client.chat.postMessage({
-    channel: channel,
-    text: message,
+/**
+ * /verifyhours
+ * Verify your hours 
+ */
+app.command('/verifyhours', async ({ ack, body, client }) => {
+  // Send a message visible to only the user who invoked the command in the hack hour channel
+  await ack();
+  await client.chat.postEphemeral({
+    channel: HACK_HOUR_CHANNEL,
+    user: body.user_id,
+    text: 'Error fetching records: You aren\'t enrolled!'
   });
 
-  console.log(result);
-});*/
+  // TODO: Wait for UT & HQ to communicate how the API will work
+});
 
 (async () => {
   await app.start();
