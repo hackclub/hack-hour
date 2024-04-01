@@ -4,8 +4,6 @@ const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   appToken: process.env.SLACK_APP_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-
-  socketMode: true,
 });
 
 // Constants
@@ -43,8 +41,7 @@ app.command('/hack', async ({ ack, body, client }) => {
   // Check if the interval loop is running
   if (!intervalLoop) {
     // Run the interval at the start of the minute
-    setTimeout(() => {
-      setInterval(() => {
+    setInterval(() => {
         var now = new Date();        
         console.log(now + " - Checking for hack hours...")
 
@@ -84,8 +81,7 @@ app.command('/hack', async ({ ack, body, client }) => {
             });
           }
         }
-      }, MIN_MS);
-    }, MIN_MS - Date.now() % (MIN_MS));
+    }, MIN_MS);
     intervalLoop = true;
   }
 
