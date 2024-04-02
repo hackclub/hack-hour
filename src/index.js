@@ -8,7 +8,7 @@ const app = new App({
 });
 
 // Constants
-const HACK_HOUR_CHANNEL = 'C06SBHMQU8G';
+const HACK_HOUR_CHANNEL = 'C06S6E7CXK7';//'C06SBHMQU8G';
 const MIN_MS = 60 * 1000;
 const HOUR_MS = 60 * MIN_MS;
 
@@ -16,11 +16,17 @@ const DEFAULT_DATA = {
   "globalFlags": {
   },
   "users": {
-    "user_id": {
-      "doneForToday?": false,
+  /*"userId": {
+      "isDoneForToday": false,
       "totalHours": 0,
-      "userFlags": {}
-    }
+      "userFlags": {},
+      "isHacking": false,
+      "currentHack": {
+        "message_ts": "XXXX.XXX",
+        "hourStart": [Date Object],
+        "work": "work msg"
+      }
+    }*/
   }
 }
 
@@ -30,19 +36,20 @@ const db = await JSONFilePreset('db.json', DEFAULT_DATA)
 // Update db.json
 await db.write()
 
-/*
-
-{
-  "user_id": {
-    "message_ts": "XXXX.XXX",
-    "hour_start": [Date Object],
-    "work": "work msg"  
+// Initalize the app
+function checkInit(user) {
+  if (!db.data.users.hasOwnProperty(user)) {
+    db.data.users[user] = {
+      "isDoneForToday": false,
+      "totalHours": 0,
+      "userFlags": {},
+      "isHacking": false,
+      "currentHack": {}
+    }
+    return;
   }
 }
 
-*/
-
-// Initalize the app
 
 /**
  * /hour
@@ -102,8 +109,10 @@ app.view('hackhour_view', async ({ ack, body, view, client }) => {
   var user = body.user.id;
   var work = view.state.values.desc.desc_input.value;
 
+  checkInit(user);
+
   // Check if the user is already working
-  if (user in hackHourTracker) {
+  if (db.data.users[user].isHacking) {
     // Send an error
     await ack({
       response_action: 'errors',
@@ -112,7 +121,18 @@ app.view('hackhour_view', async ({ ack, body, view, client }) => {
       }
     });
     return;
-  } else {
+  } 
+  else if (db.data.users[user].isDoneForToday) {
+    // Send an error
+    await ack({
+      response_action: 'errors',
+      errors: {
+        desc: 'You are done for the day!'
+      }
+    });
+    return;
+  }
+  else {
     // Acknowledge that information was recieved
     await ack();    
   }
@@ -122,11 +142,13 @@ app.view('hackhour_view', async ({ ack, body, view, client }) => {
     text: `<@${user}> has \`60\` minutes to work on:\n>${work}`
   });
 
-  hackHourTracker[user] = {
+  db.data.users[user].isHacking = true;
+  db.data.users[user].currentHack = {
     message_ts: message.ts,
-    hour_start: new Date(),
+    hourStart: new Date(),
     work: work
   };
+  await db.write();
 });
 
 /**
@@ -136,8 +158,11 @@ app.view('hackhour_view', async ({ ack, body, view, client }) => {
 app.command('/abort', async ({ ack, body, client }) => {
   var user = body.user_id;
 
+  // Check if user has been initialized
+  checkInit(user);
+
   // Check if the user is working - if not error out
-  if (!hackHourTracker.hasOwnProperty(user)) {
+  if (!db.data.users[user].isHacking || db.data.users[user].isDoneForToday) {
     await ack({
       response_action: 'errors',
       errors: {
@@ -145,25 +170,26 @@ app.command('/abort', async ({ ack, body, client }) => {
       }
     });
     return;
-  } else {
+  } 
+  else {
     await ack();
-  }
-  
-  if (user in hackHourTracker) {
-    var user_info = hackHourTracker[user];
-    var message = `<@${user}> has aborted working on:\n>${user_info.work}`;
+
+    var userInfo = db.data.users[user].currentHack;
+
     client.chat.update({
       channel: HACK_HOUR_CHANNEL,
-      ts: user_info.message_ts,
-      text: message
+      ts: userInfo.message_ts,
+      text: `<@${user}> has aborted working on:\n>${userInfo.work}`
     });
     client.chat.postMessage({
       channel: HACK_HOUR_CHANNEL,
-      thread_ts: user_info.message_ts,
+      thread_ts: userInfo.message_ts,
       text: `<@${user}> has aborted their hack hour!`
     });
 
-    delete hackHourTracker[user];
+    db.data.users[user].currentHack = {};
+    db.data.users[user].isHacking = false;
+    await db.write();
   }
 
 });
@@ -176,38 +202,40 @@ app.command('/abort', async ({ ack, body, client }) => {
       var now = new Date();        
       console.log(now + " - Checking for hack hours...")
 
-      for (var user in hackHourTracker) {
-        var user_info = hackHourTracker[user];
-        var elapsed = new Date(HOUR_MS - (now - user_info.hour_start));
+      for (var user in db.data.users) {
+        var userInfo = db.data.users[user].currentHack;
+        var hourStart = new Date(Date.parse(userInfo.hourStart));
+        var elapsed = new Date(HOUR_MS - (now - hourStart));
         
         if (elapsed.getMinutes() >= 60) {
           // End the user's hack hour
-          var message = `<@${user}> finished working on \n>${user_info.work}\``;
+          var message = `<@${user}> finished working on \n>${userInfo.work}\``;
           app.client.chat.update({
             channel: HACK_HOUR_CHANNEL,
-            ts: user_info.message_ts,
+            ts: userInfo.message_ts,
             text: message
           });
           app.client.chat.postMessage({
             channel: HACK_HOUR_CHANNEL,
-            thread_ts: user_info.message_ts,
+            thread_ts: userInfo.message_ts,
             text: `<@${user}> has finished their hack hour!`
           });
 
-          delete hackHourTracker[user];
+          db.data.users[user].isHacking = false;
+          db.data.users[user].isDoneForToday = true;
         }
         else if (elapsed.getMinutes() % 15 == 0 && elapsed.getMinutes() > 1) {
           app.client.chat.postMessage({
             channel: HACK_HOUR_CHANNEL,
-            thread_ts: user_info.message_ts,
+            thread_ts: userInfo.message_ts,
             text: `<@${user}> you have \`${elapsed.getMinutes()}\`!`
           });            
         } 
         else {
-          var message = `<@${user}> has \`${elapsed.getMinutes()}\` minutes to work on:\n>${user_info.work}`;
+          var message = `<@${user}> has \`${elapsed.getMinutes()}\` minutes to work on:\n>${userInfo.work}`;
           app.client.chat.update({
             channel: HACK_HOUR_CHANNEL,
-            ts: user_info.message_ts,
+            ts: userInfo.message_ts,
             text: message
           });
         }

@@ -2,3 +2,5 @@
 node_modules
 
 init.sh
+
+db.json
