@@ -8,7 +8,7 @@ const app = new App({
 });
 
 // Constants
-const HACK_HOUR_CHANNEL = 'C06S6E7CXK7';//'C06SBHMQU8G';
+const HACK_HOUR_CHANNEL = 'C06SBHMQU8G'; //'C06S6E7CXK7';
 const MIN_MS = 60 * 1000;
 const HOUR_MS = 60 * MIN_MS;
 
