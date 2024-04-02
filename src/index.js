@@ -8,7 +8,8 @@ const app = new App({
 });
 
 // Constants
-const HACK_HOUR_CHANNEL = 'C06SBHMQU8G'; //'C06S6E7CXK7';
+//const HACK_HOUR_CHANNEL = 'C06S6E7CXK7'; // DEV
+const HACK_HOUR_CHANNEL = 'C06SBHMQU8G'; 
 const MIN_MS = 60 * 1000;
 const HOUR_MS = 60 * MIN_MS;
 
@@ -198,18 +199,24 @@ app.command('/abort', async ({ ack, body, client }) => {
   await app.start();
 
   // Run the interval at the start of the minute
-  setInterval(() => {
+  setInterval(async () => {
       var now = new Date();        
       console.log(now + " - Checking for hack hours...")
 
       for (var user in db.data.users) {
+        if (!db.data.users[user].isHacking) {
+          continue;
+        }
+
         var userInfo = db.data.users[user].currentHack;
         var hourStart = new Date(Date.parse(userInfo.hourStart));
         var elapsed = new Date(HOUR_MS - (now - hourStart));
-        
-        if (elapsed.getMinutes() >= 60) {
+
+        console.log(`Elapsed time for ${user}: ${elapsed.getMinutes()} minutes`);
+
+        if (elapsed.getMinutes() <= 0) {
           // End the user's hack hour
-          var message = `<@${user}> finished working on \n>${userInfo.work}\``;
+          var message = `<@${user}> finished working on \n>${userInfo.work}`;
           app.client.chat.update({
             channel: HACK_HOUR_CHANNEL,
             ts: userInfo.message_ts,
@@ -222,13 +229,13 @@ app.command('/abort', async ({ ack, body, client }) => {
           });
 
           db.data.users[user].isHacking = false;
-          db.data.users[user].isDoneForToday = true;
+          db.data.users[user].currentHack = {};
         }
-        else if (elapsed.getMinutes() % 15 == 0 && elapsed.getMinutes() > 1) {
+        else if (elapsed.getMinutes() % 15 == 0) {
           app.client.chat.postMessage({
             channel: HACK_HOUR_CHANNEL,
             thread_ts: userInfo.message_ts,
-            text: `<@${user}> you have \`${elapsed.getMinutes()}\`!`
+            text: `<@${user}> you have \`${elapsed.getMinutes()}\` left!`
           });            
         } 
         else {
@@ -239,6 +246,8 @@ app.command('/abort', async ({ ack, body, client }) => {
             text: message
           });
         }
+
+        await db.write();
       }
   }, MIN_MS);
 
