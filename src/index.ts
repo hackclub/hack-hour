@@ -38,9 +38,11 @@ async function checkInit(user: string) {
 
   if (!(user in usergroup.users)) {
     // Add the user to the user group
+    usergroup.users.push(user);
+
     await app.client.usergroups.users.update({
       usergroup: Constants.HACK_HOUR_USERGROUP,
-      users: user
+      users: usergroup.users.join(',')
     });
   }
     
