@@ -4,7 +4,9 @@
   "description": "",
   "exports": "./src/index.js",
   "scripts": {
-    "app": "node --env-file=\".env\" ./src/index.js"
+    "build": "tsc",
+    "start": "node --env-file=\".env\" ./build/index.js",
+    "app": "npm run build && npm run start"
   },
   "repository": {
     "type": "git",
@@ -23,5 +25,12 @@
   "type": "module",
   "engines": {
     "node": ">=16"
+  },
+  "devDependencies": {
+    "@types/lowdb": "^1.0.15",
+    "@types/node": "^20.12.4",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.3"
   }
 }
