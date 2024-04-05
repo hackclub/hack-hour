@@ -11,8 +11,6 @@ const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   appToken: process.env.SLACK_APP_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-
-  socketMode: true,
 });
 
 // Database Initialization
@@ -286,7 +284,7 @@ app.command(Commands.CHECKIN, async ({ ack, body, client }) => {
 });
 
 (async () => {
-  await app.start();
+  await app.start(8000);
 
   // Minute Interval
   setInterval(async () => {

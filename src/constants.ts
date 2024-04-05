@@ -44,9 +44,9 @@ export const Constants = {
 
 // Commands
 export const Commands = {
-  HACK: '/testhack',
-  ABORT: '/testabort',
-  CHECKIN: '/testcheckin',
+  HACK: '/hack',
+  ABORT: '/abort',
+  CHECKIN: '/checkin',
 };
 
 // Messages :p
