@@ -283,6 +283,45 @@ app.command(Commands.CHECKIN, async ({ ack, body, client }) => {
   }
 });
 
+/**
+ * /delete
+ * Delete a message sent by the bot, when given the ts
+ */
+app.command('/delete', async ({ ack, body, client }) => {
+  await ack();
+
+  // Check if the user is an admin
+  if (body.user_id != 'U04QD71QWS0') {
+    await client.chat.postEphemeral({
+      user: body.user_id,
+      channel: body.channel_id,
+      text: 'You do not have permission to use this command!',
+      username: 'the doctor'
+    });
+    return;
+  }
+  
+  // Split into array
+  var text = body.text.split(' ');
+
+  // Check if there is a ts
+  if (text.length == 0) {
+    await client.chat.postEphemeral({
+      user: body.user_id,
+      channel: body.channel_id,
+      text: 'You need to provide a timestamp!',
+      username: 'the doctor'
+    });
+    return;
+  }
+
+  // Delete the message
+  await client.chat.delete({
+    channel: body.channel_id,
+    ts: text[0]
+  });
+});
+
 (async () => {
   await app.start(8000);
 
