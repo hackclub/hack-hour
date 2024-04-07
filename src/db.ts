@@ -17,7 +17,7 @@ export type User = {
 export type HackHourSession = {
   messageTs: string,
   hourStart: Date, // Keeping this in case, will probably remove later 
-  motto: string,
+  template: string,
   elapsed: number,
   work: string
 }

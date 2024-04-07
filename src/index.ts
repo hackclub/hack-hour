@@ -11,6 +11,7 @@ import { Commands } from './commands/commands.js';
 import { Views, HackHourView } from './lib/views.js';
 import { Constants } from './lib/constants.js';
 import { MessageTemplates, genFunMessage, randomSelect, formatMessage } from './lib/messages.js';
+import { MessageManager } from './message.js';
 
 (async () => { // Wrap in an async function
 
@@ -23,6 +24,9 @@ const app = new App({
 // Database Initialization
 const db = new Database();
 await db.init();
+
+// Message Manager
+const messageManager = new MessageManager(app);
 
 // Initalize the app
 // TODO: seperate checking init and initalizing the user
@@ -100,7 +104,7 @@ function assertVal<T>(value: T | undefined | null): asserts value is T {
  * Start the user's hack hour
  */
 app.command(Commands.HACK, async ({ ack, body, client }) => {
-  var text: string = body.text;
+  var textBody: string = body.text;
   var user: string = body.user_id;
 
   // Acknowledge the command request
@@ -122,29 +126,22 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
 
   try {
     // Check if text was offered
-    if (text) {
+    if (textBody) {
       // Immediately start the user's hack hour
-      var motto = randomSelect(MessageTemplates.minutesRemaining);
-      var work = ">" + text;
-
-      var message = await client.chat.postMessage({
-        channel: Constants.HACK_HOUR_CHANNEL,
-        text: formatMessage(motto, {
-          'U': user,
-          'T': work,
-          '#': "" + 60
-        }),
-        username: 'the doctor'
-      });  
+      var message = await messageManager.postHackHourSession({
+        userId: user,
+        minutes: 60,
+        body: textBody
+      });
 
       assertVal(message.ts);
 
       await db.createSession(user, {
-        motto: motto,
+        template: message.template,
         messageTs: message.ts,
         hourStart: new Date(),
         elapsed: 60, // minutes
-        work: work
+        work: textBody
       });      
 
       return;
@@ -191,16 +188,10 @@ app.view(Views.HACK_HOUR, async ({ ack, body, view, client }) => {
     await ack();    
   }
 
-  var motto = randomSelect(MessageTemplates.minutesRemaining);
-
-  var message = await client.chat.postMessage({
-    channel: Constants.HACK_HOUR_CHANNEL,
-    text: formatMessage(motto, {
-      'U': user,
-      'T': work,
-      '#': "" + 60
-    }),
-    username: 'the doctor'
+  var message = await messageManager.postHackHourSession({
+    userId: user,
+    minutes: 60,
+    body: work
   });
 
   assertVal(message.ts);
@@ -211,7 +202,7 @@ app.view(Views.HACK_HOUR, async ({ ack, body, view, client }) => {
     hourStart: new Date(),
     elapsed: 60, // minutes
     work: work,
-    motto: motto
+    template: message.template
   });
 
 });
@@ -400,7 +391,7 @@ app.command('/delete', async ({ ack, body, client }) => {
           app.client.chat.update({
             channel: Constants.HACK_HOUR_CHANNEL,
             ts: session.messageTs,
-            text: formatMessage(session.motto, {
+            text: formatMessage(session.template, {
               'U': userId,
               'T': session.work,
               '#': "" + elapsed

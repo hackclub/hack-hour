@@ -241,4 +241,4 @@ export default {
   summit: "leaders-summit",
   "summit vision": "summit-vision",
   "apple vision": "summit-vision"
-};
+} as { [key: string]: string };
