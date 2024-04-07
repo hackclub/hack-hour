@@ -256,7 +256,7 @@ app.command(Commands.ABORT, async ({ ack, body, client }) => {
       username: 'the doctor'
     });
 
-    
+
 
     await db.deleteSession(user);
   }
@@ -375,7 +375,7 @@ app.command('/delete', async ({ ack, body, client }) => {
             text: genFunMessage({
               'U': userId,
               '#': "" + elapsed
-            }, Messages.finished),
+            }, MessageTemplates.finished),
             username: 'the doctor'
           });
 
@@ -392,7 +392,7 @@ app.command('/delete', async ({ ack, body, client }) => {
             text: genFunMessage({
               'U': userId,
               '#': "" + elapsed
-            }, Messages.minuteUpdate),
+            }, MessageTemplates.minuteUpdate),
             username: 'the doctor'
           });            
         } 
