@@ -427,7 +427,7 @@ app.command('/delete', async ({ ack, body, client }) => {
 
   }, Constants.HOUR_MS);
   
-  console.log('🧚 Pixie started');
+  console.log('🧑‍⚕️ Hack Hour Started!');
 })();
 
 })();
