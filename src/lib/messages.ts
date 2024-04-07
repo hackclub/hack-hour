@@ -1,56 +1,5 @@
-export type Database = {
-  globalFlags: {
-    [flag: string]: any
-  },
-  users: {
-    [userId: string]: User
-  },
-  hackHourSessions: {
-    [userId: string]: HackHourSession
-  }
-}
-
-export const CURRENT_VERSION = "1.1";
-export type Version = "1.1"; // Pixie Version Management
-
-export type User = {
-  version: Version,
-  totalHours: number,
-  userFlags: { // TODO: implement typing for flags
-    [flag: string]: any
-  },
-}
-
-export type HackHourSession = {
-  messageTs: string,
-  hourStart: Date, // Keeping this in case, will probably remove later 
-  motto: string,
-  elapsed: number,
-  work: string
-}
-
-// Constants
-export const Constants = {
-//HACK_HOUR_CHANNEL: 'C06T6MQ1AMN', // PRIVATE
-  HACK_HOUR_CHANNEL: 'C06SBHMQU8G', // PROD
-//HACK_HOUR_CHANNEL: 'C06S6E7CXK7', // DEV
-  MIN_MS: 60 * 1000,
-  HOUR_MS: 60 * 60 * 1000,
-
-  FILE_PATH: './data/db.json',
-
-  HACK_HOUR_USERGROUP: 'S06RMCA6HBP', // DEV
-};
-
-// Commands
-export const Commands = {
-  HACK: '/hack',
-  ABORT: '/abort',
-  CHECKIN: '/checkin',
-};
-
 // Messages :p
-export const Messages = {
+export const MessageTemplates = {
   // has `##` to remain
   minutesRemaining: [
     "it looks like <@<U>> is getting more power this hour! `<#>` minutes remaining to work on:\n<T>",

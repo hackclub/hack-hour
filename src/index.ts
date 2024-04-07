@@ -1,9 +1,16 @@
+// Bolt
 import bolt, { RespondArguments } from '@slack/bolt'; const { App } = bolt;
+// Database
 import { JSONFilePreset } from 'lowdb/node';
 
-import { Views, HackHourView } from './views.js';
-import { Commands, Constants, CURRENT_VERSION, Database, User, HackHourSession, Messages, genFunMessage, randomSelect, formatMessage } from './constants.js';
-// TODO: seperate consts into multiple files: database, messages, lib, etc.
+import { Database, CURRENT_VERSION, User, HackHourSession } from './db.js';
+
+// Commands
+import { Commands } from './commands/commands.js';
+// Misc/Lib/Constants
+import { Views, HackHourView } from './lib/views.js';
+import { Constants } from './lib/constants.js';
+import { MessageTemplates, genFunMessage, randomSelect, formatMessage } from './lib/messages.js';
 
 (async () => { // Wrap in an async function
 
@@ -14,20 +21,20 @@ const app = new App({
 });
 
 // Database Initialization
-const DEFAULT_DATA: Database = {
-  globalFlags: {},
-  users: {},
-  hackHourSessions: {}
-}
-
-const db = await JSONFilePreset(Constants.FILE_PATH, DEFAULT_DATA);
-await db.write(); // Update db.json
+const db = new Database();
+await db.init();
 
 // Initalize the app
 // TODO: seperate checking init and initalizing the user
 async function checkInit(user: string) {
+  // Check if the user is in the database
+  if (!(await db.isUser(user))) {
+    await initalizeUser(user);
+  }
+
   // Retrieve the user's data
-  var userData: User = db.data.users[user];
+  var userData = await db.getUser(user);
+  assertVal(userData);
 
   // Check if the user is in the hack hour slack user group
   var usergroup = await app.client.usergroups.users.list({
@@ -46,40 +53,46 @@ async function checkInit(user: string) {
     });
   }
     
-  // Check if the user has been initialized
-  if (!(user in db.data.users)) {
-    var slackUserData = await app.client.users.info({ user: user });
-    assertVal(slackUserData.user);
-    var tz_offset = slackUserData.user.tz_offset;
+  // Check if the user's version is up to date
+  if (userData.version != CURRENT_VERSION) {
+    //updateUser(user, userData);
+  }
+}
 
-    db.data.users[user] = {      
-      version: CURRENT_VERSION,
-      totalHours: 0,
-      userFlags: {
-        tz_offset: tz_offset,
-        checkIn: true,
-        hackedToday: false
-      },
-    }
+async function initalizeUser(user: string) {
+  // Check if the user is already initailized
+  if (user in (await db.listUsers())) {
     return;
   }
 
-  // Check if the user's version is up to date
-  if (userData.version != CURRENT_VERSION) {
-    // TODO: Run code necessary to bring the user's data up to date
-  }
+  var slackUserData = await app.client.users.info({ user: user });
+  assertVal(slackUserData.user);
+  var tz_offset = slackUserData.user.tz_offset;
+
+  await db.createUser(user, {      
+    version: CURRENT_VERSION,
+    totalHours: 0,
+    userFlags: {
+      tz_offset: tz_offset,
+      checkIn: true,
+      hackedToday: false
+    },
+  });
+
+  // Add the user to the hack hour user group
+  var usergroup = await app.client.usergroups.users.list({
+    usergroup: Constants.HACK_HOUR_USERGROUP,
+  });
+}
+
+async function updateUser(user: string, data: User) {
+  // TODO: Run code necessary to bring the user's data up to date
 }
 
 function assertVal<T>(value: T | undefined | null): asserts value is T {
   // Throw if the value is undefined
   if (value === undefined) { throw new Error(`${value} is undefined, needs to be type ${typeof value}`) }
   else if (value === null) { throw new Error(`${value} is null, needs to be type ${typeof value}`) }
-}
-
-async function startSession(user: string, sessionObj: HackHourSession) {
-  db.data.hackHourSessions[user] = sessionObj;
-
-  await db.write();  
 }
 
 /**
@@ -96,7 +109,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
   // Check if the user has been initialized
   await checkInit(user);
 
-  if (user in db.data.hackHourSessions) {
+  if (await db.isInSession(user)) {
     // Send an error
     await client.chat.postEphemeral({
       user: user,
@@ -109,10 +122,9 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
 
   try {
     // Check if text was offered
-
     if (text) {
       // Immediately start the user's hack hour
-      var motto = randomSelect(Messages.minutesRemaining);
+      var motto = randomSelect(MessageTemplates.minutesRemaining);
       var work = ">" + text;
 
       var message = await client.chat.postMessage({
@@ -127,7 +139,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
 
       assertVal(message.ts);
 
-      startSession(user, {
+      await db.createSession(user, {
         motto: motto,
         messageTs: message.ts,
         hourStart: new Date(),
@@ -162,9 +174,9 @@ app.view(Views.HACK_HOUR, async ({ ack, body, view, client }) => {
   work = work.split('\n').map(line => `>${line}`).join('\n');
 
   await checkInit(user);
-
+ 
   // Check if the user is already working
-  if (!(user in db.data.users)) {
+  if (!db.isUser(user)) {
     // Send an error
     await ack({
       response_action: 'errors',
@@ -179,7 +191,7 @@ app.view(Views.HACK_HOUR, async ({ ack, body, view, client }) => {
     await ack();    
   }
 
-  var motto = randomSelect(Messages.minutesRemaining);
+  var motto = randomSelect(MessageTemplates.minutesRemaining);
 
   var message = await client.chat.postMessage({
     channel: Constants.HACK_HOUR_CHANNEL,
@@ -194,7 +206,7 @@ app.view(Views.HACK_HOUR, async ({ ack, body, view, client }) => {
   assertVal(message.ts);
   assertVal(work);
 
-  await startSession(user, {
+  await db.createSession(user, {
     messageTs: message.ts,
     hourStart: new Date(),
     elapsed: 60, // minutes
@@ -215,19 +227,20 @@ app.command(Commands.ABORT, async ({ ack, body, client }) => {
   await checkInit(user);
 
   // Check if the user is working - if not error out
-  if (!(user in db.data.hackHourSessions)) {
+  if (!(await db.isInSession(user))) {
     await ack({
       response_action: 'errors',
       errors: {
         desc: 'You are not working on anything!'
       }
     } as RespondArguments);
-    return;
+    return;    
   } 
   else {
     await ack();
 
-    var session = db.data.hackHourSessions[user];
+    var session = await db.getSession(user);
+    assertVal(session);
 
     client.chat.update({
       channel: Constants.HACK_HOUR_CHANNEL,
@@ -239,12 +252,13 @@ app.command(Commands.ABORT, async ({ ack, body, client }) => {
       thread_ts: session.messageTs,
       text: genFunMessage({
         'U': user,
-      }, Messages.aborted),
+      }, MessageTemplates.aborted),
       username: 'the doctor'
     });
 
-    delete db.data.hackHourSessions[user];
-    await db.write();
+    
+
+    await db.deleteSession(user);
   }
 });
 
@@ -253,23 +267,28 @@ app.command(Commands.ABORT, async ({ ack, body, client }) => {
  * Toggle the user's check-in status
  */
 app.command(Commands.CHECKIN, async ({ ack, body, client }) => {
-  var user = body.user_id;
+  var userId = body.user_id;
+  var user = await db.getUser(userId);
 
   // Check if user has been initialized
-  await checkInit(user);
+  await checkInit(userId);
+
+  var checkIn = await db.getUserFlag(userId, 'checkIn');
 
   // Check if the check-in flag is not null
-  if (db.data.users[user].userFlags.checkIn == null) {
-    db.data.users[user].userFlags.checkIn = true;
+  if (checkIn == null) {
+    await db.setUserFlag(userId, 'checkIn', true);
+    checkIn = true;
   }
   else {
-    db.data.users[user].userFlags.checkIn = !db.data.users[user].userFlags.checkIn;
+    await db.setUserFlag(userId, 'checkIn', !checkIn);
+    checkIn = !checkIn;
   }
 
   // Check if the check-in flag is set
-  if (db.data.users[user].userFlags.checkIn) {
+  if (checkIn) {
     await client.chat.postEphemeral({
-      user: user,
+      user: userId,
       channel: Constants.HACK_HOUR_CHANNEL,
       text: `You will be checked in every day at 12:00 AM! (Your time)`,
       username: 'the doctor'
@@ -277,7 +296,7 @@ app.command(Commands.CHECKIN, async ({ ack, body, client }) => {
   }
   else {
     await client.chat.postEphemeral({
-      user: user,
+      user: userId,
       channel: Constants.HACK_HOUR_CHANNEL,
       text: `You will not be checked in every day at 12:00 AM! (Your time)`,
       username: 'the doctor'
@@ -329,18 +348,22 @@ app.command('/delete', async ({ ack, body, client }) => {
 
   // Minute Interval
   setInterval(async () => {
+    // Wrap in try-catch to prevent the interval from stopping
+    try {
       var now = new Date();        
       console.log(now + " - Checking for current sessions...")
 
-      for (var user in db.data.hackHourSessions) {
-        var session = db.data.hackHourSessions[user];
-        var elapsed = session.elapsed - 1;
+      var sessionsList = await db.listSessions();
 
-        console.log(`Elapsed time for ${user}: ${elapsed} minutes`);
+      for (var userId in sessionsList) {
+        var session = await db.getSession(userId);
+        assertVal(session);
+
+        var elapsed = session.elapsed - 1;
 
         if (elapsed <= 0) {
           // End the user's hack hour
-          var message = `<@${user}> finished working on \n${session.work}`;
+          var message = `<@${userId}> finished working on \n${session.work}`;
           app.client.chat.update({
             channel: Constants.HACK_HOUR_CHANNEL,
             ts: session.messageTs,
@@ -350,22 +373,24 @@ app.command('/delete', async ({ ack, body, client }) => {
             channel: Constants.HACK_HOUR_CHANNEL,
             thread_ts: session.messageTs,
             text: genFunMessage({
-              'U': user,
+              'U': userId,
               '#': "" + elapsed
             }, Messages.finished),
             username: 'the doctor'
           });
 
-          delete db.data.hackHourSessions[user];
-          db.data.users[user].totalHours += 1;
-          db.data.users[user].userFlags.hackedToday = true;
+          await db.deleteSession(userId);
+          
+          var totalHours = await db.getUserFlag(userId, 'totalHours');
+          await db.setUserFlag(userId, 'totalHours', totalHours + 1);
+          await db.setUserFlag(userId, 'hackedToday', true);
         }
         else if (elapsed % 15 == 0 && elapsed > 1) {
           app.client.chat.postMessage({
             channel: Constants.HACK_HOUR_CHANNEL,
             thread_ts: session.messageTs,
             text: genFunMessage({
-              'U': user,
+              'U': userId,
               '#': "" + elapsed
             }, Messages.minuteUpdate),
             username: 'the doctor'
@@ -376,7 +401,7 @@ app.command('/delete', async ({ ack, body, client }) => {
             channel: Constants.HACK_HOUR_CHANNEL,
             ts: session.messageTs,
             text: formatMessage(session.motto, {
-              'U': user,
+              'U': userId,
               'T': session.work,
               '#': "" + elapsed
             })
@@ -384,31 +409,38 @@ app.command('/delete', async ({ ack, body, client }) => {
         }
 
         session.elapsed = elapsed;
-        await db.write();
+
+        await db.updateSession(userId, session);
       }
+    } catch (error) {
+      console.error(error);
+    }
   }, Constants.MIN_MS);
 
   // Hour Interval (Check-ins)
   setInterval(async () => {
+    try {
     var now = new Date();
     console.log(now + " - Running check-ins...");
 
-    for (var user in db.data.users) {
-      var userData = db.data.users[user];
-      var userFlags = userData.userFlags;
+    var userList = await db.listUsers();
+
+    for (var userId in userList) {
+      var userData = db.getUser(userId);
 
       // Skip if the user requested not to be checked in
-      if (!userFlags.checkIn) {
+      var checkIn = await db.getUserFlag(userId, 'checkIn');
+      if (!checkIn) {
         continue;
       }
 
       // Skip if timezone is not set
-      if (!(userFlags.tz_offset)) {
+      var tz_offset = await db.getUserFlag(userId, 'tz_offset');
+      if (!tz_offset) {
         continue;
       }
 
       // Check if it's 12:00 AM in the user's timezone
-      var tz_offset = userFlags.tz_offset;
       var nowUTC = new Date(now.getTime() + tz_offset * Constants.MIN_MS);
       var nowHour = nowUTC.getHours();
       
@@ -416,15 +448,19 @@ app.command('/delete', async ({ ack, body, client }) => {
         continue;
       }
 
-      if (!userFlags.hackedToday) {
+      // Check if the user has already hacked today
+      var hackedToday = await db.getUserFlag(userId, 'hackedToday')
+      if (!hackedToday) {
         app.client.chat.postMessage({
           channel: Constants.HACK_HOUR_CHANNEL,
-          text: `<@${user}> you missed today's hack hour!`,
+          text: `<@${userId}> you missed today's hack hour!`,
           username: 'the doctor'
         });
       }
     }
-
+    } catch (error) {
+      console.error(error);
+    }     
   }, Constants.HOUR_MS);
   
   console.log('🧑‍⚕️ Hack Hour Started!');
