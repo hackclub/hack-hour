@@ -14,5 +14,6 @@ export const Constants = {
 export const Commands = {
   HACK: '/testhack',
   CANCEL: '/cancel',
-  GOALS: '/goals'
+  GOALS: '/goals',
+  STATS: '/mystats',
 };

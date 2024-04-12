@@ -975,6 +975,85 @@ async function isUser(userId: string): Promise<boolean> {
         console.log(`🟢 Session ${message.ts} started by ${userId}`);
     });
 
+    // Stats
+
+    /**
+     * mystats
+     * Displays the user's stats
+     */
+    app.command(Commands.STATS, async ({ ack, body, client }) => {
+        const userId = body.user_id;
+
+        ack();        
+
+        const userData = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+
+        const goals = await prisma.goals.findMany({
+            where: {
+                slackId: userId
+            }
+        });
+
+        const blocks: KnownBlock[] = goals.map(goal => {
+            return {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${goal.goalName}*: ${formatHour(goal.minutes)} hours spent\n_(${goal.minutes} minutes)_`
+                }
+            }
+        });
+
+        blocks.unshift({
+            "type": "divider"
+        });
+        blocks.unshift({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `*Lifetime Hours Spent*: ${formatHour(userData?.totalMinutes)}\n_(${userData?.totalMinutes} minutes)_`
+            }
+        });
+
+        const view: View = {
+            "type": "modal",
+            "callback_id": CALLBACK_ID.STATS,
+            "title": {
+                "type": "plain_text",
+                "text": "My Stats",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": blocks
+        };
+
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: view
+        });
+    });
+
+    /**
+     * stats
+     * Just close on submission
+     */
+    app.view(CALLBACK_ID.STATS, async ({ ack, body, client }) => {
+        await ack();
+    });
+
     // Interval Updates
     setInterval(async () => {
         const sessions = await prisma.session.findMany({
