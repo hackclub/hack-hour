@@ -1,0 +1,38 @@
+{
+  "name": "hackhour",
+  "version": "1.0.0",
+  "description": "",
+  "exports": "./src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file=\".env\" ./build/index.js",
+    "app": "npm run build && npm run start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techpixel/hackhour.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/techpixel/hackhour/issues"
+  },
+  "homepage": "https://github.com/techpixel/hackhour#readme",
+  "dependencies": {
+    "@prisma/client": "^5.12.1",
+    "@slack/bolt": "^3.17.1",
+    "lowdb": "^7.0.1"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "@types/lowdb": "^1.0.15",
+    "@types/node": "^20.12.7",
+    "prisma": "^5.12.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  }
+}

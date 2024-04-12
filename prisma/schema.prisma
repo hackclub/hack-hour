@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  slackId    String   @id
+  totalMinutes Int  
+  // Flags
+  tz String
+  remindersEnabled Boolean
+  reminder String
+  goals Goals[]
+  defaultGoal String // via. goalId
+  event String? // check if the user is in an event (community goals todo)
+}
+
+model Session {
+  messageTs String @id
+  userId String
+  template String
+  goal String // Goal this session is for
+  task String // Task that the person is working on currently
+  time Int // Total time for this session
+  elapsed Int    
+  completed Boolean  
+  attachment String?
+  cancelled Boolean
+}
+
+model Goals {
+  user User @relation(fields: [slackId], references: [slackId])
+  goalId String @id // UUID
+  slackId String 
+  goalName String
+  minutes Int // Minutes contributed
+}
