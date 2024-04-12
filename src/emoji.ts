@@ -1,4 +1,4 @@
-export default {
+const emojis = {
     yay: "yay",
     OSF: "osf",
     hooray: "tada",
@@ -241,4 +241,22 @@ export default {
     summit: "leaders-summit",
     "summit vision": "summit-vision",
     "apple vision": "summit-vision"
-};
+} as { [key: string]: string };
+
+export async function reactOnContent(app: App, data: {
+    content: string,
+    channel: string,
+    ts: string
+}) {
+    const words = data.content.split(" ");
+
+    words.forEach(async (word) => {
+        if (emojis[word]) {
+            await app.client.reactions.add({
+                name: emojis[word],
+                channel: data.channel,
+                timestamp: data.ts
+            });
+        }
+    });
+}

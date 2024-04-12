@@ -5,7 +5,7 @@ import { format, randomChoice, formatHour, genAttachmentBlock } from './lib.js';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { Templates } from './message.js';
-import { kMaxLength } from 'node:buffer';
+import { reactOnContent } from './emoji.js';
 const { App } = bolt;
 const prisma = new PrismaClient();
 const app = new App({
@@ -88,6 +88,12 @@ async function isUser(userId: string): Promise<boolean> {
             });
 
             assertVal(message.ts);
+
+            reactOnContent(app, {
+                content: text,
+                channel: Constants.HACK_HOUR_CHANNEL,
+                ts: message.ts
+            });
 
             await prisma.session.create({
                 data: {
@@ -874,6 +880,12 @@ async function isUser(userId: string): Promise<boolean> {
             })
         });
 
+        await client.reactions.add({
+            name: "x",
+            channel: Constants.HACK_HOUR_CHANNEL,
+            timestamp: session.messageTs
+        });
+
         console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
     });
 
@@ -971,6 +983,12 @@ async function isUser(userId: string): Promise<boolean> {
                 }
             });
         }
+
+        reactOnContent(app, {
+            content: task,
+            channel: Constants.HACK_HOUR_CHANNEL,
+            ts: message.ts
+        });
 
         console.log(`🟢 Session ${message.ts} started by ${userId}`);
     });
@@ -1222,6 +1240,14 @@ async function isUser(userId: string): Promise<boolean> {
                         }
                     }
                 });
+
+                await app.client.reactions.add({
+                    name: "tada",
+                    channel: Constants.HACK_HOUR_CHANNEL,
+                    timestamp: session.messageTs
+                });
+
+                console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
 
                 // Future proofing for events
                 // WHERE events IS Event[] and Event has a verify method                
