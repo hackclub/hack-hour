@@ -43,3 +43,11 @@ model Goals {
   goalName String
   minutes Int // Minutes contributed
 }
+
+model Events {
+  // Tracks event contributions
+  contributionId String @id
+  slackId String
+  eventName String
+  minutes Int
+}

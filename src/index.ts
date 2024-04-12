@@ -100,7 +100,7 @@ async function isUser(userId: string): Promise<boolean> {
                     elapsed: 0,                    
                     completed: false,
                     cancelled: false,
-                    createdAt: String(new Date())
+                    createdAt: (new Date()).toDateString()
                 }
             });
 
@@ -946,7 +946,7 @@ async function isUser(userId: string): Promise<boolean> {
                     completed: false,
                     cancelled: false,
                     attachment: JSON.stringify(attachments[0]),
-                    createdAt: String(new Date())
+                    createdAt: (new Date()).toDateString()
                 }            
             });
         } else {
@@ -967,7 +967,7 @@ async function isUser(userId: string): Promise<boolean> {
                     elapsed: 0,
                     completed: false,
                     cancelled: false,
-                    createdAt: String(new Date())
+                    createdAt: (new Date()).toDateString()
                 }
             });
         }
@@ -1054,7 +1054,95 @@ async function isUser(userId: string): Promise<boolean> {
         await ack();
     });
 
+    // Reminders
+
+    /**
+     * /reminders
+     * Opens the reminders modal, allowing the user to set their reminder time
+     */
+    app.command(Commands.REMINDERS, async ({ ack, body, client }) => {
+        const userId = body.user_id;
+
+        await ack();
+
+        const userData = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+
+        const view: View = {
+            "type": "modal",
+            "callback_id": CALLBACK_ID.REMINDERS,
+            "title": {
+                "type": "plain_text",
+                "text": "Reminders",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Submit",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "input",
+                    "element": {
+                        "type": "timepicker",
+                        "action_id": "reminder_time",
+                        "initial_time": userData?.reminder ?? "15:00",
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "Select a time"
+                        }
+                    },
+                    "label": {
+                        "type": "plain_text",
+                        "text": "What time would you like to be reminded to hack hour?"
+                    },
+                    "block_id": "reminder"
+                }
+            ]
+        };
+
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: view
+        });
+    });
+
+    /**
+     * reminders
+     * Make updates to the user's reminder time
+     */
+    app.view(CALLBACK_ID.REMINDERS, async ({ ack, body, client }) => {
+        const userId = body.user.id;
+        const time = body.view.state.values.reminder.reminder_time.selected_time;
+
+        await ack();
+
+        assertVal(time);
+
+        await prisma.user.update({
+            where: {
+                slackId: userId
+            },
+            data: {
+                reminder: time
+            }
+        });
+    });
+
     // Interval Updates
+
+    /**
+     * Interval to update the sessions
+     */
     setInterval(async () => {
         const sessions = await prisma.session.findMany({
             where: {
@@ -1187,6 +1275,52 @@ async function isUser(userId: string): Promise<boolean> {
         }
     }, Constants.MIN_MS);
     
+    /**
+     * Interval for reminders
+     */
+    setTimeout(async () => {
+        setInterval(async () => {
+            const now = new Date();
+            const users = await prisma.user.findMany({
+                where: {
+                    remindersEnabled: true
+                }
+            });
+
+            for (const user of users) {
+                const userInfo = await app.client.users.info({
+                    user: user.slackId
+                });
+
+                const tz = userInfo.user?.tz_offset;
+
+                // Get current time, adjusted for timezone
+                const nowUTC = new Date(now.getTime() + (now.getTimezoneOffset() * Constants.MIN_MS));
+                const nowHour = nowUTC.getHours();
+
+                const remindHour = Number.parseInt(user.reminder.split(":")[0]);
+
+                // Check if the user already hacked today
+                const sessions = await prisma.session.findMany({
+                    where: {
+                        userId: user.slackId,
+                        createdAt: (new Date()).toDateString()
+                    }
+                });                
+
+                if (sessions.length > 0) {
+                    continue;
+                }
+
+                await app.client.chat.postMessage({
+                    channel: user.slackId,
+                    text: `🕒 It's ${nowHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`
+                });
+            }
+
+        }, Constants.HOUR_MS);
+    }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
+
     // App    
     app.start(process.env.PORT || 3000);
     console.log('⏳ And the hour begins...');

@@ -24,6 +24,7 @@ export const CALLBACK_ID = {
   START: START_CALLBACK_ID,
   GOALS_ERROR: 'goalsError',
   STATS: 'stats',
+  REMINDERS: 'reminders',
 }
 
 export const ACTION_ID = {
