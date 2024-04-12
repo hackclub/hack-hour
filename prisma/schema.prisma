@@ -33,6 +33,7 @@ model Session {
   completed Boolean  
   attachment String?
   cancelled Boolean
+  createdAt String?
 }
 
 model Goals {

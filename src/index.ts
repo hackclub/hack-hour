@@ -99,7 +99,8 @@ async function isUser(userId: string): Promise<boolean> {
                     time: 60,
                     elapsed: 0,                    
                     completed: false,
-                    cancelled: false        
+                    cancelled: false,
+                    createdAt: String(new Date())
                 }
             });
 
@@ -926,7 +927,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         // If there's an attachment, add it
         if (attachments[0]) {
-            blocks.push(genAttachmentBlock(JSON.stringify(attachments)));
+            blocks.push(genAttachmentBlock(JSON.stringify(attachments[0])));
             message = await app.client.chat.postMessage({
                 channel: Constants.HACK_HOUR_CHANNEL,
                 blocks: blocks,
@@ -944,7 +945,8 @@ async function isUser(userId: string): Promise<boolean> {
                     elapsed: 0,
                     completed: false,
                     cancelled: false,
-                    attachment: JSON.stringify(attachments[0])
+                    attachment: JSON.stringify(attachments[0]),
+                    createdAt: String(new Date())
                 }            
             });
         } else {
@@ -964,7 +966,8 @@ async function isUser(userId: string): Promise<boolean> {
                     time: parseInt(minutes),
                     elapsed: 0,
                     completed: false,
-                    cancelled: false
+                    cancelled: false,
+                    createdAt: String(new Date())
                 }
             });
         }
