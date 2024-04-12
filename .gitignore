@@ -1,9 +1,0 @@
-.env
-node_modules
-build
-data
-
-init.sh
-
-db.json
-old_db.json
