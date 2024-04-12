@@ -9,12 +9,12 @@ export const goals: View = {
 	"type": "modal",
 	"submit": {
 		"type": "plain_text",
-		"text": "Submit",
+		"text": "I'm done",
 		"emoji": true
 	},
 	"close": {
 		"type": "plain_text",
-		"text": "Cancel",
+		"text": "Close",
 		"emoji": true
 	},
 	"title": {

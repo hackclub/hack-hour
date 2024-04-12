@@ -1,8 +1,10 @@
 import bolt, { KnownBlock, RespondArguments, View } from '@slack/bolt'; 
 import { CALLBACK_ID, Views, ACTION_ID } from './views/views.js';
 import { Constants, Commands } from './constants.js';
+import { format, randomChoice } from './lib.js';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { Templates } from './message.js';
 const { App } = bolt;
 const prisma = new PrismaClient();
 const app = new App({
@@ -34,13 +36,13 @@ async function isUser(userId: string): Promise<boolean> {
      */
     app.command(Commands.HACK, async ({ ack, body, client }) => {
         const text: string = body.text;
-        const user: string = body.user_id;
+        const userId: string = body.user_id;
 
         await ack();
       
         const userData = await prisma.user.findUnique({
             where: {
-                slackId: user
+                slackId: userId
             }
         });
 
@@ -50,7 +52,152 @@ async function isUser(userId: string): Promise<boolean> {
                 view: Views.WELCOME
             });
             return;
-        }            
+        }          
+
+        const session = await prisma.session.findFirst({
+            where: {
+                userId: userId,
+                completed: false
+            }
+        });
+
+        if (session) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `🚨 You're already in a session! Finish that one before starting a new one.`,
+                user: userId
+            });
+            return;
+        }
+        
+        // Check if there's text - if there is use shorthand mode
+        if (text) {
+            const formatText = `> ${text}`;           
+
+            const template = randomChoice(Templates.minutesRemaining);            
+
+            const message = await client.chat.postMessage({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: format(template, {
+                    userId: userId,
+                    minutes: "60",
+                    task: formatText
+                })
+            });
+
+            assertVal(message.ts);
+
+            await prisma.session.create({
+                data: {
+                    messageTs: message.ts,
+                    template: template,
+                    userId: userId,
+                    goal: userData.defaultGoal,
+                    task: formatText,
+                    time: 60,
+                    elapsed: 0,                    
+                    completed: false                    
+                }
+            });
+
+            console.log(`🟢 Session started by ${userId}`);
+        }        
+
+        const goal = await prisma.goals.findUnique({
+            where: {
+                goalId: userData.defaultGoal
+            }
+        });
+
+        const view: View = {
+            "type": "modal",
+            "callback_id": CALLBACK_ID.START,
+            "title": {
+                "type": "plain_text",
+                "text": "Start a Session",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Submit",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "input",
+                    "element": {
+                        "type": "plain_text_input",
+                        "multiline": true,
+                        "action_id": "task"
+                    },
+                    "label": {
+                        "type": "plain_text",
+                        "text": "Label",
+                        "emoji": true
+                    },
+                    "block_id": "task"
+                },		
+                {
+                    "type": "input",
+                    "element": {
+                        "type": "number_input",
+                        "is_decimal_allowed": false,
+                        "action_id": "minutes",
+                        "initial_value": "60",
+                        "min_value": "1",
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "Amount of time in minutes for the hack hour session"
+                        }
+                    },
+                    "label": {
+                        "type": "plain_text",
+                        "text": "How long will this session be? (minutes)",
+                        "emoji": true
+                    },
+                    "block_id": "minutes"
+                },
+                {
+                    "type": "input",
+                    "block_id": "attachment",
+                    "label": {
+                        "type": "plain_text",
+                        "text": "Upload Files"
+                    },
+                    "element": {
+                        "type": "file_input",
+                        "action_id": "attachment",
+                        "max_files": 1,
+                        "filetypes": [
+                            "jpg",
+                            "png",
+                            "gif"
+                        ]
+                    },
+                    "optional": true
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type":"section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Currently selected goal: *${goal?.goalName}* - _${goal?.minutes}_ minutes completed`
+                    }
+                }
+            ]
+        };
+
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: view
+        });
     });
 
     // Onboarding Flow
@@ -100,26 +247,27 @@ async function isUser(userId: string): Promise<boolean> {
             await prisma.user.create({
                 data: {
                     slackId: userId,
-                    totalHours: 0,
+                    totalMinutes: 0,
                     tz: String(tz),
                     remindersEnabled: true,
                     reminder: time,
                     goals: {
                         create: {
                             goalId: defaultGoal,
-                            goalName: "No Goal",
-                            hours: 0
+                            goalName: goal,
+                            minutes: 0
                         }
                     },
-                    defaultGoal: defaultGoal                    
+                    defaultGoal: defaultGoal,
+                    event: null        
                 }
             });
             await prisma.goals.create({
                 data: {
                     slackId: userId,
                     goalId: randomUUID(),
-                    goalName: goal,
-                    hours: 0
+                    goalName: "No Goal",
+                    minutes: 0
                 }
             });
             console.log(`🛠️ Instantiated `);
@@ -136,7 +284,17 @@ async function isUser(userId: string): Promise<boolean> {
         await ack({
             response_action: 'update',
             view: Views.INSTRUCTIONS
-        });      
+        });  
+        
+        // Add user to the hack hour user group
+        const users = await client.usergroups.users.list({
+            usergroup: Constants.HACK_HOUR_USERGROUP
+        });
+
+        await client.usergroups.users.update({
+            usergroup: Constants.HACK_HOUR_USERGROUP,
+            users: users.users?.join(",") ?? ""
+        });
     });
 
     /**
@@ -149,7 +307,6 @@ async function isUser(userId: string): Promise<boolean> {
             response_action: 'clear'
         });
     });
-
     // Goals
 
     /**
@@ -249,7 +406,7 @@ async function isUser(userId: string): Promise<boolean> {
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Set as Default Goal",
+                                "text": "Set as Current Goal",
                                 "emoji": true
                             },
                             "value": "setDefault",
@@ -264,7 +421,7 @@ async function isUser(userId: string): Promise<boolean> {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "You can select a goal to view your progress, create a new goal, delete a goal, or set a default goal."
+                        "text": "You can select a goal to view your progress, create a new goal, delete a goal, or set your current goal."
                     }
                 }
             ]
@@ -303,7 +460,7 @@ async function isUser(userId: string): Promise<boolean> {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `You've spent *${goal?.hours}* hours working on _${goal?.goalName}_.`
+                "text": `You've spent *${goal?.minutes}* minutes working on _${goal?.goalName}_.`
             }
         });
 
@@ -369,7 +526,7 @@ async function isUser(userId: string): Promise<boolean> {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `Set as default goal!`
+                "text": `Set as current goal!`
             }
         });
 
@@ -441,11 +598,10 @@ async function isUser(userId: string): Promise<boolean> {
                 slackId: userId,
                 goalId: randomUUID(),
                 goalName: goalName,
-                hours: 0
+                minutes: 0
             }
         });
 
-        // Return to previous view
         await ack({
             response_action: 'clear'
         });
@@ -458,12 +614,46 @@ async function isUser(userId: string): Promise<boolean> {
     app.action(ACTION_ID.DELETE_GOAL, async ({ ack, body, client }) => {
         ack();
 
-        let view = Views.DELETE_GOAL;
-        view.private_metadata = (body as any).view.state.values.goals.selectGoal.selected_option.value;
+        let view: View = {
+            "type": "modal",
+            "callback_id": CALLBACK_ID.DELETE_GOAL,
+            "submit": {
+                "type": "plain_text",
+                "text": "Yes",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "No",
+                "emoji": true
+            },
+            "title": {
+                "type": "plain_text",
+                "text": "Goals",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "Are you sure you want delete this goal?"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "private_metadata": (body as any).view.state.values.goals.selectGoal.selected_option.value
+        };
 
         await client.views.push({
             trigger_id: (body as any).trigger_id,
-            view: Views.DELETE_GOAL
+            view: view
         });
     });
 
@@ -474,8 +664,91 @@ async function isUser(userId: string): Promise<boolean> {
     app.view(CALLBACK_ID.DELETE_GOAL, async ({ ack, body, client }) => {
         const goalId = body.view.private_metadata;
 
-        console.log(goalId);
-        console.log(`🗑️ Deleting goal ${goalId}`);
+        // Ensure that there exists at least one goal
+        const goals = await prisma.goals.findMany({
+            where: {
+                slackId: body.user.id
+            }
+        });
+
+        if (goals.length == 1) {
+            await ack({
+                response_action: 'update',
+                view: {
+                    "type": "modal",
+                    "callback_id": CALLBACK_ID.GOALS_ERROR,
+                    "submit": {
+                        "type": "plain_text",
+                        "text": "Okay",
+                        "emoji": true
+                    },
+                    "close": {
+                        "type": "plain_text",
+                        "text": "Close",
+                        "emoji": true
+                    },
+                    "title": {
+                        "type": "plain_text",
+                        "text": "Goals",
+                        "emoji": true
+                    },
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "You must have at least one goal."
+                            }
+                        }
+                    ]
+                }
+            });
+            return;
+        }
+
+        // Ensure that the goal is not the default goal
+        const user = await prisma.user.findUnique({
+            where: {
+                slackId: body.user.id
+            }
+        });
+
+        if (user?.defaultGoal == goalId) {
+            await ack({
+                response_action: 'update',
+                view: {
+                    "type": "modal",
+                    "callback_id": CALLBACK_ID.GOALS_ERROR,
+                    "submit": {
+                        "type": "plain_text",
+                        "text": "Okay",
+                        "emoji": true
+                    },
+                    "close": {
+                        "type": "plain_text",
+                        "text": "Close",
+                        "emoji": true
+                    },
+                    "title": {
+                        "type": "plain_text",
+                        "text": "Goals",
+                        "emoji": true
+                    },
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "You cannot delete your currently selected goal."
+                            }
+                        }
+                    ]
+                }
+            });
+            return;
+        }
+
+        console.log(`🗑️  Deleting goal ${goalId}`);
 
         await prisma.goals.delete({
             where: {
@@ -488,7 +761,263 @@ async function isUser(userId: string): Promise<boolean> {
         });
     });
 
+    /**
+     * errorMinGoals
+     * Just close on submission
+     */
+    app.view(CALLBACK_ID.GOALS_ERROR, async ({ ack, body, client }) => {
+        await ack();
+    });
+
+    /**
+     * goals
+     * Just close on submission
+     */
+    app.view(CALLBACK_ID.GOALS, async ({ ack, body, client }) => {
+        await ack({
+            response_action: 'clear'
+        });
+    });
+    // Sessions
     
+    /**
+     * cancel
+     * Cancels the current session
+     */
+    app.command(Commands.CANCEL, async ({ ack, body, client }) => {
+        const userId = body.user_id;
+
+        await ack();
+
+        const session = await prisma.session.findFirst({
+            where: {
+                userId: userId,
+                completed: false
+            }
+        });
+
+        if (!session) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `🚨 You're not in a session!`,
+                user: userId
+            });
+            return;
+        }
+
+        await prisma.session.delete({
+            where: {
+                messageTs: session.messageTs
+            }
+        });
+
+        await client.chat.postMessage({
+            thread_ts: session.messageTs,
+            channel: Constants.HACK_HOUR_CHANNEL,
+            text: format(randomChoice(Templates.cancelled), {
+                userId: userId
+            })
+        });
+        
+        // TODO: Instead of deleting the session, just commit any hours worked
+
+        console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
+    });
+
+    /**
+     * start
+     * Starts a new session with the given parameters
+     */
+    app.view(CALLBACK_ID.START, async ({ ack, body, client }) => {
+        const userId = body.user.id;
+        const unformattedTask = body.view.state.values.task.task.value;
+        const minutes = body.view.state.values.minutes.minutes.value;
+        const attachments = body.view.state.values.attachment.attachment.files; 
+
+        await ack();
+
+        const template = randomChoice(Templates.minutesRemaining);
+
+        assertVal(userId);
+        assertVal(unformattedTask);
+        assertVal(minutes);
+        assertVal(attachments);
+
+        const task = unformattedTask.split("\n").map((line: string) => `> ${line}`).join("\n"); // Split the task into lines, then reattach them with a > in front
+
+        const formattedText = format(template, {
+            userId: userId,
+            minutes: String(minutes),
+            task: task
+        });
+
+        let blocks: any = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": formattedText
+                }
+            }
+        ];
+
+        const userInfo = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+        const defaultGoal = userInfo?.defaultGoal;
+
+        assertVal(defaultGoal);
+
+        let message;
+
+        // If there's an attachment, add it
+        if (attachments[0]) {
+            blocks.push({
+                "type": "image",
+                "slack_file": {
+                    "url": attachments[0].thumb_360
+                },
+                "alt_text": "Attachment"
+            });
+            message = await app.client.chat.postMessage({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                blocks: blocks,
+                text: formattedText,
+            });                   
+            assertVal(message.ts);
+            await prisma.session.create({
+                data: {
+                    messageTs: message.ts,
+                    template: template,
+                    userId: userId,
+                    goal: defaultGoal,
+                    task: task,
+                    time: parseInt(minutes),
+                    elapsed: 0,
+                    attachment: attachments[0].thumb_360,
+                    completed: false
+                }
+            });
+        } else {
+            message = await app.client.chat.postMessage({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                blocks: blocks,
+                text: formattedText,
+            });                   
+            assertVal(message.ts);
+            await prisma.session.create({
+                data: {
+                    messageTs: message.ts,
+                    template: template,
+                    userId: userId,
+                    goal: defaultGoal,
+                    task: task,
+                    time: parseInt(minutes),
+                    elapsed: 0,
+                    completed: false
+                }
+            });
+        }
+
+        console.log(`🟢 Session ${message.ts} started by ${userId}`);
+    });
+
+    // Interval Updates
+    setInterval(async () => {
+        const sessions = await prisma.session.findMany({
+            where: {
+                completed: false
+            }
+        });
+
+        console.log(`🕒 Updating ${sessions.length} sessions`);
+
+        for (const session of sessions) {
+            session.elapsed += 1;
+
+            if (session.elapsed >= session.time) {
+                await prisma.session.update({
+                    where: {
+                        messageTs: session.messageTs
+                    },
+                    data: {
+                        completed: true
+                    }
+                });
+
+                await app.client.chat.postMessage({
+                    thread_ts: session.messageTs,
+                    channel: Constants.HACK_HOUR_CHANNEL,
+                    text: format(randomChoice(Templates.completed), {
+                        userId: session.userId
+                    })
+                });
+
+                // Future proofing for events
+                // Event.verify(app, prisma, userId, session);
+
+                continue;
+            }
+            else if (session.elapsed % 15 != 0) {
+                // Send a reminder every 15 minutes
+                await app.client.chat.postMessage({
+                    thread_ts: session.messageTs,
+                    channel: Constants.HACK_HOUR_CHANNEL,
+                    text: format(randomChoice(Templates.sessionReminder), {
+                        userId: session.userId,
+                        minutes: String(session.time - session.elapsed)
+                    })
+                });                
+            }
+
+            const formattedText = format(session.template, {
+                userId: session.userId,
+                minutes: String(session.time - session.elapsed),
+                task: session.task
+            });
+
+            let blocks: any = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": formattedText
+                    }
+                }
+            ];
+
+            // If there's an attachment, add it
+            if (session.attachment) {
+                blocks.push({
+                    "type": "image",
+                    "slack_file": {
+                        "url": session.attachment
+                    },
+                    "alt_text": "Attachment"
+                });
+            }
+
+            await prisma.session.update({
+                where: {
+                    messageTs: session.messageTs
+                },
+                data: {
+                    elapsed: session.elapsed
+                }
+            });
+
+            await app.client.chat.update({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                ts: session.messageTs,
+                blocks: blocks,
+                text: formattedText,
+            });
+        }
+    }, Constants.MIN_MS);
+    
+    // App    
     app.start(process.env.PORT || 3000);
     console.log('⏳ And the hour begins...');
 })();

@@ -12,25 +12,26 @@ datasource db {
 
 model User {
   slackId    String   @id
-  totalHours Int  
+  totalMinutes Int  
   // Flags
   tz String
   remindersEnabled Boolean
   reminder String
   goals Goals[]
   defaultGoal String // via. goalId
+  event String? // check if the user is in an event (community goals todo)
 }
 
 model Session {
   messageTs String @id
+  userId String
   template String
   goal String // Goal this session is for
-  personalGoal String // Personal goal this session is for
   task String // Task that the person is working on currently
-  time Int
-  elasped Int    
-  completed Boolean
-  verified Boolean // Instead of deleting verified sessions, we can just mark them as verified & save it for logging, analytics, etc.
+  time Int // Total time for this session
+  elapsed Int    
+  completed Boolean  
+  attachment String?
 }
 
 model Goals {
@@ -38,5 +39,5 @@ model Goals {
   goalId String @id // UUID
   slackId String 
   goalName String
-  hours Int // Hours contributed
+  minutes Int // Minutes contributed
 }
