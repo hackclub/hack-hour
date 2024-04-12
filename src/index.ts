@@ -1,10 +1,11 @@
 import bolt, { KnownBlock, RespondArguments, View } from '@slack/bolt'; 
 import { CALLBACK_ID, Views, ACTION_ID } from './views/views.js';
 import { Constants, Commands } from './constants.js';
-import { format, randomChoice } from './lib.js';
+import { format, randomChoice, formatHour, genAttachmentBlock } from './lib.js';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { Templates } from './message.js';
+import { kMaxLength } from 'node:buffer';
 const { App } = bolt;
 const prisma = new PrismaClient();
 const app = new App({
@@ -57,7 +58,8 @@ async function isUser(userId: string): Promise<boolean> {
         const session = await prisma.session.findFirst({
             where: {
                 userId: userId,
-                completed: false
+                completed: false,
+                cancelled: false
             }
         });
 
@@ -96,11 +98,14 @@ async function isUser(userId: string): Promise<boolean> {
                     task: formatText,
                     time: 60,
                     elapsed: 0,                    
-                    completed: false                    
+                    completed: false,
+                    cancelled: false        
                 }
             });
 
             console.log(`🟢 Session started by ${userId}`);
+
+            return;
         }        
 
         const goal = await prisma.goals.findUnique({
@@ -173,11 +178,6 @@ async function isUser(userId: string): Promise<boolean> {
                         "type": "file_input",
                         "action_id": "attachment",
                         "max_files": 1,
-                        "filetypes": [
-                            "jpg",
-                            "png",
-                            "gif"
-                        ]
                     },
                     "optional": true
                 },
@@ -188,7 +188,7 @@ async function isUser(userId: string): Promise<boolean> {
                     "type":"section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Currently selected goal: *${goal?.goalName}* - _${goal?.minutes}_ minutes completed`
+                        "text": `Currently selected goal: *${goal?.goalName}* - _${formatHour(goal?.minutes)}_ hours completed`
                     }
                 }
             ]
@@ -290,6 +290,7 @@ async function isUser(userId: string): Promise<boolean> {
         const users = await client.usergroups.users.list({
             usergroup: Constants.HACK_HOUR_USERGROUP
         });
+
 
         await client.usergroups.users.update({
             usergroup: Constants.HACK_HOUR_USERGROUP,
@@ -460,7 +461,7 @@ async function isUser(userId: string): Promise<boolean> {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `You've spent *${goal?.minutes}* minutes working on _${goal?.goalName}_.`
+                "text": `You've spent *${formatHour(goal?.minutes)}* hours working on _${goal?.goalName}_.`
             }
         });
 
@@ -792,7 +793,8 @@ async function isUser(userId: string): Promise<boolean> {
         const session = await prisma.session.findFirst({
             where: {
                 userId: userId,
-                completed: false
+                completed: false,
+                cancelled: false
             }
         });
 
@@ -805,10 +807,62 @@ async function isUser(userId: string): Promise<boolean> {
             return;
         }
 
-        await prisma.session.delete({
+        await prisma.session.update({
             where: {
                 messageTs: session.messageTs
+            },
+            data: {
+                cancelled: true
             }
+        });
+
+        await prisma.goals.update({
+            where: {
+                goalId: session.goal
+            },
+            data: {
+                minutes: {
+                    increment: session.elapsed
+                }
+            }
+        });
+
+        await prisma.user.update({
+            where: {
+                slackId: userId
+            },
+            data: {
+                totalMinutes: {
+                    increment: session.elapsed
+                }
+            }
+        });
+
+        const blocks: any = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": format(randomChoice(Templates.cancelledTopLevel), {
+                        userId: userId,
+                        task: session.task
+                    })
+                }
+            }                
+        ];
+
+        if (session.attachment) {
+            blocks.push(genAttachmentBlock(session.attachment));
+        }
+
+        await client.chat.update({
+            channel: Constants.HACK_HOUR_CHANNEL,
+            ts: session.messageTs,
+            text: format(randomChoice(Templates.cancelledTopLevel), {
+                userId: userId,
+                task: session.task
+            }),
+            blocks: blocks
         });
 
         await client.chat.postMessage({
@@ -818,8 +872,6 @@ async function isUser(userId: string): Promise<boolean> {
                 userId: userId
             })
         });
-        
-        // TODO: Instead of deleting the session, just commit any hours worked
 
         console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
     });
@@ -874,13 +926,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         // If there's an attachment, add it
         if (attachments[0]) {
-            blocks.push({
-                "type": "image",
-                "slack_file": {
-                    "url": attachments[0].thumb_360
-                },
-                "alt_text": "Attachment"
-            });
+            blocks.push(genAttachmentBlock(JSON.stringify(attachments)));
             message = await app.client.chat.postMessage({
                 channel: Constants.HACK_HOUR_CHANNEL,
                 blocks: blocks,
@@ -896,9 +942,10 @@ async function isUser(userId: string): Promise<boolean> {
                     task: task,
                     time: parseInt(minutes),
                     elapsed: 0,
-                    attachment: attachments[0].thumb_360,
-                    completed: false
-                }
+                    completed: false,
+                    cancelled: false,
+                    attachment: JSON.stringify(attachments[0])
+                }            
             });
         } else {
             message = await app.client.chat.postMessage({
@@ -916,7 +963,8 @@ async function isUser(userId: string): Promise<boolean> {
                     task: task,
                     time: parseInt(minutes),
                     elapsed: 0,
-                    completed: false
+                    completed: false,
+                    cancelled: false
                 }
             });
         }
@@ -928,7 +976,8 @@ async function isUser(userId: string): Promise<boolean> {
     setInterval(async () => {
         const sessions = await prisma.session.findMany({
             where: {
-                completed: false
+                completed: false,
+                cancelled: false
             }
         });
 
@@ -937,7 +986,24 @@ async function isUser(userId: string): Promise<boolean> {
         for (const session of sessions) {
             session.elapsed += 1;
 
-            if (session.elapsed >= session.time) {
+            let blocks: any[] = [];
+
+            if (session.attachment) {
+                blocks.push(genAttachmentBlock(session.attachment));
+            }
+
+            if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
+                blocks.unshift({
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": format(randomChoice(Templates.completedTopLevel), {
+                            userId: session.userId,
+                            task: session.task
+                        })
+                    }
+                });
+
                 await prisma.session.update({
                     where: {
                         messageTs: session.messageTs
@@ -945,6 +1011,16 @@ async function isUser(userId: string): Promise<boolean> {
                     data: {
                         completed: true
                     }
+                });
+
+                await app.client.chat.update({
+                    channel: Constants.HACK_HOUR_CHANNEL,
+                    ts: session.messageTs,
+                    blocks: blocks,
+                    text: format(randomChoice(Templates.completedTopLevel), {
+                        userId: session.userId,
+                        task: session.task
+                    })
                 });
 
                 await app.client.chat.postMessage({
@@ -955,12 +1031,37 @@ async function isUser(userId: string): Promise<boolean> {
                     })
                 });
 
+                await prisma.goals.update({
+                    where: {
+                        goalId: session.goal
+                    },
+                    data: {
+                        minutes: {
+                            increment: session.time
+                        }
+                    }
+                });
+
+                await prisma.user.update({
+                    where: {
+                        slackId: session.userId
+                    },
+                    data: {
+                        totalMinutes: {
+                            increment: session.time
+                        }
+                    }
+                });
+
                 // Future proofing for events
-                // Event.verify(app, prisma, userId, session);
+                // WHERE events IS Event[] and Event has a verify method                
+                // for (const event of events)
+                // if user has event
+                // event.verify(app, prisma, userId, session);
 
                 continue;
             }
-            else if (session.elapsed % 15 != 0) {
+            else if (session.elapsed % 15 == 0) {
                 // Send a reminder every 15 minutes
                 await app.client.chat.postMessage({
                     thread_ts: session.messageTs,
@@ -971,48 +1072,35 @@ async function isUser(userId: string): Promise<boolean> {
                     })
                 });                
             }
-
+            
             const formattedText = format(session.template, {
-                userId: session.userId,
-                minutes: String(session.time - session.elapsed),
-                task: session.task
+                    userId: session.userId,
+                    minutes: String(session.time - session.elapsed),
+                    task: session.task
             });
 
-            let blocks: any = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": formattedText
-                    }
+            blocks.unshift({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": formattedText
                 }
-            ];
-
-            // If there's an attachment, add it
-            if (session.attachment) {
-                blocks.push({
-                    "type": "image",
-                    "slack_file": {
-                        "url": session.attachment
-                    },
-                    "alt_text": "Attachment"
-                });
-            }
+            });
 
             await prisma.session.update({
-                where: {
-                    messageTs: session.messageTs
-                },
-                data: {
-                    elapsed: session.elapsed
-                }
+                    where: {
+                        messageTs: session.messageTs
+                    },
+                    data: {
+                        elapsed: session.elapsed
+                    }
             });
 
             await app.client.chat.update({
-                channel: Constants.HACK_HOUR_CHANNEL,
-                ts: session.messageTs,
-                blocks: blocks,
-                text: formattedText,
+                    channel: Constants.HACK_HOUR_CHANNEL,
+                    ts: session.messageTs,
+                    blocks: blocks,
+                    text: formattedText,
             });
         }
     }, Constants.MIN_MS);

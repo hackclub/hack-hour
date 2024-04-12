@@ -32,6 +32,7 @@ model Session {
   elapsed Int    
   completed Boolean  
   attachment String?
+  cancelled Boolean
 }
 
 model Goals {
