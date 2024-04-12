@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  slackId    String   @id
+  totalHours Int  
+  // Flags
+  tz String
+  remindersEnabled Boolean
+  reminder String
+  goals Goals[]
+  defaultGoal String // via. goalId
+}
+
+model Session {
+  messageTs String @id
+  template String
+  goal String // Goal this session is for
+  personalGoal String // Personal goal this session is for
+  task String // Task that the person is working on currently
+  time Int
+  elasped Int    
+  completed Boolean
+  verified Boolean // Instead of deleting verified sessions, we can just mark them as verified & save it for logging, analytics, etc.
+}
+
+model Goals {
+  user User @relation(fields: [slackId], references: [slackId])
+  goalId String @id // UUID
+  slackId String 
+  goalName String
+  hours Int // Hours contributed
+}
