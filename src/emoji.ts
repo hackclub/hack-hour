@@ -1,3 +1,5 @@
+import { App } from "@slack/bolt";
+
 const emojis = {
     yay: "yay",
     OSF: "osf",
