@@ -248,12 +248,10 @@ export async function reactOnContent(app: App, data: {
     channel: string,
     ts: string
 }) {
-    const words = data.content.split(" ");
-
-    words.forEach(async (word) => {
-        if (emojis[word]) {
+    Object.keys(emojis).forEach(async (word) => {
+        if (data.content.includes(word)) {
             await app.client.reactions.add({
-                name: emojis[word],
+                name: word,
                 channel: data.channel,
                 timestamp: data.ts
             });
