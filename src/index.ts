@@ -15,7 +15,6 @@ const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     appToken: process.env.SLACK_APP_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
-    socketMode: true,
 });
 const events: { [keys: string]: BaseEvent } = genEvents(app, prisma);
 
@@ -1356,6 +1355,18 @@ async function isUser(userId: string): Promise<boolean> {
         for (const session of sessions) {
             session.elapsed += 1;
 
+            // Check if the message exists
+            const message = await app.client.conversations.history({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                latest: session.messageTs,
+                limit: 1
+            });  
+
+            if (message.messages == undefined || message.messages.length == 0) {
+                console.log(`❌ Session ${session.messageTs} does not exist`);
+                continue;
+            }
+
             let links;
             let attachments: string[];
             if (session.attachment) {
@@ -1530,6 +1541,6 @@ async function isUser(userId: string): Promise<boolean> {
     }, 0);//Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
 
     // App    
-    app.start(process.env.PORT || 3000);
+    app.start(process.env.PORT || 4000);
     console.log('⏳ And the hour begins...');
 })();

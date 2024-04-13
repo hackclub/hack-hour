@@ -35,7 +35,7 @@ export const instructions: View = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "Here's how to use hack hour: \n\n`/hack` - start a hack hour session\n`/cancel` - cancel an already existing session"
+				"text": "Here's how to use hack hour:\n\n•  `/hack` - Start a hack hour session. You can directly start a 60 minute session using the command, similar to the following `/hack Work 60min`.\n•  `/cancel` - cancel an already running session\n•  `/goals`\n•  `/mystats`\n•  `/reminders`\n•  `/picnics` - join currently running ~picnic parties~ events\n \nInsert a synopsis and run down of hack hour terminology & usage"
 			}
 		}
 	]

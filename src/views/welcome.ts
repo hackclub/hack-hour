@@ -24,7 +24,7 @@ export const welcome: View = {
 		{
 			"type": "image",
 			"image_url": "https://cloud-e4np28bw2-hack-club-bot.vercel.app/0img_3415.jpg",
-			"alt_text": "delicious tacos"
+			"alt_text": "welcome banner"
 		},
 		{
 			"type": "section",
