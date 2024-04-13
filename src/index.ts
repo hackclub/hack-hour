@@ -1286,8 +1286,29 @@ async function isUser(userId: string): Promise<boolean> {
         const userId = body.user.id;
         const eventId = body.view.state.values.events.events.selected_option?.value;
 
-        ack();
         assertVal(eventId);
+
+        if (eventId != "none") {            
+            const result = await events[eventId].userJoin(userId);
+            if (result) {
+                await prisma.user.update({
+                    where: {
+                        slackId: userId
+                    },
+                    data: {
+                        event: eventId
+                    }
+                }); 
+                ack()       
+            } else {
+                ack({
+                    response_action: 'errors',
+                    errors: {
+                        events: 'There was an error while joining this event. You may not be able to join this event.'
+                    }
+                });
+            }
+        }
 
         await prisma.user.update({
             where: {
@@ -1298,9 +1319,7 @@ async function isUser(userId: string): Promise<boolean> {
             }
         });
 
-        if (eventId != "none") {
-            events[eventId].userJoin(userId);
-        }
+        ack();
     });
 
     // Interval Updates

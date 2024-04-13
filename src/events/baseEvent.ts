@@ -32,5 +32,5 @@ export interface BaseEvent {
 
     hourlyCheck(): Promise<void>; // TODO: implement necessary arguments
 
-    userJoin(userId: string): Promise<void>;
+    userJoin(userId: string): Promise<boolean>;
 }
