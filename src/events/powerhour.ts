@@ -15,11 +15,11 @@ const POWERHOUR_USERS = [
     "U04QD71QWS0"
 ];
 
-const COMMUNITY_GOAL = 105 * 60; // Minutes
+const COMMUNITY_GOAL = 10; // 105 * 60; // Minutes
 
-const START_TIME = new Date("2024-04-13T01:10:00-0700");
-const END_TIME = new Date("2024-04-13T01:30:00-0700");
-
+const START_TIME = new Date("2024-04-13T01:12:00-0500");
+const END_TIME = new Date("2024-04-13T02:10:00-0500");
+        
 export class PowerHour implements BaseEvent {
     app: App<StringIndexed>;
     prisma: PrismaClient;
@@ -109,7 +109,7 @@ export class PowerHour implements BaseEvent {
 
                 await client.reactions.add({
                     channel: POWERHOUR_ORGANIZERS_CHANNEL,
-                    name: "white_check_mark",
+                    name: "tada",
                     timestamp: forwardTs,
                 });
 
@@ -234,45 +234,37 @@ export class PowerHour implements BaseEvent {
 
     async hourlyCheck(): Promise<void> {
         const currentTime = new Date();
-        currentTime.setHours(currentTime.getUTCHours() - 5);
 
-        await this.app.client.chat.postMessage({
-            channel: POWERHOUR_ORGANIZERS_CHANNEL,
-            text: `Running Hourly Check! ${currentTime.getHours()}:${currentTime.getMinutes()} - Houston/Chicago Time`,
-        });
+        // Skip if the event has not started or has ended
+        if (currentTime < START_TIME) {
+            console.log(" ⏳ PowerHour Event Not Started");
+            return;
+        }        
 
         const eventContributions = await this.prisma.eventContributions.findMany({
             where: {
                 eventId: POWERHOUR_ID,
             },
         });
-        
+
+        const users = await this.prisma.user.findMany({
+            where: {
+                eventId: POWERHOUR_ID,
+            },
+        });
+
+        // Check if users are zero - means that the event has ended or has not started
+        if (users.length == 0) {
+            console.log(" ⏳ Skipping PowerHour Event Processing - No users");
+            return;
+        }
+
         let totalMinutes = 0;
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
         }
 
-        await this.app.client.chat.postMessage({
-            channel: POWERHOUR_ORGANIZERS_CHANNEL,
-            text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}%`,
-        });
-
-        await this.app.client.conversations.setTopic({
-            channel: Constants.HACK_HOUR_CHANNEL,
-            topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}%`,
-        });
-
         if (currentTime >= END_TIME) {
-            await this.app.client.chat.postMessage({
-                channel: POWERHOUR_ORGANIZERS_CHANNEL,
-                text: `The event has ended! Total minutes contributed: ${totalMinutes}`,
-            });
-
-            await this.app.client.conversations.setTopic({
-                channel: Constants.HACK_HOUR_CHANNEL,
-                topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | *The event has ended!* Goal achieved: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}% | Total hours contributed: ${formatHour(totalMinutes)}`,
-            });
-
             // Check if the community goal was met
             if (totalMinutes >= COMMUNITY_GOAL) {
                 await this.app.client.chat.postMessage({
@@ -286,35 +278,44 @@ export class PowerHour implements BaseEvent {
                 });
             }
 
-            const users = await this.prisma.eventContributions.findMany({
-                where: {
-                    eventId: POWERHOUR_ID,
-                },
-            });
-
             for (const user of users) {
                 await this.prisma.user.update({
                     where: {
                         slackId: user.slackId,
+                        eventId: POWERHOUR_ID,
                     },
                     data: {
                         eventId: "none",
                     },
                 });                                
             }
+
+            console.log("🎉  PowerHour Event Complete");
+        } else {
+            await this.app.client.chat.postMessage({
+                channel: POWERHOUR_ORGANIZERS_CHANNEL,
+                text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}%`,
+            });
+    
+            await this.app.client.conversations.setTopic({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}%`,
+            });            
         }
+ 
+        console.log("🪅  Hourly Check Complete");
     }
 
     async userJoin(userId: string): Promise<boolean> {
         // Check if the event is still active
         const currentTime = new Date();
-        currentTime.setHours(currentTime.getUTCHours() - 5);
+
         if (currentTime >= END_TIME) {
             return false;
         } else if (currentTime < START_TIME) {
             return false;
         }
-
+ 
         if (POWERHOUR_USERS.includes(userId)) {
             // Check if the user is already in the database, if not add them
             const eventEntry = await this.prisma.eventContributions.findFirst({

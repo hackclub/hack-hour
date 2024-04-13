@@ -1299,7 +1299,7 @@ async function isUser(userId: string): Promise<boolean> {
     app.view(CALLBACK_ID.EVENTS, async ({ ack, body, client }) => {
         const userId = body.user.id;
         const eventId = body.view.state.values.events.events.selected_option?.value;
-
+ 
         assertVal(eventId);
 
         if (eventId != "none") {            
@@ -1322,6 +1322,7 @@ async function isUser(userId: string): Promise<boolean> {
                     }
                 });
             }
+            return;
         }
 
         await prisma.user.update({
