@@ -7,7 +7,9 @@ import { BaseEvent, Session } from "./baseEvent.js";
 import { Constants } from "../constants.js";
 import { formatHour } from "../lib.js";
 
-const POWERHOUR_ORGANIZERS_CHANNEL = "C06T6MQ1AMN";
+if (process.env.POWERHOUR_ORG == undefined) { throw new Error("PowerHour organizer channel isn't defined!") }
+
+const POWERHOUR_ORGANIZERS_CHANNEL = process.env.POWERHOUR_ORG;
 
 export const POWERHOUR_ID = "powerhour";
 
