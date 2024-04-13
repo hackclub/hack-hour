@@ -17,4 +17,5 @@ export const Commands = {
   GOALS: '/goals',
   STATS: '/mystats',
   REMINDERS: '/reminders',
+  EVENTS: '/picnics',
 };

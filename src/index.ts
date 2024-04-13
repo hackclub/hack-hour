@@ -1,4 +1,4 @@
-import bolt, { KnownBlock, RespondArguments, View } from '@slack/bolt';
+import bolt, { KnownBlock, View } from '@slack/bolt';
 import { CALLBACK_ID, Views, ACTION_ID } from './views/views.js';
 import { Constants, Commands } from './constants.js';
 import { format, randomChoice, formatHour } from './lib.js';
@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { Templates } from './message.js';
 import { reactOnContent } from './emoji.js';
 import { genEvents } from './events/events.js';
+import { BaseEvent } from './events/baseEvent.js';
 
 const { App } = bolt;
 const prisma = new PrismaClient();
@@ -16,7 +17,7 @@ const app = new App({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     socketMode: true,
 });
-const events = genEvents(app, prisma);
+const events: { [keys: string]: BaseEvent } = genEvents(app, prisma);
 
 function assertVal<T>(value: T | undefined | null): asserts value is T {
     // Throw if the value is undefined
@@ -888,6 +889,17 @@ async function isUser(userId: string): Promise<boolean> {
             timestamp: session.messageTs
         });
 
+        // Events system
+        const userInfo = await prisma.user.findUnique({
+            where: {
+                slackId: session.userId
+            }
+        });
+
+        if (userInfo?.event) {
+            events[userInfo.event].cancelSession(session);
+        }
+
         console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
     });
 
@@ -1058,7 +1070,7 @@ async function isUser(userId: string): Promise<boolean> {
             },
             "submit": {
                 "type": "plain_text",
-                "text": "Close",
+                "text": "Done",
                 "emoji": true
             },
             "close": {
@@ -1176,9 +1188,125 @@ async function isUser(userId: string): Promise<boolean> {
         });
     });
 
+    // Events
+
+    /**
+     * /events
+     * Opens the reminders modal, allowing the user to set their reminder time
+     */
+    app.command(Commands.EVENTS, async ({ ack, body, client }) => {
+        const userId = body.user_id;
+
+        ack();
+
+        // Rejection if the user isn't in the database
+        if (!await isUser(userId)) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
+                user: userId
+            });
+            return;
+        }
+
+        const options = Object.keys(events).map(eventID => {
+            const event = events[eventID];
+
+            return {
+                "text": {
+                    "type": "mrkdwn",
+                    "text": event.name,                                    
+                },
+                "description": {
+                    "type": "mrkdwn",
+                    "text": event.description,
+                },
+                "value": eventID,
+            } as any;
+        });
+
+        options.unshift({
+            "text": {
+                "type": "mrkdwn",
+                "text": "*No Event*"
+            },
+            "description": {
+                "type": "mrkdwn",
+                "text": "*Use Hack Hour without contributing to an event.*"
+            },
+            "value": "none"
+        });
+
+        const view: View = {
+            "type": "modal",
+            "callback_id": CALLBACK_ID.EVENTS,
+            "title": {
+                "type": "plain_text",
+                "text": "Current Picnics (Events)",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Join",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "input",
+                    "label": {
+                        "type": "plain_text",
+                        "text": "Select an event you want to particpate in. (You can only particpate in one event.)"
+                    },
+                    "element": {
+                        "type": "radio_buttons",
+                        "options": options,
+                        "action_id": "events"
+                    },
+                    "block_id": "events"                    
+                }
+            ]
+        }
+
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: view
+        });
+    });
+
+    /**
+     * reminders
+     * Make updates to the user's reminder time
+     */
+    app.view(CALLBACK_ID.EVENTS, async ({ ack, body, client }) => {
+        const userId = body.user.id;
+        const eventId = body.view.state.values.events.events.selected_option?.value;
+
+        ack();
+        assertVal(eventId);
+
+        await prisma.user.update({
+            where: {
+                slackId: userId
+            },
+            data: {
+                event: eventId
+            }
+        });
+
+        if (eventId != "none") {
+            events[eventId].userJoin(userId);
+        }
+    });
+
     // Interval Updates
 
     /**
+     * Minute interval
      * Interval to update the sessions
      */
     setInterval(async () => {
@@ -1260,11 +1388,16 @@ async function isUser(userId: string): Promise<boolean> {
 
                 console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
 
-                // Future proofing for events
-                // WHERE events IS Event[] and Event has a verify method                
-                // for (const event of events)
-                // if user has event
-                // event.verify(app, prisma, userId, session);
+                // Events system
+                const userInfo = await prisma.user.findUnique({
+                    where: {
+                        slackId: session.userId
+                    }
+                });
+
+                if (userInfo?.event) {
+                    events[userInfo.event].endSession(session);
+                }
 
                 continue;
             }
@@ -1304,7 +1437,8 @@ async function isUser(userId: string): Promise<boolean> {
     }, Constants.MIN_MS);
 
     /**
-     * Interval for reminders
+     * Hourly interval 
+     * For reminders, events
      */
     setTimeout(async () => {
         setInterval(async () => {
@@ -1351,6 +1485,12 @@ async function isUser(userId: string): Promise<boolean> {
                     channel: user.slackId,
                     text: `🕒 It's ${tzHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`
                 });
+            }
+
+            console.log('🎈 Running event updates')
+
+            for (const event in events) {
+                events[event].hourlyCheck();
             }
         }, Constants.HOUR_MS);
     }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);

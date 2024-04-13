@@ -5,45 +5,32 @@ The events system attempts to future-proof any events I plan to do, instead of h
 import { PrismaClient } from "@prisma/client";
 import { App } from "@slack/bolt";
 
-export abstract class BaseEvent {
-    public app: App;
-    public prisma: PrismaClient;
+export type Session = {
+    messageTs: string;
+    userId: string;
+    template: string;
+    goal: string;
+    task: string;
+    time: number;
+    elapsed: number;
+    completed: boolean;
+    attachment: string | null;
+    cancelled: boolean;
+    createdAt: string | null;
+};
 
-    constructor(app: App, prisma: PrismaClient) {
-        this.app = app;
-        this.prisma = prisma;
-    }
+export interface BaseEvent {
+    app: App;
+    prisma: PrismaClient;
 
-    // Allow the event to process the user's session after completion
-    async endSession(session: {
-        messageTs: string,
-        userId: string,
-        template: string,
-        goal: string,
-        task: string,
-        time: number, 
-        elapsed: number,    
-        completed: boolean,
-        attachment?: string,
-        cancelled: boolean,
-        createdAt?: string
-    }) {}
+    name: string;
+    description: string;    
 
-    // Allow the event to process the user's session after cancellation
-    async cancelSession(session: {
-        messageTs: string,
-        userId: string,
-        template: string,
-        goal: string, 
-        task: string,
-        time: number,
-        elapsed: number,    
-        completed: boolean,
-        attachment?: string,
-        cancelled: boolean,
-        createdAt?: string
-    }) {}
+    endSession(session: Session): Promise<void>;
 
-    // Hourly check for the event
-    async hourlyCheck() {} // TODO: implement necessary arguments
+    cancelSession(session: Session): Promise<void>;
+
+    hourlyCheck(): Promise<void>; // TODO: implement necessary arguments
+
+    userJoin(userId: string): Promise<void>;
 }

@@ -46,7 +46,7 @@ model Goals {
 
 model Events {
   // Tracks event contributions
-  contributionId String @id
+  contributionId Int @id @default(autoincrement())
   slackId String
   eventName String
   minutes Int
