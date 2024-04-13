@@ -9,7 +9,15 @@ export const Constants = {
 };
 
 // Commands
-export const Commands = {
+export const Commands = process.env.PROD === 'true' ? {
+  HACK: '/hack',
+  CANCEL: '/cancel',
+  GOALS: '/goals',
+  STATS: '/mystats',
+  REMINDERS: '/reminders',
+  EVENTS: '/picnics',
+  INSTRUCTIONS: '/instructions'  
+} : {
   HACK: '/ztesthack',
   CANCEL: '/testcancel',
   GOALS: '/testgoals',
