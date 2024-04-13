@@ -305,9 +305,11 @@ async function isUser(userId: string): Promise<boolean> {
         });
 
         // Add user to the hack hour user group
-        const users = await client.usergroups.users.list({
-            usergroup: HACK_HOUR_USERGROUP
+        let users = await client.usergroups.users.list({
+            usergroup: Constants.HACK_HOUR_USERGROUP
         });
+
+        users.users?.push(userId);
 
         await client.usergroups.users.update({
             usergroup: HACK_HOUR_USERGROUP,
