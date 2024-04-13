@@ -798,6 +798,15 @@ async function isUser(userId: string): Promise<boolean> {
 
         await ack();
 
+        if (!await isUser(userId)) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
+                user: userId
+            });
+            return;
+        }
+
         const session = await prisma.session.findFirst({
             where: {
                 userId: userId,
@@ -994,6 +1003,16 @@ async function isUser(userId: string): Promise<boolean> {
 
         ack();
 
+        // Rejection if the user isn't in the database
+        if (!await isUser(userId)) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
+                user: userId
+            });
+            return;
+        }
+
         const userData = await prisma.user.findUnique({
             where: {
                 slackId: userId
@@ -1072,6 +1091,15 @@ async function isUser(userId: string): Promise<boolean> {
         const userId = body.user_id;
 
         await ack();
+
+        if (!await isUser(userId)) {
+            await client.chat.postEphemeral({
+                channel: Constants.HACK_HOUR_CHANNEL,
+                text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
+                user: userId
+            });
+            return;
+        }
 
         const userData = await prisma.user.findUnique({
             where: {
