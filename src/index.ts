@@ -895,7 +895,7 @@ async function isUser(userId: string): Promise<boolean> {
             }
         });
 
-        if (userInfo?.eventId) {
+        if (userInfo?.eventId && userInfo?.eventId != "none") {
             await events[userInfo.eventId].cancelSession(session);
         }
 
@@ -1450,7 +1450,7 @@ async function isUser(userId: string): Promise<boolean> {
                     }
                 });
 
-                if (userInfo?.eventId) {
+                if (userInfo?.eventId && userInfo?.eventId != "none") {
                     await events[userInfo.eventId].endSession(session);
                 }
 
