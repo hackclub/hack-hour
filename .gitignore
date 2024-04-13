@@ -11,3 +11,4 @@ old_db.json
 prisma/migrations
 prisma/hackhour.db
 prisma/hackhour.db-journal
+prisma/dev.db

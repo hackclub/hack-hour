@@ -7,7 +7,7 @@ import { BaseEvent, Session } from "./baseEvent.js";
 import { Constants } from "../constants.js";
 import { formatHour } from "../lib.js";
 
-const POWERHOUR_ORGANIZERS_CHANNEL = "C06TYNZ3DK8";
+const POWERHOUR_ORGANIZERS_CHANNEL = "C06T6MQ1AMN";
 
 export const POWERHOUR_ID = "powerhour";
 

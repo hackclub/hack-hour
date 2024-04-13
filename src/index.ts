@@ -15,6 +15,8 @@ const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     appToken: process.env.SLACK_APP_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
+
+    socketMode: true,
 });
 const events: { [keys: string]: BaseEvent } = genEvents(app, prisma);
 
@@ -300,7 +302,6 @@ async function isUser(userId: string): Promise<boolean> {
         const users = await client.usergroups.users.list({
             usergroup: Constants.HACK_HOUR_USERGROUP
         });
-
 
         await client.usergroups.users.update({
             usergroup: Constants.HACK_HOUR_USERGROUP,
