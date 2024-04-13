@@ -252,19 +252,19 @@ export async function reactOnContent(app: App, data: {
 }) {
     Object.keys(emojis).forEach(async (keyword) => {
         try {
-           if (
-            data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
-          ) {
-            await app.client.reactions.add({
-                channel: data.channel, 
-                timestamp: data.ts,
-                name: emojis[keyword]
-            });
-          }
+            if (
+                data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
+            ) {
+                await app.client.reactions.add({
+                    channel: data.channel,
+                    timestamp: data.ts,
+                    name: emojis[keyword]
+                });
+            }
         }
         catch (e) {
-          console.log(data.channel)
-          console.log(e)
+            console.log(data.channel)
+            console.log(e)
         }
-    });    
+    });
 }
