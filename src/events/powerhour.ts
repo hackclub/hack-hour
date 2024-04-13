@@ -258,7 +258,7 @@ export class PowerHour implements BaseEvent {
         });
 
         await this.app.client.conversations.setTopic({
-            channel: POWERHOUR_ORGANIZERS_CHANNEL,
+            channel: Constants.HACK_HOUR_CHANNEL,
             topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}%`,
         });
 
@@ -269,8 +269,8 @@ export class PowerHour implements BaseEvent {
             });
 
             await this.app.client.conversations.setTopic({
-                channel: POWERHOUR_ORGANIZERS_CHANNEL,
-                topic: `*The event has ended!* Total minutes contributed: ${totalMinutes}`,
+                channel: Constants.HACK_HOUR_CHANNEL,
+                topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | *The event has ended!* Goal achieved: ${Math.round((totalMinutes / COMMUNITY_GOAL) * 100)}% | Total hours contributed: ${formatHour(totalMinutes)}`,
             });
 
             // Check if the community goal was met
