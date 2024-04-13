@@ -19,15 +19,31 @@ export abstract class BaseEvent {
         messageTs: string,
         userId: string,
         template: string,
-        goal: string, // Goal this session is for
-        task: string, // Task that the person is working on currently
-        time: number, // Total time for this session
+        goal: string,
+        task: string,
+        time: number, 
         elapsed: number,    
         completed: boolean,
         attachment?: string,
         cancelled: boolean,
         createdAt?: string
     }) {}
-        
 
+    // Allow the event to process the user's session after cancellation
+    async cancelSession(session: {
+        messageTs: string,
+        userId: string,
+        template: string,
+        goal: string, 
+        task: string,
+        time: number,
+        elapsed: number,    
+        completed: boolean,
+        attachment?: string,
+        cancelled: boolean,
+        createdAt?: string
+    }) {}
+
+    // Hourly check for the event
+    async hourlyCheck() {} // TODO: implement necessary arguments
 }

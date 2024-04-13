@@ -6,7 +6,8 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { Templates } from './message.js';
 import { reactOnContent } from './emoji.js';
-import { events } from './events/events.js';
+import { genEvents } from './events/events.js';
+
 const { App } = bolt;
 const prisma = new PrismaClient();
 const app = new App({
@@ -15,6 +16,7 @@ const app = new App({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     socketMode: true,
 });
+const events = genEvents(app, prisma);
 
 function assertVal<T>(value: T | undefined | null): asserts value is T {
     // Throw if the value is undefined
@@ -1313,6 +1315,8 @@ async function isUser(userId: string): Promise<boolean> {
                 }
             });
 
+            console.log(`🕒 Running reminders to ${users.length} users`);
+
             for (const user of users) {
                 const userInfo = await app.client.users.info({
                     user: user.slackId
@@ -1320,8 +1324,12 @@ async function isUser(userId: string): Promise<boolean> {
 
                 const tz = userInfo.user?.tz_offset; // the timezone offset in seconds
                 assertVal(tz);
-                const tzHour = new Date().getHours() + (tz / 3600);
-                const remindHour = Number.parseInt(user.reminder.split(":")[0]);
+                let tzDate = new Date();
+                tzDate.setHours(new Date().getUTCHours() + (tz / 3600));
+                const tzHour: number = tzDate.getHours();
+                const remindHour: number = Number.parseInt(user.reminder.split(":")[0]);
+
+                console.log(`🕒 Checking ${user.slackId} at ${tzHour} against ${remindHour}`);
 
                 if (tzHour != remindHour) {
                     continue;
@@ -1344,7 +1352,6 @@ async function isUser(userId: string): Promise<boolean> {
                     text: `🕒 It's ${tzHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`
                 });
             }
-
         }, Constants.HOUR_MS);
     }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
 
