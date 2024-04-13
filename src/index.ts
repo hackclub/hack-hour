@@ -16,10 +16,8 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
 
-    socketMode: true,
+//  socketMode: true,
 });
-const HACK_HOUR_CHANNEL = process.env.HACK_HOUR_CHANNEL;
-const HACK_HOUR_USERGROUP = process.env.HACK_HOUR_USERGROUP;
 
 const events: { [keys: string]: BaseEvent } = genEvents(app, prisma);
 
@@ -28,9 +26,6 @@ function assertVal<T>(value: T | undefined | null): asserts value is T {
     if (value === undefined) { throw new Error(`${value} is undefined, needs to be type ${typeof value}`) }
     else if (value === null) { throw new Error(`${value} is null, needs to be type ${typeof value}`) }
 }
-
-assertVal(HACK_HOUR_CHANNEL);
-assertVal(HACK_HOUR_USERGROUP);
 
 async function isUser(userId: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
@@ -76,7 +71,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         if (session) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `🚨 You're already in a session! Finish that one before starting a new one.`,
                 user: userId
             });
@@ -90,7 +85,7 @@ async function isUser(userId: string): Promise<boolean> {
             const template = randomChoice(Templates.minutesRemaining);
 
             const message = await client.chat.postMessage({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: format(template, {
                     userId: userId,
                     minutes: "60",
@@ -102,7 +97,7 @@ async function isUser(userId: string): Promise<boolean> {
 
             reactOnContent(app, {
                 content: text,
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 ts: message.ts
             });
 
@@ -312,7 +307,7 @@ async function isUser(userId: string): Promise<boolean> {
         users.users?.push(userId);
 
         await client.usergroups.users.update({
-            usergroup: HACK_HOUR_USERGROUP,
+            usergroup: Constants.HACK_HOUR_USERGROUP,
             users: users.users?.join(",") ?? ""
         });
     });
@@ -924,7 +919,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         if (!await isUser(userId)) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
                 user: userId
             });
@@ -941,7 +936,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         if (!session) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `🚨 You're not in a session!`,
                 user: userId
             });
@@ -988,7 +983,7 @@ async function isUser(userId: string): Promise<boolean> {
         }
 
         await client.chat.update({
-            channel: HACK_HOUR_CHANNEL,
+            channel: Constants.HACK_HOUR_CHANNEL,
             ts: session.messageTs,
             text: format(randomChoice(Templates.cancelledTopLevel), {
                 userId: userId,
@@ -998,7 +993,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         await client.chat.postMessage({
             thread_ts: session.messageTs,
-            channel: HACK_HOUR_CHANNEL,
+            channel: Constants.HACK_HOUR_CHANNEL,
             text: format(randomChoice(Templates.cancelled), {
                 userId: userId
             })
@@ -1006,7 +1001,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         await client.reactions.add({
             name: "x",
-            channel: HACK_HOUR_CHANNEL,
+            channel: Constants.HACK_HOUR_CHANNEL,
             timestamp: session.messageTs
         });
 
@@ -1069,7 +1064,7 @@ async function isUser(userId: string): Promise<boolean> {
             formattedText += "\n" + links.join("\n");
 
             message = await app.client.chat.postMessage({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: formattedText,
             });
 
@@ -1091,7 +1086,7 @@ async function isUser(userId: string): Promise<boolean> {
             });
         } else {
             message = await app.client.chat.postMessage({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: formattedText,
             });
             assertVal(message.ts);
@@ -1120,7 +1115,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         reactOnContent(app, {
             content: task,
-            channel: HACK_HOUR_CHANNEL,
+            channel: Constants.HACK_HOUR_CHANNEL,
             ts: message.ts
         });
 
@@ -1141,7 +1136,7 @@ async function isUser(userId: string): Promise<boolean> {
         // Rejection if the user isn't in the database
         if (!await isUser(userId)) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
                 user: userId
             });
@@ -1229,7 +1224,7 @@ async function isUser(userId: string): Promise<boolean> {
 
         if (!await isUser(userId)) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
                 user: userId
             });
@@ -1323,7 +1318,7 @@ async function isUser(userId: string): Promise<boolean> {
         // Rejection if the user isn't in the database
         if (!await isUser(userId)) {
             await client.chat.postEphemeral({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 text: `❌ You aren't a user yet. Please run \`/hack\` to get started.`,
                 user: userId
             });
@@ -1489,7 +1484,7 @@ async function isUser(userId: string): Promise<boolean> {
 
             // Check if the message exists
             const message = await app.client.conversations.history({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 latest: session.messageTs,
                 limit: 1
             });  
@@ -1519,7 +1514,7 @@ async function isUser(userId: string): Promise<boolean> {
                 });
 
                 await app.client.chat.update({
-                    channel: HACK_HOUR_CHANNEL,
+                    channel: Constants.HACK_HOUR_CHANNEL,
                     ts: session.messageTs,
                     text: format(randomChoice(Templates.completedTopLevel), {
                         userId: session.userId,
@@ -1529,7 +1524,7 @@ async function isUser(userId: string): Promise<boolean> {
 
                 await app.client.chat.postMessage({
                     thread_ts: session.messageTs,
-                    channel: HACK_HOUR_CHANNEL,
+                    channel: Constants.HACK_HOUR_CHANNEL,
                     text: format(randomChoice(Templates.completed), {
                         userId: session.userId
                     })
@@ -1559,7 +1554,7 @@ async function isUser(userId: string): Promise<boolean> {
 
                 await app.client.reactions.add({
                     name: "tada",
-                    channel: HACK_HOUR_CHANNEL,
+                    channel: Constants.HACK_HOUR_CHANNEL,
                     timestamp: session.messageTs
                 });
 
@@ -1582,7 +1577,7 @@ async function isUser(userId: string): Promise<boolean> {
                 // Send a reminder every 15 minutes
                 await app.client.chat.postMessage({
                     thread_ts: session.messageTs,
-                    channel: HACK_HOUR_CHANNEL,
+                    channel: Constants.HACK_HOUR_CHANNEL,
                     text: format(randomChoice(Templates.sessionReminder), {
                         userId: session.userId,
                         minutes: String(session.time - session.elapsed)
@@ -1606,7 +1601,7 @@ async function isUser(userId: string): Promise<boolean> {
             });
 
             await app.client.chat.update({
-                channel: HACK_HOUR_CHANNEL,
+                channel: Constants.HACK_HOUR_CHANNEL,
                 ts: session.messageTs,
                 text: formattedText,
             });
@@ -1673,6 +1668,7 @@ async function isUser(userId: string): Promise<boolean> {
     }, 0);//Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
 
     // App    
-    app.start(process.env.PORT || 4000);
+    if (!process.env.PORT) { throw new Error('❌ PORT is not defined in the environment'); }
+    app.start(process.env.PORT);
     console.log('⏳ And the hour begins...');
 })();

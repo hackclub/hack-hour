@@ -1,11 +1,22 @@
+if (process.env.HACK_HOUR_CHANNEL === undefined) {
+  throw new Error('HACK_HOUR_CHANNEL is not defined');
+}
+
+if (process.env.HACK_HOUR_USERGROUP === undefined) {
+  throw new Error('HACK_HOUR_USERGROUP is not defined');
+}
+
 // Constants
 export const Constants = {
-//HACK_HOUR_CHANNEL: 'C06T6MQ1AMN', // PRIVATE
-//HACK_HOUR_CHANNEL: 'C06SBHMQU8G', // PROD
   MIN_MS: 60 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
+  //HACK_HOUR_CHANNEL: 'C06T6MQ1AMN', // PRIVATE
+  //HACK_HOUR_CHANNEL: 'C06SBHMQU8G', // PROD
+  HACK_HOUR_CHANNEL: process.env.HACK_HOUR_CHANNEL,
+
 //HACK_HOUR_USERGROUP: 'S06RMCA6HBP', // PROD
+  HACK_HOUR_USERGROUP: process.env.HACK_HOUR_USERGROUP,
 };
 
 // Commands
