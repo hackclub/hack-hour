@@ -1336,6 +1336,16 @@ async function isUser(userId: string): Promise<boolean> {
         ack();
     });
 
+    // Misc
+    app.command(Commands.INSTRUCTIONS, async ({ ack, body, client }) => {
+        await ack();
+
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: Views.WELCOME
+        });
+    });
+
     // Interval Updates
 
     /**
