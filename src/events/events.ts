@@ -1,3 +1,9 @@
-/*
-The events system attempts to future-proof any events I plan to do, instead of hacking together a finicky system directly into hack hour
-*/
+import { PrismaClient } from "@prisma/client";
+import { App } from "@slack/bolt";
+import { PowerHour } from "./powerhour.js";
+
+export const events = (app: App, prisma: PrismaClient) => {
+    return [
+        new PowerHour(app, prisma)
+    ];
+};

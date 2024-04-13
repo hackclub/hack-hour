@@ -250,13 +250,21 @@ export async function reactOnContent(app: App, data: {
     channel: string,
     ts: string
 }) {
-    Object.keys(emojis).forEach(async (word) => {
-        if (data.content.includes(word)) {
+    Object.keys(emojis).forEach(async (keyword) => {
+        try {
+           if (
+            data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
+          ) {
             await app.client.reactions.add({
-                name: word,
-                channel: data.channel,
-                timestamp: data.ts
+                chhannel: data.channel, 
+                timestamp: data.ts,
+                name: emojis[keyword]
             });
+          }
         }
-    });
+        catch (e) {
+          console.log(data.channel)
+          console.log(e)
+        }
+    });    
 }

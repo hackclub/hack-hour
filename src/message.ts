@@ -5,7 +5,7 @@ export const Templates = {
         "let's go! <@${userId}> has `${minutes}` minutes to work on:\n${task}"            
     ],   
     completed: [
-        "WOOOOO! YOU DID IT <@{userId}>!",
+        "WOOOOO! YOU DID IT <@${userId}>!",
         "guess what? <@${userId}> finished their hour!",
         "<@${userId}>'s pretty wizard! they finished their hour!",
         "epic job <@${userId}>, you're done!"

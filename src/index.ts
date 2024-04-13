@@ -1,11 +1,12 @@
-import bolt, { KnownBlock, RespondArguments, View } from '@slack/bolt'; 
+import bolt, { KnownBlock, RespondArguments, View } from '@slack/bolt';
 import { CALLBACK_ID, Views, ACTION_ID } from './views/views.js';
 import { Constants, Commands } from './constants.js';
-import { format, randomChoice, formatHour, genAttachmentBlock } from './lib.js';
+import { format, randomChoice, formatHour } from './lib.js';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { Templates } from './message.js';
 import { reactOnContent } from './emoji.js';
+import { events } from './events/events.js';
 const { App } = bolt;
 const prisma = new PrismaClient();
 const app = new App({
@@ -13,7 +14,7 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     socketMode: true,
-});    
+});
 
 function assertVal<T>(value: T | undefined | null): asserts value is T {
     // Throw if the value is undefined
@@ -30,7 +31,7 @@ async function isUser(userId: string): Promise<boolean> {
     return user !== null;
 }
 
-(async () => {     
+(async () => {
     /**
      * /hack
      * Entrypoint to hack hour
@@ -40,7 +41,7 @@ async function isUser(userId: string): Promise<boolean> {
         const userId: string = body.user_id;
 
         await ack();
-      
+
         const userData = await prisma.user.findUnique({
             where: {
                 slackId: userId
@@ -53,7 +54,7 @@ async function isUser(userId: string): Promise<boolean> {
                 view: Views.WELCOME
             });
             return;
-        }          
+        }
 
         const session = await prisma.session.findFirst({
             where: {
@@ -71,12 +72,12 @@ async function isUser(userId: string): Promise<boolean> {
             });
             return;
         }
-        
+
         // Check if there's text - if there is use shorthand mode
         if (text) {
-            const formatText = `> ${text}`;           
+            const formatText = `> ${text}`;
 
-            const template = randomChoice(Templates.minutesRemaining);            
+            const template = randomChoice(Templates.minutesRemaining);
 
             const message = await client.chat.postMessage({
                 channel: Constants.HACK_HOUR_CHANNEL,
@@ -103,7 +104,7 @@ async function isUser(userId: string): Promise<boolean> {
                     goal: userData.defaultGoal,
                     task: formatText,
                     time: 60,
-                    elapsed: 0,                    
+                    elapsed: 0,
                     completed: false,
                     cancelled: false,
                     createdAt: (new Date()).toDateString()
@@ -113,7 +114,7 @@ async function isUser(userId: string): Promise<boolean> {
             console.log(`🟢 Session started by ${userId}`);
 
             return;
-        }        
+        }
 
         const goal = await prisma.goals.findUnique({
             where: {
@@ -153,7 +154,7 @@ async function isUser(userId: string): Promise<boolean> {
                         "emoji": true
                     },
                     "block_id": "task"
-                },		
+                },
                 {
                     "type": "input",
                     "element": {
@@ -192,7 +193,7 @@ async function isUser(userId: string): Promise<boolean> {
                     "type": "divider"
                 },
                 {
-                    "type":"section",
+                    "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": `Currently selected goal: *${goal?.goalName}* - _${formatHour(goal?.minutes)}_ hours completed`
@@ -245,10 +246,10 @@ async function isUser(userId: string): Promise<boolean> {
         const userId = body.user.id;
         const time = body.view.state.values.reminder.reminder_time.selected_time; assertVal(time);
         const goal = body.view.state.values.goal.goal_text.value; assertVal(goal);
-      
+
         const userInfo = await client.users.info({ user: userId }); assertVal(userInfo.user);
         const tz = userInfo.user.tz_offset; assertVal(tz);
-      
+
         try {
             const defaultGoal = randomUUID();
             await prisma.user.create({
@@ -266,7 +267,7 @@ async function isUser(userId: string): Promise<boolean> {
                         }
                     },
                     defaultGoal: defaultGoal,
-                    event: null        
+                    event: null
                 }
             });
             await prisma.goals.create({
@@ -283,7 +284,7 @@ async function isUser(userId: string): Promise<boolean> {
             await ack({
                 response_action: 'errors',
                 errors: {
-                    goal: 'There was an error initializing hack hour. Please try again.'                    
+                    goal: 'There was an error initializing hack hour. Please try again.'
                 }
             });
         }
@@ -291,8 +292,8 @@ async function isUser(userId: string): Promise<boolean> {
         await ack({
             response_action: 'update',
             view: Views.INSTRUCTIONS
-        });  
-        
+        });
+
         // Add user to the hack hour user group
         const users = await client.usergroups.users.list({
             usergroup: Constants.HACK_HOUR_USERGROUP
@@ -330,7 +331,7 @@ async function isUser(userId: string): Promise<boolean> {
         } else {
             await ack();
         }
-        
+
         const goals = await prisma.goals.findMany({
             where: {
                 slackId: userId
@@ -447,7 +448,7 @@ async function isUser(userId: string): Promise<boolean> {
     app.action(ACTION_ID.SELECT_GOAL, async ({ ack, body, client }) => {
         ack();
 
-        const goalId = (body as any).view.state.values.goals.selectGoal.selected_option.value;                
+        const goalId = (body as any).view.state.values.goals.selectGoal.selected_option.value;
 
         // Recreate the view with information about the selected goal
         let blocks = (body as any).view.blocks;
@@ -490,7 +491,7 @@ async function isUser(userId: string): Promise<boolean> {
                 "text": "Goals",
                 "emoji": true
             },
-            "blocks": blocks      
+            "blocks": blocks
         };
 
         await client.views.update({
@@ -498,14 +499,14 @@ async function isUser(userId: string): Promise<boolean> {
             view: view
         });
     });
-    
+
     /**
      * setDefault
      * The modal that allows the user to set a default goal
      */
     app.action(ACTION_ID.SET_DEFAULT, async ({ ack, body, client }) => {
         const userId = body.user.id;
-        const goalId = (body as any).view.state.values.goals.selectGoal.selected_option.value;        
+        const goalId = (body as any).view.state.values.goals.selectGoal.selected_option.value;
 
         // Update the user's default goal
         await prisma.user.update({
@@ -556,8 +557,8 @@ async function isUser(userId: string): Promise<boolean> {
                 "text": "Goals",
                 "emoji": true
             },
-            "blocks": blocks      
-        };        
+            "blocks": blocks
+        };
 
         await client.views.update({
             view_id: (body as any).view.id,
@@ -565,8 +566,8 @@ async function isUser(userId: string): Promise<boolean> {
         });
 
         console.log(`🎯 Set default goal for ${userId} to ${goalId}`);
-     });
- 
+    });
+
     /**
      * createGoal
      * The modal that allows the user to create a new goal
@@ -598,7 +599,7 @@ async function isUser(userId: string): Promise<boolean> {
             });
             return;
         }
-        
+
         assertVal(goalName);
 
         await prisma.goals.create({
@@ -787,7 +788,7 @@ async function isUser(userId: string): Promise<boolean> {
         });
     });
     // Sessions
-    
+
     /**
      * cancel
      * Cancels the current session
@@ -845,21 +846,12 @@ async function isUser(userId: string): Promise<boolean> {
             }
         });
 
-        const blocks: any = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": format(randomChoice(Templates.cancelledTopLevel), {
-                        userId: userId,
-                        task: session.task
-                    })
-                }
-            }                
-        ];
-
+        let links;
         if (session.attachment) {
-            blocks.push(genAttachmentBlock(session.attachment));
+            const permalinks: string[] = JSON.parse(session.attachment);
+            links = "\n" + permalinks.join("\n");
+        } else {
+            links = "";
         }
 
         await client.chat.update({
@@ -868,8 +860,7 @@ async function isUser(userId: string): Promise<boolean> {
             text: format(randomChoice(Templates.cancelledTopLevel), {
                 userId: userId,
                 task: session.task
-            }),
-            blocks: blocks
+            }) + links,
         });
 
         await client.chat.postMessage({
@@ -897,7 +888,7 @@ async function isUser(userId: string): Promise<boolean> {
         const userId = body.user.id;
         const unformattedTask = body.view.state.values.task.task.value;
         const minutes = body.view.state.values.minutes.minutes.value;
-        const attachments = body.view.state.values.attachment.attachment.files; 
+        const attachments = body.view.state.values.attachment.attachment.files;
 
         await ack();
 
@@ -910,21 +901,11 @@ async function isUser(userId: string): Promise<boolean> {
 
         const task = unformattedTask.split("\n").map((line: string) => `> ${line}`).join("\n"); // Split the task into lines, then reattach them with a > in front
 
-        const formattedText = format(template, {
+        let formattedText = format(template, {
             userId: userId,
             minutes: String(minutes),
             task: task
         });
-
-        let blocks: any = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": formattedText
-                }
-            }
-        ];
 
         const userInfo = await prisma.user.findUnique({
             where: {
@@ -935,16 +916,19 @@ async function isUser(userId: string): Promise<boolean> {
 
         assertVal(defaultGoal);
 
+        let links: string[] = [];
         let message;
 
         // If there's an attachment, add it
-        if (attachments[0]) {
-            blocks.push(genAttachmentBlock(JSON.stringify(attachments[0])));
+        if (attachments) {
+            links = attachments.map((attachment: any) => attachment.permalink);
+            formattedText += "\n" + links.join("\n");
+
             message = await app.client.chat.postMessage({
                 channel: Constants.HACK_HOUR_CHANNEL,
-                blocks: blocks,
                 text: formattedText,
-            });                   
+            });
+
             assertVal(message.ts);
             await prisma.session.create({
                 data: {
@@ -957,16 +941,15 @@ async function isUser(userId: string): Promise<boolean> {
                     elapsed: 0,
                     completed: false,
                     cancelled: false,
-                    attachment: JSON.stringify(attachments[0]),
+                    attachment: JSON.stringify(links),
                     createdAt: (new Date()).toDateString()
-                }            
+                }
             });
         } else {
             message = await app.client.chat.postMessage({
                 channel: Constants.HACK_HOUR_CHANNEL,
-                blocks: blocks,
                 text: formattedText,
-            });                   
+            });
             assertVal(message.ts);
             await prisma.session.create({
                 data: {
@@ -983,6 +966,13 @@ async function isUser(userId: string): Promise<boolean> {
                 }
             });
         }
+
+        // Scan the message for any links and add them to links
+        task.split("\n").forEach((line: string) => {
+            if (line.includes("http")) {
+                links.push(line);
+            }
+        });
 
         reactOnContent(app, {
             content: task,
@@ -1002,7 +992,7 @@ async function isUser(userId: string): Promise<boolean> {
     app.command(Commands.STATS, async ({ ack, body, client }) => {
         const userId = body.user_id;
 
-        ack();        
+        ack();
 
         const userData = await prisma.user.findUnique({
             where: {
@@ -1174,24 +1164,16 @@ async function isUser(userId: string): Promise<boolean> {
         for (const session of sessions) {
             session.elapsed += 1;
 
-            let blocks: any[] = [];
-
+            let links;
+            let attachments: string[];
             if (session.attachment) {
-                blocks.push(genAttachmentBlock(session.attachment));
+                attachments = JSON.parse(session.attachment);
+                links = "\n" + attachments.join("\n");
+            } else {
+                links = "";
             }
 
             if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
-                blocks.unshift({
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": format(randomChoice(Templates.completedTopLevel), {
-                            userId: session.userId,
-                            task: session.task
-                        })
-                    }
-                });
-
                 await prisma.session.update({
                     where: {
                         messageTs: session.messageTs
@@ -1204,11 +1186,10 @@ async function isUser(userId: string): Promise<boolean> {
                 await app.client.chat.update({
                     channel: Constants.HACK_HOUR_CHANNEL,
                     ts: session.messageTs,
-                    blocks: blocks,
                     text: format(randomChoice(Templates.completedTopLevel), {
                         userId: session.userId,
                         task: session.task
-                    })
+                    }) + links
                 });
 
                 await app.client.chat.postMessage({
@@ -1266,41 +1247,32 @@ async function isUser(userId: string): Promise<boolean> {
                         userId: session.userId,
                         minutes: String(session.time - session.elapsed)
                     })
-                });                
+                });
             }
-            
-            const formattedText = format(session.template, {
-                    userId: session.userId,
-                    minutes: String(session.time - session.elapsed),
-                    task: session.task
-            });
 
-            blocks.unshift({
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": formattedText
+            const formattedText = format(session.template, {
+                userId: session.userId,
+                minutes: String(session.time - session.elapsed),
+                task: session.task
+            }) + links;
+
+            await prisma.session.update({
+                where: {
+                    messageTs: session.messageTs
+                },
+                data: {
+                    elapsed: session.elapsed
                 }
             });
 
-            await prisma.session.update({
-                    where: {
-                        messageTs: session.messageTs
-                    },
-                    data: {
-                        elapsed: session.elapsed
-                    }
-            });
-
             await app.client.chat.update({
-                    channel: Constants.HACK_HOUR_CHANNEL,
-                    ts: session.messageTs,
-                    blocks: blocks,
-                    text: formattedText,
+                channel: Constants.HACK_HOUR_CHANNEL,
+                ts: session.messageTs,
+                text: formattedText,
             });
         }
     }, Constants.MIN_MS);
-    
+
     /**
      * Interval for reminders
      */
@@ -1318,13 +1290,14 @@ async function isUser(userId: string): Promise<boolean> {
                     user: user.slackId
                 });
 
-                const tz = userInfo.user?.tz_offset;
-
-                // Get current time, adjusted for timezone
-                const nowUTC = new Date(now.getTime() + (now.getTimezoneOffset() * Constants.MIN_MS));
-                const nowHour = nowUTC.getHours();
-
+                const tz = userInfo.user?.tz_offset; // the timezone offset in seconds
+                assertVal(tz);
+                const tzHour = new Date().getHours() + (tz / 3600);
                 const remindHour = Number.parseInt(user.reminder.split(":")[0]);
+
+                if (tzHour != remindHour) {
+                    continue;
+                }
 
                 // Check if the user already hacked today
                 const sessions = await prisma.session.findMany({
@@ -1332,7 +1305,7 @@ async function isUser(userId: string): Promise<boolean> {
                         userId: user.slackId,
                         createdAt: (new Date()).toDateString()
                     }
-                });                
+                });
 
                 if (sessions.length > 0) {
                     continue;
@@ -1340,7 +1313,7 @@ async function isUser(userId: string): Promise<boolean> {
 
                 await app.client.chat.postMessage({
                     channel: user.slackId,
-                    text: `🕒 It's ${nowHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`
+                    text: `🕒 It's ${tzHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`
                 });
             }
 
