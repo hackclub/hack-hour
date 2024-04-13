@@ -315,6 +315,119 @@ async function isUser(userId: string): Promise<boolean> {
      * On submit, close the modal
      */
     app.view(CALLBACK_ID.INSTRUCTIONS, async ({ ack, body, client, logger }) => {
+        // Check if the user has 0 minutes
+        const userId = body.user.id;
+
+        const userData = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+
+        if (userData?.totalMinutes == 0) {
+            const goal = await prisma.goals.findUnique({
+                where: {
+                    goalId: userData.defaultGoal
+                }
+            });
+    
+            const view: View = {
+                "type": "modal",
+                "callback_id": CALLBACK_ID.START,
+                "title": {
+                    "type": "plain_text",
+                    "text": "Start a Session",
+                    "emoji": true
+                },
+                "submit": {
+                    "type": "plain_text",
+                    "text": "Submit",
+                    "emoji": true
+                },
+                "close": {
+                    "type": "plain_text",
+                    "text": "Cancel",
+                    "emoji": true
+                },
+                "blocks": [
+                    {
+                        "type": "input",
+                        "element": {
+                            "type": "plain_text_input",
+                            "multiline": true,
+                            "action_id": "task"
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Label",
+                            "emoji": true
+                        },
+                        "block_id": "task"
+                    },
+                    {
+                        "type": "input",
+                        "element": {
+                            "type": "number_input",
+                            "is_decimal_allowed": false,
+                            "action_id": "minutes",
+                            "initial_value": "60",
+                            "min_value": "1",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Amount of time in minutes for the hack hour session"
+                            }
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "How long will this session be? (minutes)",
+                            "emoji": true
+                        },
+                        "block_id": "minutes"
+                    },
+                    {
+                        "type": "input",
+                        "block_id": "attachment",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Upload Files"
+                        },
+                        "element": {
+                            "type": "file_input",
+                            "action_id": "attachment",
+                            "max_files": 1,
+                        },
+                        "optional": true
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": `Currently selected goal: *${goal?.goalName}* - _${formatHour(goal?.minutes)}_ hours completed`
+                        }
+                    }
+                ]
+            };
+
+            if (body.view.root_view_id == undefined) {
+                await ack({
+                    response_action: 'clear'
+                });
+                return;
+            }                
+
+            await client.views.update({
+                view_id: body.view.root_view_id,
+                view: view
+            });
+    
+            await ack();
+    
+            return;
+        }
+
         await ack({
             response_action: 'clear'
         });
@@ -449,7 +562,7 @@ async function isUser(userId: string): Promise<boolean> {
      * selectGoal
      */
     app.action(ACTION_ID.SELECT_GOAL, async ({ ack, body, client }) => {
-        ack();
+        await ack();
 
         const goalId = (body as any).view.state.values.goals.selectGoal.selected_option.value;
 
@@ -576,7 +689,7 @@ async function isUser(userId: string): Promise<boolean> {
      * The modal that allows the user to create a new goal
      */
     app.action(ACTION_ID.CREATE_GOAL, async ({ ack, body, client }) => {
-        ack();
+        await ack();
 
         await client.views.push({
             trigger_id: (body as any).trigger_id,
@@ -624,7 +737,7 @@ async function isUser(userId: string): Promise<boolean> {
      * The modal that allows the user to delete a goal
      */
     app.action(ACTION_ID.DELETE_GOAL, async ({ ack, body, client }) => {
-        ack();
+        await ack();
 
         let view: View = {
             "type": "modal",
@@ -1015,7 +1128,7 @@ async function isUser(userId: string): Promise<boolean> {
     app.command(Commands.STATS, async ({ ack, body, client }) => {
         const userId = body.user_id;
 
-        ack();
+        await ack();
 
         // Rejection if the user isn't in the database
         if (!await isUser(userId)) {
@@ -1197,7 +1310,7 @@ async function isUser(userId: string): Promise<boolean> {
     app.command(Commands.EVENTS, async ({ ack, body, client }) => {
         const userId = body.user_id;
 
-        ack();
+        await ack();
 
         // Rejection if the user isn't in the database
         if (!await isUser(userId)) {
@@ -1313,9 +1426,9 @@ async function isUser(userId: string): Promise<boolean> {
                         eventId: eventId
                     }
                 }); 
-                ack()       
+                await ack();       
             } else {
-                ack({
+                await ack({
                     response_action: 'errors',
                     errors: {
                         events: 'There was an error while joining this event. You may not be able to join this event.'
@@ -1334,7 +1447,7 @@ async function isUser(userId: string): Promise<boolean> {
             }
         });
 
-        ack();
+        await ack();
     });
 
     // Misc

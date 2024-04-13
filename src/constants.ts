@@ -12,11 +12,11 @@ export const Constants = {
 
 // Commands
 export const Commands = {
-  HACK: '/hack',
-  CANCEL: '/cancel',
-  GOALS: '/goals',
-  STATS: '/mystats',
-  REMINDERS: '/reminders',
-  EVENTS: '/picnics',
-  INSTRUCTIONS: '/instructions'
+  HACK: '/ztesthack',
+  CANCEL: '/testcancel',
+  GOALS: '/testgoals',
+  STATS: '/testmystats',
+  REMINDERS: '/testreminders',
+  EVENTS: '/testpicnics',
+  INSTRUCTIONS: '/testinstructions'
 };
