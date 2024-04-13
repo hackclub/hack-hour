@@ -1329,7 +1329,7 @@ async function isUser(userId: string): Promise<boolean> {
                 slackId: userId
             },
             data: {
-                eventId: eventId
+                eventId: "none"
             }
         });
 
