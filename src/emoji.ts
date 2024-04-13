@@ -256,7 +256,7 @@ export async function reactOnContent(app: App, data: {
             data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
           ) {
             await app.client.reactions.add({
-                chhannel: data.channel, 
+                channel: data.channel, 
                 timestamp: data.ts,
                 name: emojis[keyword]
             });
