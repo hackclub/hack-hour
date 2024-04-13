@@ -270,7 +270,7 @@ async function isUser(userId: string): Promise<boolean> {
                         }
                     },
                     defaultGoal: defaultGoal,
-                    event: null
+                    eventId: "none"
                 }
             });
             await prisma.goals.create({
@@ -896,8 +896,8 @@ async function isUser(userId: string): Promise<boolean> {
             }
         });
 
-        if (userInfo?.event) {
-            events[userInfo.event].cancelSession(session);
+        if (userInfo?.eventId) {
+            await events[userInfo.eventId].cancelSession(session);
         }
 
         console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
@@ -1209,6 +1209,19 @@ async function isUser(userId: string): Promise<boolean> {
             return;
         }
 
+        const user = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+
+        let eventIndex;
+        if (user?.eventId == null || user?.eventId == undefined || user?.eventId == "none") {
+            eventIndex = 0;
+        } else {
+            eventIndex = Object.keys(events).indexOf(user?.eventId) + 1;
+        }
+
         const options = Object.keys(events).map(eventID => {
             const event = events[eventID];
 
@@ -1264,6 +1277,7 @@ async function isUser(userId: string): Promise<boolean> {
                     },
                     "element": {
                         "type": "radio_buttons",
+                        "initial_option": options[eventIndex],
                         "options": options,
                         "action_id": "events"
                     },
@@ -1296,7 +1310,7 @@ async function isUser(userId: string): Promise<boolean> {
                         slackId: userId
                     },
                     data: {
-                        event: eventId
+                        eventId: eventId
                     }
                 }); 
                 ack()       
@@ -1315,7 +1329,7 @@ async function isUser(userId: string): Promise<boolean> {
                 slackId: userId
             },
             data: {
-                event: eventId
+                eventId: eventId
             }
         });
 
@@ -1414,8 +1428,8 @@ async function isUser(userId: string): Promise<boolean> {
                     }
                 });
 
-                if (userInfo?.event) {
-                    events[userInfo.event].endSession(session);
+                if (userInfo?.eventId) {
+                    await events[userInfo.eventId].endSession(session);
                 }
 
                 continue;

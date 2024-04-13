@@ -19,7 +19,7 @@ model User {
   reminder String
   goals Goals[]
   defaultGoal String // via. goalId
-  event String? // check if the user is in an event (community goals todo)
+  eventId String? // check if the user is in an event (community goals todo)
 }
 
 model Session {
@@ -44,10 +44,11 @@ model Goals {
   minutes Int // Minutes contributed
 }
 
-model Events {
+model EventContributions {
   // Tracks event contributions
   contributionId Int @id @default(autoincrement())
   slackId String
-  eventName String
+  eventId String
   minutes Int
+  sessions String // session IDs stored as JSON
 }

@@ -38,6 +38,8 @@ export class PowerHour implements BaseEvent {
             thread_ts: session.messageTs,
             text: "Congrats for finishing this PowerHour session! Put down some reflections from your session or share your current progress.",
         });
+
+
     }
 
     async cancelSession(session: Session): Promise<void> {
@@ -52,12 +54,29 @@ export class PowerHour implements BaseEvent {
         // Get current time in Chicago from UTC time
         const currentTime = new Date();
         currentTime.setHours(currentTime.getUTCHours() - 5);
-        
     }
 
     async userJoin(userId: string): Promise<boolean> {
-        // Check if the user is in allowed users
         if (POWERHOUR_USERS.includes(userId)) {
+            // Check if the user is already in the database, if not add them
+            const eventEntry = await this.prisma.eventContributions.findFirst({
+                where: {
+                    slackId: userId,
+                    eventId: POWERHOUR_ID,
+                },
+            });
+
+            if (!eventEntry) {
+                await this.prisma.eventContributions.create({
+                    data: {
+                        slackId: userId,
+                        eventId: POWERHOUR_ID,
+                        minutes: 0,
+                        sessions: "[]"
+                    },
+                });
+            }
+
             return true;
         }
         return false;
