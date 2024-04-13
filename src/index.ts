@@ -1548,8 +1548,8 @@ async function isUser(userId: string): Promise<boolean> {
             for (const event in events) {
                 events[event].hourlyCheck();
             }
-        }, Constants.MIN_MS);//Constants.HOUR_MS);
-    }, 0);//Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
+        }, Constants.HOUR_MS);
+    }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
 
     // App    
     app.start(process.env.PORT || 4000);
