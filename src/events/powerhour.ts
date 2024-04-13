@@ -17,8 +17,8 @@ const POWERHOUR_USERS = [
 
 const COMMUNITY_GOAL = 105 * 60; // Minutes
 
-const START_TIME = new Date("2024-04-13T01:00:00-0700");
-const END_TIME = new Date("2024-04-13T02:59:00-0700");
+const START_TIME = new Date("2024-04-13T01:10:00-0700");
+const END_TIME = new Date("2024-04-13T01:30:00-0700");
 
 export class PowerHour implements BaseEvent {
     app: App<StringIndexed>;
