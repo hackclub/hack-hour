@@ -1,6 +1,11 @@
 import { app, prisma } from '../app.js';
-import { Commands } from '../constants.js';
+import { Commands, Environment } from '../constants.js';
 import { Callbacks, Views } from '../views/hackhour.js';
+import { Views as OnboardingViews } from '../views/onboarding.js';
+import { Templates } from '../utils/message.js';
+import { format, randomChoice, formatHour } from '../utils/string.js';
+import { reactOnContent } from '../utils/emoji.js';
+import { assertVal } from '../utils/lib.js';
 
 /**
  * hack
@@ -11,7 +16,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
     const userId: string = body.user_id;
 
     await ack();
-re
+
     const userData = await prisma.user.findUnique({
         where: {
             slackId: userId
@@ -21,7 +26,7 @@ re
     if (!userData) {
         await client.views.open({
             trigger_id: body.trigger_id,
-            view: Views.WELCOME
+            view: OnboardingViews.welcome()
         });
         return;
     }
@@ -36,7 +41,7 @@ re
 
     if (session) {
         await client.chat.postEphemeral({
-            channel: Constants.HACK_HOUR_CHANNEL,
+            channel: Environment.MAIN_CHANNEL,
             text: `🚨 You're already in a session! Finish that one before starting a new one.`,
             user: userId
         });
@@ -50,7 +55,7 @@ re
         const template = randomChoice(Templates.minutesRemaining);
 
         const message = await client.chat.postMessage({
-            channel: Constants.HACK_HOUR_CHANNEL,
+            channel: Environment.MAIN_CHANNEL,
             text: format(template, {
                 userId: userId,
                 minutes: "60",
@@ -62,7 +67,7 @@ re
 
         reactOnContent(app, {
             content: text,
-            channel: Constants.HACK_HOUR_CHANNEL,
+            channel: Environment.MAIN_CHANNEL,
             ts: message.ts
         });
 
@@ -92,16 +97,15 @@ re
         }
     });
 
-    await client.views.open({
-        trigger_id: body.trigger_id,
-        view: Views.start()
-    });
+    if (!goal?.goalName) {
+        throw new Error(`Goal ${userData.defaultGoal} configured incorrectly or does not exist.`)
+    }
 
     await ack();
 
     await client.views.open({
         trigger_id: body.trigger_id,
-        view: Views.start()
+        view: Views.start(goal?.goalName, userData.eventId || 'None')
     });
 });
 
@@ -115,6 +119,4 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     const files = body.view.state.values.files.files.files;
 
     await ack();
-
-
 });
