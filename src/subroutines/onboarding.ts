@@ -3,6 +3,7 @@ import { Callbacks, Views } from '../views/onboarding.js';
 import { assertVal } from '../utils/lib.js';
 import { randomUUID } from 'crypto';
 import { Commands, Environment } from '../constants.js';
+import { Views as HackViews } from '../views/hackhour.js';
 
 /**
  * welcome
@@ -73,12 +74,21 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
  * On submit, open the start session modal
  */
 app.view(Callbacks.FINISH, async ({ ack, body, client, logger }) => {
-/*  const view: View = {} // TODO: Redirect to Hack Hour prompt
+    if (!body.view.root_view_id) {
+        logger.error("No root view ID found");
+        await ack({
+            response_action: 'errors',
+            errors: {
+                "root_view_id": "No root view ID found"                
+            }
+        });
+        return;
+    }
 
     await client.views.update({
         view_id: body.view.root_view_id,
-        view: view
-    });*/
+        view: HackViews.start()
+    });
 
     await ack();
 });
