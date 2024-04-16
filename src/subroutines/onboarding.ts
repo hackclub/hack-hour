@@ -29,6 +29,8 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
     const userInfo = await client.users.info({ user: userId }); assertVal(userInfo.user);
     const tz = userInfo.user.tz_offset; assertVal(tz);
 
+    const defaultGoal = randomUUID();
+
     await prisma.user.create({
         data: {
             slackId: userId,
@@ -38,13 +40,13 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
             reminder: time,
             goals: {
                 create: {
-                    goalId: randomUUID(),
-                    goalName: "none",
+                    goalId: defaultGoal,
+                    goalName: "No Goal",
                     minutes: 0
                 }
             },
-            defaultGoal: "none",
-            eventId: "none"
+            defaultGoal: defaultGoal,
+            eventId: "None"
         }
     });
 
@@ -87,7 +89,7 @@ app.view(Callbacks.FINISH, async ({ ack, body, client, logger }) => {
 
     await client.views.update({
         view_id: body.view.root_view_id,
-        view: HackViews.start()
+        view: await HackViews.start(body.user.id)
     });
 
     await ack();

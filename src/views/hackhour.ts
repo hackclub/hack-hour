@@ -1,4 +1,4 @@
-import { Goals, User } from "@prisma/client";
+import { prisma } from "../app.js";
 import { View } from "@slack/bolt";
 
 export const Callbacks = {
@@ -11,7 +11,23 @@ export const Actions = {
 }
 
 export class Views {
-    public static start(goal: string, event: string): View {
+    public static async start(userId: string): Promise<View> {
+        const userData = await prisma.user.findUnique({
+            where: {
+                slackId: userId
+            }
+        });
+
+        if (!userData) {
+            throw new Error("User not found");
+        }
+
+        const goalData = await prisma.goals.findUnique({
+            where: {
+                goalId: userData.defaultGoal
+            }
+        });
+
         return {
             "callback_id": Callbacks.START,
             "title": {
@@ -86,7 +102,7 @@ export class Views {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Currently selected goal:* ${goal}`
+                        "text": `*Currently selected goal:* ${goalData?.goalName || 'None'}`
                     },
                     "accessory": {
                         "type": "button",
@@ -103,7 +119,7 @@ export class Views {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Current picnic:* ${event}`
+                        "text": `*Current picnic:* ${userData.eventId || 'None'}`
                     },
                     "accessory": {
                         "type": "button",

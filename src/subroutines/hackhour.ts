@@ -1,7 +1,10 @@
 import { app, prisma } from '../app.js';
 import { Commands, Environment } from '../constants.js';
-import { Callbacks, Views } from '../views/hackhour.js';
+
+import { Callbacks, Views, Actions } from '../views/hackhour.js';
 import { Views as OnboardingViews } from '../views/onboarding.js';
+import { Views as GoalViews } from '../views/goals.js';
+
 import { Templates } from '../utils/message.js';
 import { format, randomChoice, formatHour } from '../utils/string.js';
 import { reactOnContent } from '../utils/emoji.js';
@@ -91,21 +94,9 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         return;
     }
 
-    const goal = await prisma.goals.findUnique({
-        where: {
-            goalId: userData.defaultGoal
-        }
-    });
-
-    if (!goal?.goalName) {
-        throw new Error(`Goal ${userData.defaultGoal} configured incorrectly or does not exist.`)
-    }
-
-    await ack();
-
     await client.views.open({
         trigger_id: body.trigger_id,
-        view: Views.start(goal?.goalName, userData.eventId || 'None')
+        view: await Views.start(userId)
     });
 });
 
@@ -119,4 +110,34 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     const files = body.view.state.values.files.files.files;
 
     await ack();
+});
+
+/**
+ * goals
+ * Open the goals modal
+ */
+app.action(Actions.GOALS, async ({ ack, body, client }) => {
+    await ack();
+
+    const userId: string = body.user.id;
+
+    await client.views.open({
+        view: await Views.goals(userId)
+    });
+});
+
+/**
+ * picnics
+ * Open the picnics modal
+ */
+app.action(Actions.PICNICS, async ({ ack, body, client }) => {
+    await ack();
+
+    const userId: string = body.user.id;
+
+    console.log(body);
+
+    await client.views.open({
+        view: await Views.goals(userId)
+    });
 });
