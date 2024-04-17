@@ -5,7 +5,7 @@
   "exports": "./src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node --env-file=\".env\" ./build/index.js",
+    "start": "node ./build/entry.js",
     "app": "npm run build && npm run start"
   },
   "repository": {
@@ -21,6 +21,7 @@
   "dependencies": {
     "@prisma/client": "^5.12.1",
     "@slack/bolt": "^3.17.1",
+    "dotenv": "^16.4.5",
     "lowdb": "^7.0.1"
   },
   "type": "module",

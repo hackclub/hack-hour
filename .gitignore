@@ -12,3 +12,5 @@ prisma/migrations
 prisma/hackhour.db
 prisma/hackhour.db-journal
 prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db-journal

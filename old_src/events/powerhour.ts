@@ -35,8 +35,18 @@ export class PowerHour implements BaseEvent {
         this.prisma = prisma;
 
         app.client.chat.postMessage({
-            channel: POWERHOUR_ORGANIZERS_CHANNEL,
-            text: "PowerHour Event Initialized",
+            channel: Constants.HACK_HOUR_CHANNEL,
+            blocks: [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "This is a mrkdwn section block :ghost: *this is bold*, and ~this is crossed out~, and https://hackclub.slack.com/files/U04QD71QWS0/F06UX1KBZKJ/659e6c1875a6ef6d59572be3_types_of_landscapes.webp"
+                        }
+                    }
+                ],
+            unfurl_links: true,
+            unfurl_media: true,
         });
 
         app.event("reaction_added", async ({ event, client }) => {

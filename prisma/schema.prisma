@@ -18,7 +18,7 @@ model User {
   remindersEnabled Boolean
   reminder String
   goals Goals[]
-  defaultGoal String // via. goalId
+  selectedGoal String // via. goalId
   eventId String? // check if the user is in an event (community goals todo)
 }
 
