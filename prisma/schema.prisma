@@ -13,7 +13,7 @@ model User {
   tz               String
   remindersEnabled Boolean
   reminder         String
-  selectedGoal      String
+  selectedGoal     String
   eventId          String?
   goals            Goals[]
 }
