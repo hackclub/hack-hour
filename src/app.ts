@@ -1,6 +1,7 @@
 import bolt from '@slack/bolt'; 
 import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
+import { ExtensionsManager } from './utils/extensions.js';
 import { Environment, Constants } from './constants.js';
 
 export const app = new bolt.App({
@@ -24,3 +25,5 @@ export const minuteInterval = new IntervalManager(Constants.MIN_MS);
 export const hourInterval = new IntervalManager(Constants.HOUR_MS);
 
 hourInterval.setDelay(Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
+
+export const extensions = new ExtensionsManager();

@@ -1,4 +1,4 @@
-import { app, prisma, minuteInterval, hourInterval } from '../app.js';
+import { app, prisma, minuteInterval, extensions } from '../app.js';
 import { Commands, Environment } from '../constants.js';
 
 import { Callbacks, Views, Actions } from '../views/hackhour.js';
