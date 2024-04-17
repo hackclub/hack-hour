@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,44 +8,42 @@ datasource db {
 }
 
 model User {
-  slackId    String   @id
-  totalMinutes Int  
-  // Flags
-  tz String
+  slackId          String  @id
+  totalMinutes     Int
+  tz               String
   remindersEnabled Boolean
-  reminder String
-  goals Goals[]
-  selectedGoal String // via. goalId
-  eventId String? // check if the user is in an event (community goals todo)
+  reminder         String
+  selectedGoal      String
+  eventId          String?
+  goals            Goals[]
 }
 
 model Session {
-  messageTs String @id
-  userId String
-  template String
-  goal String // Goal this session is for
-  task String // Task that the person is working on currently
-  time Int // Total time for this session
-  elapsed Int    
-  completed Boolean  
+  messageTs  String  @id
+  userId     String
+  template   String
+  goal       String
+  task       String
+  time       Int
+  elapsed    Int
+  completed  Boolean
   attachment String?
-  cancelled Boolean
-  createdAt String?
+  cancelled  Boolean
+  createdAt  String?
 }
 
 model Goals {
-  user User @relation(fields: [slackId], references: [slackId])
-  goalId String @id // UUID
-  slackId String 
+  goalId   String @id
+  slackId  String
   goalName String
-  minutes Int // Minutes contributed
+  minutes  Int
+  user     User   @relation(fields: [slackId], references: [slackId])
 }
 
 model EventContributions {
-  // Tracks event contributions
-  contributionId Int @id @default(autoincrement())
-  slackId String
-  eventId String
-  minutes Int
-  sessions String // session IDs stored as JSON
+  contributionId Int    @id @default(autoincrement())
+  slackId        String
+  eventId        String
+  minutes        Int
+  sessions       String
 }
