@@ -24,7 +24,7 @@ export class Views {
 
         const goalData = await prisma.goals.findUnique({
             where: {
-                goalId: userData.defaultGoal
+                goalId: userData.selectedGoal
             }
         });
 

@@ -29,7 +29,7 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
     const userInfo = await client.users.info({ user: userId }); assertVal(userInfo.user);
     const tz = userInfo.user.tz_offset; assertVal(tz);
 
-    const defaultGoal = randomUUID();
+    const selectedGoal = randomUUID();
 
     await prisma.user.create({
         data: {
@@ -40,12 +40,12 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
             reminder: time,
             goals: {
                 create: {
-                    goalId: defaultGoal,
+                    goalId: selectedGoal,
                     goalName: "No Goal",
                     minutes: 0
                 }
             },
-            defaultGoal: defaultGoal,
+            selectedGoal: selectedGoal,
             eventId: "None"
         }
     });
