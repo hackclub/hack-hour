@@ -1,8 +1,8 @@
 export const Templates = {
     minutesRemaining: [
-        "it looks like <@${userId}> is getting more power this hour! `${minutes}` minutes remaining towork on:\n${task}",
-        "<@${userId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:\n${task}",
-        "let's go! <@${userId}> has `${minutes}` minutes to work on:\n${task}"            
+        "it looks like <@${userId}> is getting more power this hour! `${minutes}` minutes remaining towork on:",
+        "<@${userId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:",
+        "let's go! <@${userId}> has `${minutes}` minutes to work on:"            
     ],   
     completed: [
         "WOOOOO! YOU DID IT <@${userId}>!",
@@ -11,7 +11,7 @@ export const Templates = {
         "epic job <@${userId}>, you're done!"
     ],
     completedTopLevel: [
-        "<@${userId}> finished working on: \n${task}"
+        "<@${userId}> finished working on:"
     ],    
     sessionReminder: [
         "time's ticking <@${userId}>, looks like you have `${minutes}` minutes left!",
@@ -26,6 +26,6 @@ export const Templates = {
         "<@${userId}> cancelled their hack hour early."        
     ],
     cancelledTopLevel: [
-        "<@${userId}> stopped working on \n${task}"
+        "<@${userId}> stopped working on:"
     ],
 }
