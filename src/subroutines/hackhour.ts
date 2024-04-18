@@ -7,9 +7,10 @@ import { Views as GoalViews } from '../views/goals.js';
 import { Views as PicnicViews } from '../views/picnics.js';
 
 import { Templates } from '../utils/message.js';
-import { format, randomChoice, formatHour } from '../utils/string.js';
+import { format, randomChoice } from '../utils/string.js';
 import { reactOnContent } from '../utils/emoji.js';
 import { assertVal } from '../utils/lib.js';
+import { Blocks } from '../views/messages.js';
 
 /**
  * hack
@@ -34,7 +35,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
         return;
     }
-
+  
     const session = await prisma.session.findFirst({
         where: {
             userId: userId,
@@ -54,17 +55,18 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
 
     // Check if there's text - if there is use shorthand mode
     if (text) {
-        const formatText = `> ${text}`;
-
         const template = randomChoice(Templates.minutesRemaining);
 
         const message = await client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
-            text: format(template, {
+            blocks: await Blocks.session({
+                template: template,
                 userId: userId,
-                minutes: "60",
-                task: formatText
-            })
+                goal: userData.selectedGoal,
+                task: text,
+                time: 60
+            }),
+            text: text
         });
 
         assertVal(message.ts);
@@ -81,7 +83,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
                 template: template,
                 userId: userId,
                 goal: userData.selectedGoal,
-                task: formatText,
+                task: text,
                 time: 60,
                 elapsed: 0,
                 completed: false,
@@ -91,6 +93,8 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
 
         console.log(`🟢 Session started by ${userId}`);
+
+        extensions.sessionStarted(message.ts);
 
         return;
     }
@@ -108,7 +112,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
  */
 app.view(Callbacks.START, async ({ ack, body, client }) => {
     const userId = body.user.id;
-    const unformattedTask = body.view.state.values.session.session.value;
+    const task = body.view.state.values.session.session.value;
     const minutes = body.view.state.values.minutes.minutes.value;
     const attachments = body.view.state.values.files.files.files;
 
@@ -117,11 +121,9 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     const template = randomChoice(Templates.minutesRemaining);
 
     assertVal(userId);
-    assertVal(unformattedTask);
+    assertVal(task);
     assertVal(minutes);
     assertVal(attachments);
-
-    const task = unformattedTask.split("\n").map((line: string) => `> ${line}`).join("\n"); // Split the task into lines, then reattach them with a > in front
 
     let formattedText = format(template, {
         userId: userId,
@@ -149,6 +151,13 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
         message = await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             text: formattedText,
+            blocks: await Blocks.session({
+                template: template,
+                userId: userId,
+                goal: selectedGoal,
+                task: task,
+                time: 60
+            }, links)
         });
 
         assertVal(message.ts);
@@ -171,6 +180,13 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
         message = await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             text: formattedText,
+            blocks: await Blocks.session({
+                template: template,
+                userId: userId,
+                goal: selectedGoal,
+                task: task,
+                time: 60
+            })
         });
         assertVal(message.ts);
         await prisma.session.create({
@@ -203,6 +219,8 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     });
 
     console.log(`🟢 Session ${message.ts} started by ${userId}`);
+
+    extensions.sessionStarted(message.ts);
 });
 
 /**
@@ -315,10 +333,14 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
     await client.chat.update({
         channel: Environment.MAIN_CHANNEL,
         ts: session.messageTs,
-        text: format(randomChoice(Templates.cancelledTopLevel), {
-            userId: userId,
-            task: session.task
-        }) + links,
+        text: session.task,
+        blocks: await Blocks.session({
+            template: randomChoice(Templates.cancelledTopLevel),
+            userId: session.userId,
+            goal: session.goal,
+            task: session.task,
+            time: session.time - session.elapsed
+        })
     });
 
     await client.chat.postMessage({
@@ -335,17 +357,7 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
         timestamp: session.messageTs
     });
 
-    /*
-    // Events system
-    const userInfo = await prisma.user.findUnique({
-        where: {
-            slackId: session.userId
-        }
-    });
-
-    if (userInfo?.eventId && userInfo?.eventId != "none") {
-        await events[userInfo.eventId].cancelSession(session);
-    }*/
+    extensions.sessionCancelled(session.messageTs);
 
     console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
 });
@@ -401,10 +413,14 @@ minuteInterval.attach(async () => {
             await app.client.chat.update({
                 channel: Environment.MAIN_CHANNEL,
                 ts: session.messageTs,
-                text: format(randomChoice(Templates.completedTopLevel), {
+                text: session.task,
+                blocks: await Blocks.session({
+                    template: randomChoice(Templates.completedTopLevel),
                     userId: session.userId,
-                    task: session.task
-                }) + links
+                    goal: session.goal,
+                    task: session.task,
+                    time: session.time - session.elapsed
+                })
             });
 
             await app.client.chat.postMessage({
@@ -445,6 +461,8 @@ minuteInterval.attach(async () => {
 
             console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
 
+            extensions.sessionCompleted(session.messageTs);
+
             continue;
         }
         else if (session.elapsed % 15 == 0) {
@@ -459,12 +477,6 @@ minuteInterval.attach(async () => {
             });
         }
 
-        const formattedText = format(session.template, {
-            userId: session.userId,
-            minutes: String(session.time - session.elapsed),
-            task: session.task
-        }) + links;
-
         await prisma.session.update({
             where: {
                 messageTs: session.messageTs
@@ -477,7 +489,14 @@ minuteInterval.attach(async () => {
         await app.client.chat.update({
             channel: Environment.MAIN_CHANNEL,
             ts: session.messageTs,
-            text: formattedText,
+            text: session.task,
+            blocks: await Blocks.session({
+                template: session.template,
+                userId: session.userId,
+                goal: session.goal,
+                task: session.task,
+                time: session.time - session.elapsed
+            })     
         });
     }
 })

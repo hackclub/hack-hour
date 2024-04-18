@@ -25,5 +25,5 @@ export const minuteInterval = new IntervalManager(Constants.MIN_MS);
 export const hourInterval = new IntervalManager(Constants.HOUR_MS);
 
 hourInterval.setDelay(Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
-
-export const extensions = new ExtensionsManager();
+  
+export const extensions = ExtensionsManager();
