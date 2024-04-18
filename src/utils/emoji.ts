@@ -242,7 +242,8 @@ const emojis = {
     purplebubble: "purplebubble",
     summit: "leaders-summit",
     "summit vision": "summit-vision",
-    "apple vision": "summit-vision"
+    "apple vision": "summit-vision",
+    "hack hour": "the_doctor"
 } as { [key: string]: string };
 
 export async function reactOnContent(app: App, data: {
