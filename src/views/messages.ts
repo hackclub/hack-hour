@@ -58,7 +58,7 @@ export class Blocks {
             }
         ]        
 
-        if (attachments) {
+        if (attachments != null) {
             blocks.push({
                 "type": "section",
                 "text": {

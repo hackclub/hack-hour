@@ -1,5 +1,7 @@
 import { extensions } from "../app.js";
 
+// Powerhour placeholder, I guess
+
 extensions.attach({
     onStart: () => {
         console.log('Extension started');

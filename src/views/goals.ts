@@ -8,7 +8,7 @@ export const Callbacks = {
     DELETE: 'deleteGoal-callback',
     ERROR: 'goals-error'
 }
-
+                
 export const Actions = {
     SELECT: 'selectGoal',
     CREATE: 'createGoal',
@@ -70,6 +70,53 @@ export class Views {
                         "emoji": true
                     }
                 },
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "What are "
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "Goals",
+                                    "style": {
+                                        "bold": true
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "? Goals are what you want to achieve in the long term - for example, if you are coding a specific aspect of your project, then your current "
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "session",
+                                    "style": {
+                                        "italic": true
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "text": " is that specific task, whereas your "
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "goal",
+                                    "style": {
+                                        "italic": true
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "text": " is the project as a whole."
+                                }
+                            ]
+                        }
+                    ]
+                },                
                 {
                     "type": "actions",                    
                     "elements": [

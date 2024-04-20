@@ -18,7 +18,7 @@ app.error(async (error) => {
         text: `<@U04QD71QWS0> I summon thee for the following reason: \`Hack Hour had an error! - Bolt JS\`\n*Error:*\n\`\`\`${error.message}\`\`\``, //<!subteam^${process.env.DEV_USERGROUP}|hack-hour-dev>
     });
 });
-
+ 
 export const prisma = new PrismaClient();
 
 export const minuteInterval = new IntervalManager(Constants.MIN_MS);

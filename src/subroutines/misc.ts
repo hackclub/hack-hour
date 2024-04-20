@@ -101,12 +101,14 @@ hourInterval.attach(async () => {
     console.log(`🕒 Running reminders to ${users.length} users`);
 
     for (const user of users) {
-        const userInfo = await app.client.users.info({
-            user: user.slackId
+        const userData = await prisma.user.findUnique({
+            where: {
+                slackId: user.slackId
+            }
         });
-
-        const tz = userInfo.user?.tz_offset; // the timezone offset in seconds
-        assertVal(tz);
+ 
+        assertVal(userData?.tz);
+        const tz: number = parseInt(userData?.tz); // the timezone offset in seconds
         let tzDate = new Date();
         tzDate.setHours(new Date().getUTCHours() + (tz / 3600));
         const tzHour: number = tzDate.getHours();
@@ -129,7 +131,7 @@ hourInterval.attach(async () => {
         if (sessions.length > 0) {
             continue;
         }
-
+                     
         await app.client.chat.postMessage({
             channel: user.slackId,
             text: `🕒 It's ${tzHour} o'clock! Time for your daily hack hour! Run \`/hack\` to get started.`

@@ -144,7 +144,7 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     let message;
 
     // If there's an attachment, add it
-    if (attachments) {
+    if (attachments && attachments.length > 0) {
         links = attachments.map((attachment: any) => attachment.permalink);
         formattedText += "\n" + links.join("\n");
 
@@ -188,6 +188,7 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
                 time: 60
             })
         });
+        
         assertVal(message.ts);
         await prisma.session.create({
             data: {
