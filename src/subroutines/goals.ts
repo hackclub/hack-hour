@@ -30,16 +30,25 @@ app.action(Actions.CREATE, async ({ ack, body, client }) => {
 
     await client.views.push({
         trigger_id: (body as any).trigger_id,
-        view: Views.createGoal()
+        view: Views.createGoal((body as any).view.id),    
     });    
 });
 
 app.action(Actions.DELETE, async ({ ack, body, client }) => {
     await ack();
 
+//    if ((body as any).view.state.values.goals.selectGoal.selected_option.value)
+
     await client.views.push({
         trigger_id: (body as any).trigger_id,
-        view: Views.deleteGoal()
+        view: Views.deleteGoal(
+            JSON.stringify(
+                {
+                    viewId: (body as any).view.id,
+                    goalId: (body as any).view.state.values.goals.selectGoal.selected_option.value                  
+                }
+            )
+        )
     });        
 });
 
@@ -69,11 +78,17 @@ app.view(Callbacks.CREATE, async ({ ack, body, client }) => {
         }
     });
 
+    await client.views.update({
+        view_id: body.view.private_metadata,
+        view: await Views.goals(userId)
+    });
+
     await ack();
 });
 
 app.view(Callbacks.DELETE, async ({ ack, body, client }) => {
-    const goalId = body.view.private_metadata;
+    const metadata = body.view.private_metadata;
+    const { viewId, goalId } = JSON.parse(metadata);
 
     const goals = await prisma.goals.findMany({
         where: {
@@ -89,32 +104,38 @@ app.view(Callbacks.DELETE, async ({ ack, body, client }) => {
         return;
     }
 
-    // Ensure that the goal is not the default goal
     const userData = await prisma.user.findUnique({
         where: {
             slackId: body.user.id
         }
     });
 
-    if (userData?.selectedGoal == goalId) {
-        await ack({
-            response_action: 'update',
-            view: Views.error("You cannot delete your currently selected goal.")
-        });
-        return;
-    }
+    // Randomly select a new goal if the current goal is deleted
+    const newGoal = goals.filter(g => g.goalId != goalId)[0];
 
     console.log(`🗑️  Deleting goal ${goalId}`);
 
     await prisma.goals.delete({
         where: {
-            goalId: goalId
+            goalId: goalId  
         }
     });
 
-    await ack({
-        response_action: 'clear'
+    await prisma.user.update({
+        where: {
+            slackId: body.user.id
+        },
+        data: {
+            selectedGoal: newGoal.goalId
+        }
     });
+
+    await client.views.update({
+        view_id: viewId,
+        view: await Views.goals(body.user.id)
+    });
+
+    await ack();
 });
 
 app.view(Callbacks.GOALS, async ({ ack, body }) => {
@@ -128,4 +149,8 @@ app.view(Callbacks.GOALS, async ({ ack, body }) => {
         view_id: body.view.root_view_id,
         view: await HackViews.start(body.user.id)
     });
+});
+
+app.view(Callbacks.ERROR, async ({ ack, body }) => {
+    await ack();
 });

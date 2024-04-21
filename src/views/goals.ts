@@ -142,7 +142,8 @@ export class Views {
                             }),
                             "action_id": Actions.SELECT
                         }
-                    ]
+                    ],
+                    "block_id": "goals"
                 },
                 {
                     "type": "actions",
@@ -183,8 +184,9 @@ export class Views {
         }
     }
 
-    public static createGoal(): View {
+    public static createGoal(metadata: string): View {
         return {
+            "private_metadata": metadata,
             "type": "modal",
             "callback_id": Callbacks.CREATE,
             "submit": {
@@ -220,8 +222,9 @@ export class Views {
         }
     }
 
-    public static deleteGoal(): View {
+    public static deleteGoal(metadata: string): View {
         return {
+            "private_metadata": metadata,
             "type": "modal",
             "callback_id": Callbacks.DELETE,
             "submit": {
