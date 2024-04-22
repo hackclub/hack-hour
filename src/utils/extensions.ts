@@ -5,8 +5,10 @@ export type Extension = {
     sessionStarted: ((sessionTs: string) => void) | null,
     sessionCancelled: ((sessionTs: string) => void) | null,
     sessionCompleted: ((sessionTs: string) => void) | null,
+    isPicnic(): boolean,
+    registerPicnic(slackId: string): { accept: boolean, message: string }
 }
-
+  
 export type ExtensionFunc = keyof Extension;
 type ExtensionReturn = Parameters<NonNullable<Extension[ExtensionFunc]>>;
 

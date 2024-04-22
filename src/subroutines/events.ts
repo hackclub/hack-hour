@@ -1,4 +1,4 @@
-import { extensions } from "../app.js";
+import { app, prisma, extensions } from "../app.js";
 
 // Powerhour placeholder, I guess
 
@@ -20,5 +20,12 @@ extensions.attach({
     },
     sessionCompleted: (sessionTs) => {
         console.log(`Session completed: ${sessionTs}`);
+    },
+    isPicnic: () => { return true; },
+    registerPicnic: (slackId) => {
+        return {
+            accept: true,
+            message: 'Picnic registered'
+        }
     }
 });
