@@ -5,8 +5,8 @@
   "exports": "./src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/entry.js",
-    "app": "npm run build && npm run start"
+    "entry": "node ./build/entry.js",
+    "start": "npm run build && npm run entry"
   },
   "repository": {
     "type": "git",
