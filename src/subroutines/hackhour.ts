@@ -156,7 +156,7 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
                 userId: userId,
                 goal: selectedGoal,
                 task: task,
-                time: 60
+                time: parseInt(minutes)
             }, links)
         });
 
@@ -185,7 +185,7 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
                 userId: userId,
                 goal: selectedGoal,
                 task: task,
-                time: 60
+                time: parseInt(minutes)
             })
         });
         
