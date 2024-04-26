@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import { app, prisma, minuteInterval, hourInterval } from './app.js';
 import "./subroutines/onboarding.js";
+import "./subroutines/events/picnics.js";
+import "./subroutines/events/powerHour.js";
 import "./subroutines/hackhour.js";
 import "./subroutines/goals.js";
-import "./subroutines/events/powerHour.js";
 import "./subroutines/misc.js";
-import "./subroutines/events/picnics.js";
 
 const mainLoop = async () => {
     await prisma.$connect();
