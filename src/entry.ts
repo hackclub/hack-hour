@@ -5,8 +5,7 @@ import "./subroutines/hackhour.js";
 import "./subroutines/goals.js";
 import "./subroutines/events/powerHour.js";
 import "./subroutines/misc.js";
-import "./subroutines/events.js";
-import "./subroutines/picnics.js";
+import "./subroutines/events/picnics.js";
 
 const mainLoop = async () => {
     await prisma.$connect();
