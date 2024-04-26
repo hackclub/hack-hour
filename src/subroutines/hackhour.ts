@@ -13,7 +13,10 @@ import { assertVal } from '../utils/lib.js';
 import { Blocks } from '../views/messages.js';
 
 import { Picnics } from './events/picnics.js';
-    
+
+const powerHour = Picnics.find((picnic) => picnic.ID === "powerhour");
+assertVal(powerHour);
+
 /**
  * hack
  * The command that starts the hack hour
@@ -54,6 +57,9 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
         return;
     }
+
+    // Run user join checks
+    powerHour.userJoin(userId);
 
     // Check if there's text - if there is use shorthand mode
     if (text) {

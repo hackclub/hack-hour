@@ -321,6 +321,16 @@ class PowerHour implements BasePicnic {
             });
         }
 
+        // Update the user's event
+        await prisma.user.update({
+            where: {
+                slackId: userId,
+            },
+            data: {
+                eventId: this.ID,
+            },
+        });
+
         return {
             ok: true,
             message: ""

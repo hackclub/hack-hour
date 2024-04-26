@@ -12,6 +12,36 @@ export const Actions = {
                 
 export class Views {
     public static async picnics(slackId: string): Promise<View> {
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Picnics",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Submit",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Sorry, Picnics/Events are not configurable right now during the Power Hour event."
+                    }
+                }
+            ]
+        }
+    }
+    /*
+    public static async picnics(slackId: string): Promise<View> {
         const userData = await prisma.user.findUnique({
             where: {
                 slackId
@@ -108,7 +138,7 @@ export class Views {
                 }
             ]
         }    
-    }
+    }*/
 
     public static async error(message: string): Promise<View> {
         return {
