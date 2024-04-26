@@ -24,7 +24,7 @@ class PowerHour implements BasePicnic {
             channel: Environment.POWERHOUR_ORG,
             text: "PowerHour Event Initialized",
         });
-
+    /*
         app.event("reaction_added", async ({ event, client }) => {
             // Check if the reaction is a checkmark
             if (!(event.reaction === "white_check_mark")) {
@@ -102,9 +102,11 @@ class PowerHour implements BasePicnic {
 
             console.log(`✅ User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`);
         });
+        */
     }
 
     async endSession(session: Session): Promise<void> {
+        /*
         await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: session.messageTs,
@@ -154,9 +156,11 @@ class PowerHour implements BasePicnic {
                 sessions: JSON.stringify(sessions),
             },
         });
+    */
     }
 
     async cancelSession(session: Session): Promise<void> {
+        /*
         await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: session.messageTs,
@@ -201,9 +205,11 @@ class PowerHour implements BasePicnic {
             },
 
         });
+        */
     }
 
     async hourlyCheck(): Promise<void> {
+        /*
         const currentTime = new Date();
 
         // Skip if the event has not started or has ended
@@ -275,8 +281,9 @@ class PowerHour implements BasePicnic {
         }
 
         console.log("🪅  Hourly Check Complete");
+        */
     }
-
+    
     async userJoin(userId: string): Promise<{ ok: boolean, message: string }> {
         // Check if the event is still active
         const currentTime = new Date();
