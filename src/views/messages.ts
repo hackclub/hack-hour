@@ -2,6 +2,7 @@ import { prisma } from "../app.js"
 import { formatHour } from "../utils/string.js";
 import { format, randomChoice } from '../utils/string.js';
 import { Templates } from "../utils/message.js";
+import { Picnics } from "../subroutines/events/picnics.js";
 
 export class Blocks {
     public static async session(session: {
@@ -30,6 +31,8 @@ export class Blocks {
         if (!goal) {
             throw new Error(`Goal ${session.goal} not found`);
         }
+
+        const picnicName = Picnics.find((picnic) => picnic.ID === user.eventId)?.NAME;
 
         let blocks: any[] = [
             {
@@ -81,7 +84,7 @@ export class Blocks {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": `*Goal:* ${goal?.goalName || 'None'} - _${formatHour(goal?.minutes || 0)} Hours Total_ | *Picnic:* ${user?.eventId} - _${formatHour(event?.minutes || 0)} Hours Total_`
+                        "text": `*Goal:* ${goal?.goalName || 'None'} - _${formatHour(goal?.minutes || 0)} Hours Total_ | *Picnic:* ${picnicName} - _${formatHour(event?.minutes || 0)} Hours Total_`
                     }
                 ]
             });
@@ -91,7 +94,7 @@ export class Blocks {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": `*Goal:* ${goal?.goalName || 'None'} - _${formatHour(goal?.minutes || 0)} Hours Total_ | *Picnic:* Unavailable - More coming soon :)`
+                        "text": `*Goal:* ${goal?.goalName || 'None'} - _${formatHour(goal?.minutes || 0)} Hours Total_ | *Picnic:* None`
                     }
                 ]
             });

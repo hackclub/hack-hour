@@ -12,6 +12,8 @@ import { reactOnContent } from '../utils/emoji.js';
 import { assertVal } from '../utils/lib.js';
 import { Blocks } from '../views/messages.js';
 
+import { Picnics } from './events/picnics.js';
+    
 /**
  * hack
  * The command that starts the hack hour
@@ -355,6 +357,12 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
     });
 
     console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
+
+    Picnics.forEach(async (picnic) => {
+        if (picnic.ID === userData.eventId) {
+            await picnic.cancelSession(session);
+        }
+    });
 });
 
 /**
@@ -455,6 +463,12 @@ minuteInterval.attach(async () => {
             });
 
             console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
+            
+            Picnics.forEach(async (picnic) => {
+                if (picnic.ID === session.goal) {
+                    await picnic.endSession(session);
+                }
+            });
 
             continue;
         }

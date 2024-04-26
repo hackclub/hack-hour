@@ -27,5 +27,5 @@ export interface BasePicnic {
 
     hourlyCheck(): Promise<void>; // TODO: implement necessary arguments
 
-    userJoin(userId: string): Promise<boolean>;
+    userJoin(userId: string): Promise<{ ok: boolean, message: string }>;
 }

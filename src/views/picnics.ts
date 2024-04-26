@@ -1,4 +1,4 @@
-import { MrkdwnOption, Option, View } from "@slack/bolt";
+import { View } from "@slack/bolt";
 import { Picnics } from "../subroutines/events/picnics.js";
 import { prisma } from "../app.js";
 
@@ -34,9 +34,22 @@ export class Views {
             }
         });
 
+
+        let selectedOption: any = {
+            "text": {
+                "type": "mrkdwn",
+                "text": `*None*`,
+            },
+            "description": {
+                "type": "mrkdwn",
+                "text": "No picnic selected"
+            },
+            "value": "none"
+        }
+
         for (const picnic of Picnics) {
             if (picnic.ID === event) {
-                var selectedOption = options.find((option) => option.value === picnic.ID);
+                selectedOption = options.find((option) => option.value === picnic.ID);
             }
         }
 
@@ -95,5 +108,30 @@ export class Views {
                 }
             ]
         }    
+    }
+
+    public static async error(message: string): Promise<View> {
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Error",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": message
+                    }
+                }
+            ]
+        }
     }
 }
