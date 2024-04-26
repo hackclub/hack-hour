@@ -1,4 +1,4 @@
-import { app, prisma, minuteInterval, extensions } from '../app.js';
+import { app, prisma, minuteInterval } from '../app.js';
 import { Commands, Environment } from '../constants.js';
 
 import { Callbacks, Views, Actions } from '../views/hackhour.js';
@@ -12,6 +12,8 @@ import { reactOnContent } from '../utils/emoji.js';
 import { assertVal } from '../utils/lib.js';
 import { Blocks } from '../views/messages.js';
 
+import { Picnics } from './events/picnics.js';
+    
 /**
  * hack
  * The command that starts the hack hour
@@ -93,8 +95,6 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
 
         console.log(`🟢 Session started by ${userId}`);
-
-        extensions.sessionStarted(message.ts);
 
         return;
     }
@@ -220,8 +220,6 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     });
 
     console.log(`🟢 Session ${message.ts} started by ${userId}`);
-
-    extensions.sessionStarted(message.ts);
 });
 
 /**
@@ -247,7 +245,7 @@ app.action(Actions.PICNICS, async ({ ack, body, client }) => {
 
     await client.views.push({
         trigger_id: (body as any).trigger_id,
-        view: PicnicViews.picnics()
+        view: await PicnicViews.picnics(body.user.id)
     });
 });
 
@@ -358,9 +356,13 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
         timestamp: session.messageTs
     });
 
-    extensions.sessionCancelled(session.messageTs);
-
     console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
+
+    Picnics.forEach(async (picnic) => {
+        if (picnic.ID === userData.eventId) {
+            await picnic.cancelSession(session);
+        }
+    });
 });
 
 /**
@@ -461,8 +463,12 @@ minuteInterval.attach(async () => {
             });
 
             console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
-
-            extensions.sessionCompleted(session.messageTs);
+            
+            Picnics.forEach(async (picnic) => {
+                if (picnic.ID === session.goal) {
+                    await picnic.endSession(session);
+                }
+            });
 
             continue;
         }

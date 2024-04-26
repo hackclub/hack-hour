@@ -1,11 +1,12 @@
 import 'dotenv/config';
-import { app, prisma, minuteInterval, hourInterval, extensions } from './app.js';
+import { app, prisma, minuteInterval, hourInterval } from './app.js';
 import "./subroutines/onboarding.js";
 import "./subroutines/hackhour.js";
 import "./subroutines/goals.js";
-import "./subroutines/picnics.js";
+import "./subroutines/events/powerHour.js";
 import "./subroutines/misc.js";
 import "./subroutines/events.js";
+import "./subroutines/picnics.js";
 
 const mainLoop = async () => {
     await prisma.$connect();
@@ -14,8 +15,6 @@ const mainLoop = async () => {
     hourInterval.start();    
 
     console.log(`⏳ Let the Hack Houring Begin! Running on port ${process.env.PORT || 3000}...`);
-
-    extensions.onStart();
 }
 
 mainLoop().catch(async (error) => {
@@ -25,7 +24,6 @@ mainLoop().catch(async (error) => {
         channel: process.env.LOG_CHANNEL || 'C0P5NE354' ,
         text: `<@U04QD71QWS0> I summon thee for the following reason: \`Hack Hour crashed!\`\n*Error:*\n\`\`\`${error.message}\`\`\``, //<!subteam^${process.env.DEV_USERGROUP}|hack-hour-dev>
     });
-    extensions.onError();
 
     await prisma.$disconnect();
     await app.stop();

@@ -1,7 +1,6 @@
 import bolt from '@slack/bolt'; 
 import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
-import { ExtensionsManager } from './utils/extensions.js';
 import { Environment, Constants } from './constants.js';
 
 export const app = new bolt.App({
@@ -11,7 +10,7 @@ export const app = new bolt.App({
 
     socketMode: Environment.SOCKET_MODE
 });
- 
+  
 app.error(async (error) => {
     await app.client.chat.postMessage({
         channel: process.env.LOG_CHANNEL || 'C0P5NE354' ,
@@ -25,5 +24,3 @@ export const minuteInterval = new IntervalManager(Constants.MIN_MS);
 export const hourInterval = new IntervalManager(Constants.HOUR_MS);
 
 hourInterval.setDelay(Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
-  
-export const extensions = ExtensionsManager();

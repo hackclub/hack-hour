@@ -1,5 +1,6 @@
 import { prisma } from "../app.js";
 import { View } from "@slack/bolt";
+import { Picnics } from "../subroutines/events/picnics.js";
 
 export const Callbacks = {
     START: 'start',
@@ -27,6 +28,8 @@ export class Views {
                 goalId: userData.selectedGoal
             }
         });
+
+        const picnicName = Picnics.find((picnic) => picnic.ID === userData.eventId)?.NAME;
 
         return {
             "callback_id": Callbacks.START,
@@ -119,7 +122,7 @@ export class Views {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Current picnic:* ${userData.eventId || 'None'}`
+                        "text": `*Current picnic:* ${picnicName || 'None'}`
                     },
                     "accessory": {
                         "type": "button",
