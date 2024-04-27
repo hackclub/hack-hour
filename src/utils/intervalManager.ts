@@ -10,14 +10,14 @@ export class IntervalManager {
         this.interval = interval;
     }
 
-    public attach(callback: () => void): void {
+    public attach(callback: () => Promise<void>): void {
         this.callbacks.push(callback);
     }
 
     public start(): void {
         setTimeout(() => {
-            setInterval(() => {
-                this.callbacks.forEach(callback => callback());
+            setInterval(async () => {
+                this.callbacks.forEach(async callback => await callback());
             }, this.interval);
         }, this.delay);
     }
