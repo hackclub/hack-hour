@@ -57,7 +57,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
         return;
     }
-
+ 
     // Run user join checks
     powerHour.userJoin(userId);
 

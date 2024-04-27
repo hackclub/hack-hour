@@ -293,13 +293,15 @@ class PowerHour implements BasePicnic {
                 ok: false,
                 message: "The event has already ended."
             };
-        } else if (currentTime < this.START_TIME) {
+        } else 
+        /*
+        if (currentTime < this.START_TIME) {
             return {
                 ok: false,
                 message: "The event has not started yet."
             };
         }
-
+*/
         // Check if the user is already in the database, if not add them
         const eventEntry = await prisma.eventContributions.findFirst({
             where: {
