@@ -13,6 +13,7 @@ export const Actions = {
 export class Views {
     public static async picnics(slackId: string): Promise<View> {
         return {
+            "callback_id": Callbacks.PICNIC,
             "type": "modal",
             "title": {
                 "type": "plain_text",
