@@ -293,7 +293,7 @@ class PowerHour implements BasePicnic {
                 ok: false,
                 message: "The event has already ended."
             };
-        } else 
+        }
         /*
         if (currentTime < this.START_TIME) {
             return {
