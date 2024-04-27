@@ -1,4 +1,4 @@
-import { app, prisma, minuteInterval } from '../app.js';
+import { app, prisma, minuteInterval, hourInterval } from '../app.js';
 import { Commands, Environment } from '../constants.js';
 
 import { Callbacks, Views, Actions } from '../views/hackhour.js';
@@ -57,9 +57,12 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         });
         return;
     }
- 
+
     // Run user join checks
-    powerHour.userJoin(userId);
+    const result = await powerHour.userJoin(userId);
+
+    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
+       
 
     // Check if there's text - if there is use shorthand mode
     if (text) {
@@ -102,6 +105,8 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
 
         console.log(`🟢 Session started by ${userId}`);
 
+        powerHour.createSession(userId, message.ts);
+   
         return;
     }
 
@@ -130,6 +135,11 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     assertVal(task);
     assertVal(minutes);
     assertVal(attachments);
+
+    // Run user join checks
+    const result = await powerHour.userJoin(userId);
+
+    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
 
     let formattedText = format(template, {
         userId: userId,
@@ -226,6 +236,8 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     });
 
     console.log(`🟢 Session ${message.ts} started by ${userId}`);
+
+    powerHour.createSession(userId, message.ts);
 });
 
 /**
@@ -364,11 +376,13 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
 
     console.log(`🛑 Session ${session.messageTs} cancelled by ${userId}`);
 
+    /*
     Picnics.forEach(async (picnic) => {
         if (picnic.ID === userData.eventId) {
             await picnic.cancelSession(session);
         }
-    });
+    });*/
+    powerHour.cancelSession(session);    
 });
 
 /**
@@ -470,11 +484,14 @@ minuteInterval.attach(async () => {
 
             console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
             
+            /*
             Picnics.forEach(async (picnic) => {
                 if (picnic.ID === session.goal) {
                     await picnic.endSession(session);
                 }
             });
+            */
+           powerHour.endSession(session);
 
             continue;
         }
@@ -513,3 +530,5 @@ minuteInterval.attach(async () => {
         });
     }
 })
+
+hourInterval.attach(powerHour.hourlyCheck);

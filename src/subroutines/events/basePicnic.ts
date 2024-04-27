@@ -21,6 +21,8 @@ export interface BasePicnic {
     DESCRIPTION: string;    
     ID: string;
 
+    createSession(slackId: string, messageTs: string): Promise<void>;
+ 
     endSession(session: Session): Promise<void>;
 
     cancelSession(session: Session): Promise<void>;

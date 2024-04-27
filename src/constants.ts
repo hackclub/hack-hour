@@ -1,16 +1,3 @@
-/**
-MAIN_CHANNEL=C06S6E7CXK7 #hack-hour-dev
-LOG_CHANNEL=C06S6E7CXK7 #hack-hour-dev
-
-PING_USERGROUP=S06T62H1602 # hack-hour-dev
-DEV_USERGROUP=S06T62H1602 # hack-hour-dev
-
-POWERHOUR_ORG=C06T6MQ1AMN
-
-PORT=44329
-
-PROD=false
- */
 // Environment Variables - typescript doesn't typecheck process.env
 // Throw if not defined
 function assertEnv(envVar: string): string { 

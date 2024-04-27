@@ -4,30 +4,62 @@ import { Environment } from "../../constants.js";
 import { formatHour } from "../../utils/string.js";
 import { BasePicnic } from './basePicnic.js';
 import { Picnics } from './picnics.js';
+import { assertVal } from '../../utils/lib.js';
 
 // This is the main file for the powerhour event.
 
 const POWERHOUR_ID = "powerhour";
 
 class PowerHour implements BasePicnic {
-    NAME = "*TEACH Initative 2025*";
-    DESCRIPTION = "_We're just kidding - this is the beta test for the upcoming hack hour event._";
+    NAME = "*Power Hour*";
+    DESCRIPTION = "every hour more power! Apr27-May4";
     ID = POWERHOUR_ID;
 
-    START_TIME = new Date("2024-04-21T03:33:43-0500");
-    END_TIME = new Date("2024-04-25T07:00:00-0500");
+    START_TIME = new Date("2024-04-27T06:00:00-0500");
+    END_TIME = new Date("2024-05-04T12:00:00-0500");
 
-    COMMUNITY_GOAL = 105 * 60; // Minutes - 7 hours * 15 people
+    CUSTOM_NAME = "powerhour.exe";
+    CUSTOM_EMOJI = ":hourglass_flowing_sand:";
+
+    COMMUNITY_GOAL = 100 * 60; // Minutes - 100 hours * 60m/h
+
+    private isEventActive(): boolean {
+        const currentTime = new Date();
+
+//        return currentTime >= this.START_TIME && currentTime < this.END_TIME;
+        return true; // just for testing
+    }
+
+    private async isRegistered(userId: string): Promise<boolean> {
+        const user = await prisma.user.findFirst({
+            where: {
+                slackId: userId,
+                eventId: this.ID,
+            },
+        });
+ 
+        const event = await prisma.eventContributions.findFirst({
+            where: {
+                slackId: userId,
+                eventId: this.ID,
+            },
+        });
+
+        return user != null && user.eventId == this.ID && event != null;
+    }
 
     constructor() {
         app.client.chat.postMessage({
             channel: Environment.POWERHOUR_ORG,
             text: "PowerHour Event Initialized",
         });
-    /*
+
         app.event("reaction_added", async ({ event, client }) => {
-            // Check if the reaction is a checkmark
             if (!(event.reaction === "white_check_mark")) {
+                return;
+            }
+
+            if (!this.isEventActive()) {
                 return;
             }
 
@@ -38,19 +70,26 @@ class PowerHour implements BasePicnic {
                 channel: Environment.POWERHOUR_ORG,
                 latest: forwardTs,
                 inclusive: true,
-                limit: 1,
-                include_all_metadata: true,
+                limit: 1,                
             })).messages;
 
-            if (!messageResult ||
-                messageResult.length == 0 ||
-                !messageResult[0] ||
-                !messageResult[0].metadata ||
-                !messageResult[0].metadata.event_payload) {
-                throw new Error("Forwarded message not found");
-            }
+            let userId = "";
+            try {
+                if (!messageResult || messageResult.length == 0) { throw new Error("Forwarded message not found"); }
 
-            const userId: string = (messageResult[0].metadata.event_payload as any).slackUserRef;
+                assertVal(messageResult[0]);
+                console.log(messageResult[0]);
+
+                const metadata = messageResult[0].metadata;
+                if (!metadata) { throw new Error("Metadata not found"); }
+
+                assertVal(metadata.event_type);
+  
+                userId = metadata.event_type;
+            } catch (error) {
+                console.error(error);
+                return;
+            }            
 
             const eventEntry = await prisma.eventContributions.findFirst({
                 where: {
@@ -66,14 +105,12 @@ class PowerHour implements BasePicnic {
             const eventSessions = JSON.parse(eventEntry.sessions);
             const sessionID = eventSessions[forwardTs];
 
-            delete eventSessions[forwardTs];
-
             const session = await prisma.session.findUnique({
                 where: {
                     messageTs: sessionID,
                 },
             });
-
+    
             const elapsedTime = session?.elapsed;
 
             await prisma.eventContributions.update({
@@ -100,17 +137,53 @@ class PowerHour implements BasePicnic {
                 timestamp: forwardTs,
             });
 
+            await client.reactions.add({
+                channel: Environment.MAIN_CHANNEL,
+                name: "white_check_mark",
+                timestamp: eventSessions[forwardTs],
+            });
+
             console.log(`✅ User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`);
+
+            delete eventSessions[forwardTs];
         });
-        */
+    }
+
+    async createSession(slackId: string, messageTs: string): Promise<void> {
+        if (!this.isEventActive()) {
+            return;
+        }
+
+        if (!await this.isRegistered(slackId)) {
+            return;
+        }
+
+        console.log("🚀  PowerHour Session Created");
+
+        await app.client.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            thread_ts: messageTs,
+            text: "Make sure to provide us updates & show us your progress!!!",
+            icon_emoji: this.CUSTOM_EMOJI,
+            username: this.CUSTOM_NAME,
+        });        
     }
 
     async endSession(session: Session): Promise<void> {
-        /*
+        if (!this.isEventActive()) {
+            return;
+        }
+
+        if (!await this.isRegistered(session.userId)) {
+            return;
+        }
+
         await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: session.messageTs,
             text: "Congrats for finishing this PowerHour session! Put down some reflections from your session or share your current progress.",
+            icon_emoji: this.CUSTOM_EMOJI,
+            username: this.CUSTOM_NAME,
         });
 
         const permalink = (await app.client.chat.getPermalink({
@@ -122,7 +195,69 @@ class PowerHour implements BasePicnic {
             channel: Environment.POWERHOUR_ORG,
             text: `*User <@${session.userId}>'s session ended!* React with :white_check_mark: to verify the session.\n\n${permalink}`,
             metadata: {
-                event_type: "end",
+                event_type: session.userId,
+                event_payload: {
+                    slackUserRef: session.userId,
+                }   
+            }
+        });
+
+        const eventEntry = await prisma.eventContributions.findFirst({
+            where: {
+                slackId: session.userId,
+                eventId: this.ID,
+            },
+        });
+
+        if (!forwardTs.ts) {
+            throw new Error("Forward message failed to send");
+        }
+
+        if (!eventEntry) {
+            throw new Error("User not found in database");
+        }
+
+        const sessions = JSON.parse(eventEntry.sessions);
+
+        sessions[forwardTs.ts] = session.messageTs;
+
+        await prisma.eventContributions.update({
+            where: {
+                contributionId: eventEntry.contributionId,
+            },
+            data: {
+                sessions: JSON.stringify(sessions),
+            },
+        });
+    }
+
+    async cancelSession(session: Session): Promise<void> {
+        if (!this.isEventActive()) {
+            return;
+        }
+
+        if (!await this.isRegistered(session.userId)) {
+            return;
+        }
+
+        await app.client.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            thread_ts: session.messageTs,
+            text: "While this session was cancelled, you should still put down some reflections from your session or share your current progress.",
+            icon_emoji: this.CUSTOM_EMOJI,
+            username: this.CUSTOM_NAME,
+        });
+
+        const permalink = (await app.client.chat.getPermalink({
+            channel: Environment.MAIN_CHANNEL,
+            message_ts: session.messageTs,
+        })).permalink;
+
+        const forwardTs = await app.client.chat.postMessage({
+            channel: Environment.POWERHOUR_ORG,
+            text: `*User <@${session.userId}> cancelled their session.* However, they can still contribute to the event. React with :white_check_mark: to verify the session.\n\nLink to thread: ${permalink}`,
+            metadata: {
+                event_type: session.userId,
                 event_payload: {
                     slackUserRef: session.userId,
                 }
@@ -155,68 +290,12 @@ class PowerHour implements BasePicnic {
             data: {
                 sessions: JSON.stringify(sessions),
             },
-        });
-    */
-    }
-
-    async cancelSession(session: Session): Promise<void> {
-        /*
-        await app.client.chat.postMessage({
-            channel: Environment.MAIN_CHANNEL,
-            thread_ts: session.messageTs,
-            text: "While this session was cancelled, you should still put down some reflections from your session or share your current progress.",
-        });
-
-        const permalink = (await app.client.chat.getPermalink({
-            channel: Environment.MAIN_CHANNEL,
-            message_ts: session.messageTs,
-        })).permalink;
-
-        const forwardTs = await app.client.chat.postMessage({
-            channel: Environment.POWERHOUR_ORG,
-            text: `*User <@${session.userId}> cancelled their session.* However, they can still contribute to the event. React with :white_check_mark: to verify the session.\n\nLink to thread: ${permalink}`,
-        });
-
-        const eventEntry = await prisma.eventContributions.findFirst({
-            where: {
-                slackId: session.userId,
-                eventId: this.ID,
-            },
-        });
-
-        if (!forwardTs.ts) {
-            throw new Error("Forward message failed to send");
-        }
-
-        if (!eventEntry) {
-            throw new Error("User not found in database");
-        }
-
-        const sessions = JSON.parse(eventEntry.sessions);
-
-        sessions[forwardTs.ts] = session.messageTs;
-
-        await prisma.eventContributions.update({
-            where: {
-                contributionId: eventEntry.contributionId,
-            },
-            data: {
-                sessions: JSON.stringify(sessions),
-            },
 
         });
-        */
     }
 
     async hourlyCheck(): Promise<void> {
-        /*
         const currentTime = new Date();
-
-        // Skip if the event has not started or has ended
-        if (currentTime < this.START_TIME) {
-            console.log(" ⏳ PowerHour Event Not Started");
-            return;
-        }
 
         const eventContributions = await prisma.eventContributions.findMany({
             where: {
@@ -230,18 +309,16 @@ class PowerHour implements BasePicnic {
             },
         });
 
-        // Check if users are zero - means that the event has ended or has not started
-        if (users.length == 0) {
-            console.log(" ⏳ Skipping PowerHour Event Processing - No users");
-            return;
-        }
-
         let totalMinutes = 0;
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
         }
+        
+        // Check if it's the final hour and same day
+        if (currentTime.getDate() == this.END_TIME.getDate() ||
+            currentTime.getMonth() == this.END_TIME.getMonth() ||
+            currentTime.getHours() == this.END_TIME.getHours()) {
 
-        if (currentTime >= this.END_TIME) {
             // Check if the community goal was met
             if (totalMinutes >= this.COMMUNITY_GOAL) {
                 await app.client.chat.postMessage({
@@ -267,21 +344,24 @@ class PowerHour implements BasePicnic {
                 });
             }
 
-            console.log("🎉  PowerHour Event Complete");
-        } else {
-            await app.client.chat.postMessage({
-                channel: Environment.POWERHOUR_ORG,
-                text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-            });
-
-            await app.client.conversations.setTopic({
-                channel: Environment.MAIN_CHANNEL,
-                topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-            });
+            console.log("🎉  PowerHour Event Complete");                
         }
 
+        if (!this.isEventActive()) {
+            return;
+        }
+
+        await app.client.chat.postMessage({
+            channel: Environment.POWERHOUR_ORG,
+            text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+        });
+
+        await app.client.conversations.setTopic({
+            channel: Environment.MAIN_CHANNEL,
+            topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+        });
+
         console.log("🪅  Hourly Check Complete");
-        */
     }
     
     async userJoin(userId: string): Promise<{ ok: boolean, message: string }> {
@@ -302,29 +382,29 @@ class PowerHour implements BasePicnic {
                 message: "The event has not started yet."
             };
         }
-*/
+        */
+        
         // Check if the user is already in the database, if not add them
-        const eventEntry = await prisma.eventContributions.findFirst({
-            where: {
+        const eventEntry = await this.isRegistered(userId);
+ 
+        if (eventEntry) {
+            return {
+                ok: false,
+                message: "Already registered!"
+            };
+        }
+
+        await prisma.eventContributions.create({
+            data: {
                 slackId: userId,
                 eventId: this.ID,
+                minutes: 0,
+                sessions: JSON.stringify({
+                    // forwardTs: sessionID
+                }),
             },
         });
 
-        if (!eventEntry) {
-            await prisma.eventContributions.create({
-                data: {
-                    slackId: userId,
-                    eventId: this.ID,
-                    minutes: 0,
-                    sessions: JSON.stringify({
-                        // forwardTs: sessionID
-                    }),
-                },
-            });
-        }
-
-        // Update the user's event
         await prisma.user.update({
             where: {
                 slackId: userId,

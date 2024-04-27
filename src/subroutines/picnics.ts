@@ -7,7 +7,7 @@ import { Picnics } from './events/picnics.js';
 app.action(Actions.SELECT, async ({ ack, body, client }) => {
     ack();
 });
-
+/*
 app.view(Callbacks.PICNIC, async ({ ack, body, client }) => {
     const slackId = body.user.id;
     const selectedPicnicId = body.view.state.values.picnic.selectPicnic.selected_option?.value;
@@ -73,7 +73,10 @@ app.view(Callbacks.PICNIC, async ({ ack, body, client }) => {
     });
 
     await ack();
-});  
+});*/
+app.action(Callbacks.PICNIC, async ({ ack, body, client }) => {
+    ack();
+});
 
 hourInterval.attach(() => {
     Picnics.forEach(async (picnic) => {
