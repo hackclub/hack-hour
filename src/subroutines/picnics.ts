@@ -77,9 +77,3 @@ app.view(Callbacks.PICNIC, async ({ ack, body, client }) => {
 app.action(Callbacks.PICNIC, async ({ ack, body, client }) => {
     ack();
 });
-
-hourInterval.attach(() => {
-    Picnics.forEach(async (picnic) => {
-        await picnic.hourlyCheck();
-    });
-});

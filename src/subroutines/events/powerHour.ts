@@ -299,16 +299,16 @@ class PowerHour implements BasePicnic {
 
         const eventContributions = await prisma.eventContributions.findMany({
             where: {
-                eventId: this.ID,
+                eventId: POWERHOUR_ID,
             },
         });
 
         const users = await prisma.user.findMany({
             where: {
-                eventId: this.ID,
+                eventId: POWERHOUR_ID,
             },
         });
-
+  
         let totalMinutes = 0;
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
@@ -331,12 +331,12 @@ class PowerHour implements BasePicnic {
                     text: `The community goal of ${this.COMMUNITY_GOAL} minutes was not met. 😢`,
                 });
             }
-
+ 
             for (const user of users) {
                 await prisma.user.update({
                     where: {
                         slackId: user.slackId,
-                        eventId: this.ID,
+                        eventId: POWERHOUR_ID,
                     },
                     data: {
                         eventId: "none",
@@ -347,9 +347,10 @@ class PowerHour implements BasePicnic {
             console.log("🎉  PowerHour Event Complete");                
         }
 
+        /*
         if (!this.isEventActive()) {
             return;
-        }
+        }*/
 
         await app.client.chat.postMessage({
             channel: Environment.POWERHOUR_ORG,
