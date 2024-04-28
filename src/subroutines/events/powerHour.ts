@@ -162,6 +162,7 @@ class PowerHour implements BasePicnic {
             // Make sure the user is an admin
             if (body.user_id != 'U04QD71QWS0') {
                 await ack("looks like you found something secret. here's a cookie 🍪")
+                return;
             }
 
             await ack();
