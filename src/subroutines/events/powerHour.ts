@@ -5,6 +5,7 @@ import { formatHour } from "../../utils/string.js";
 import { BasePicnic } from './basePicnic.js';
 import { Picnics } from './picnics.js';
 import { assertVal } from '../../utils/lib.js';
+import { error } from 'console';
 
 // This is the main file for the powerhour event.
 
@@ -149,6 +150,11 @@ class PowerHour implements BasePicnic {
         });
 
         app.command("/_admin_pwrhr_check", async ({ ack, body }) => {
+            // Make sure the user is an admin
+            if (body.user_id != 'U04QD71QWS0') {
+                await ack("looks like you found something secret. here's a cookie 🍪")
+            }
+
             await ack();
             await this.hourlyCheck();
         });
