@@ -123,20 +123,6 @@ class PowerHour implements BasePicnic {
     
             const elapsedTime = session?.elapsed;
 
-            delete eventSessions[forwardTs];              
-
-            await prisma.eventContributions.update({
-                where: {
-                    contributionId: eventEntry.contributionId,
-                },
-                data: {
-                    minutes: {
-                        increment: elapsedTime,
-                    },
-                    sessions: JSON.stringify(eventSessions),
-                },
-            });
-
             await client.chat.postMessage({
                 channel: Environment.POWERHOUR_ORG,
                 text: `User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`,
@@ -154,6 +140,20 @@ class PowerHour implements BasePicnic {
                 name: "white_check_mark",
                 timestamp: eventSessions[forwardTs],
             });
+
+            delete eventSessions[forwardTs];              
+
+            await prisma.eventContributions.update({
+                where: {
+                    contributionId: eventEntry.contributionId,
+                },
+                data: {
+                    minutes: {
+                        increment: elapsedTime,
+                    },
+                    sessions: JSON.stringify(eventSessions),
+                },
+            });            
 
             console.log(`✅ User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`);
         });
