@@ -123,6 +123,10 @@ class PowerHour implements BasePicnic {
     
             const elapsedTime = session?.elapsed;
 
+            if (!elapsedTime) {
+                throw new Error("Session not found in database");
+            }
+
             await client.chat.postMessage({
                 channel: Environment.POWERHOUR_ORG,
                 text: `User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`,
@@ -149,7 +153,7 @@ class PowerHour implements BasePicnic {
                 },
                 data: {
                     minutes: {
-                        increment: elapsedTime,
+                        increment: elapsedTime + 1,
                     },
                     sessions: JSON.stringify(eventSessions),
                 },
