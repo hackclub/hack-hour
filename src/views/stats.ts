@@ -27,7 +27,7 @@ export class Views {
         if (goals.length === 0) {
             throw new Error(`Goals of ${userId} not found.`);
         }
-
+        
         const blocks: KnownBlock[] = goals.map(goal => {
             return {
                 "type": "section",
@@ -48,6 +48,27 @@ export class Views {
                 "text": `*Lifetime Hours Spent*: ${formatHour(userData?.totalMinutes)}\n_(${userData?.totalMinutes} minutes)_`
             }
         });
+
+        // Check if user is in eventContributions
+        const eventContributions = await prisma.eventContributions.findMany({
+            where: {
+                slackId: userId,
+                eventId: "powerhour"
+            }
+        });
+
+        if (eventContributions) {
+            blocks.push({
+                "type": "divider"
+            });
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Power Hour Contributions*: ${formatHour(eventContributions[0].minutes)+7} hours\n_(${eventContributions[0].minutes} minutes)_`
+                }
+            });
+        }        
 
         return {
             "type": "modal",
