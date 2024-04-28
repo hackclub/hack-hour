@@ -352,6 +352,7 @@ class PowerHour implements BasePicnic {
                 });
             }
 
+            /*
             for (const user of users) {
                 await prisma.user.update({
                     where: {
@@ -362,7 +363,8 @@ class PowerHour implements BasePicnic {
                         eventId: "none",
                     },
                 });
-            }
+            } // leave this to be done manually        
+            */
 
             console.log("🎉  PowerHour Event Complete");                
         }
