@@ -82,7 +82,10 @@ class PowerHour implements BasePicnic {
                 console.log(messageResult[0]);
 
                 const metadata = messageResult[0].metadata;
-                if (!metadata) { throw new Error("Metadata not found"); }
+                if (!metadata) {
+                    // it appears that the message is not a confirmation message
+                    return;
+                }
 
                 assertVal(metadata.event_type);
   
@@ -105,6 +108,12 @@ class PowerHour implements BasePicnic {
 
             const eventSessions = JSON.parse(eventEntry.sessions);
             const sessionID = eventSessions[forwardTs];
+
+            if (!sessionID) {
+                // The session has already been verfied likely
+                console.log("Sesh likely already verified");
+                return;
+            }
 
             const session = await prisma.session.findUnique({
                 where: {
