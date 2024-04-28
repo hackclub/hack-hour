@@ -296,7 +296,6 @@ export class Views {
 
     public static instructions(): View {
         return {
-            "callback_id": Callbacks.INSTRUCTIONS,
             "title": {
                 "type": "plain_text",
                 "text": "Instructions",
@@ -310,7 +309,7 @@ export class Views {
             "type": "modal",
             "close": {
                 "type": "plain_text",
-                "text": "Close",
+                "text": "Exit",
                 "emoji": true
             },
             "blocks": [
@@ -318,10 +317,176 @@ export class Views {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Here's how to use hack hour:\n\n•  `/hack` - Start a hack hour session. You can directly start a 60 minute session using the command, similar to the following `/hack Work 60min`.\n•  `/cancel` - cancel an already running session\n•  `/goals`\n•  `/mystats`\n•  `/reminders`\n•  `/picnics` - join currently running ~picnic parties~ events\n \nInsert a synopsis and run down of hack hour terminology & usage"
+                        "text": "Congrats! :tada:\n*You're ready to use hack hour now!*"
                     }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "Here's how to use hack hour:\n"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_list",
+                            "style": "bullet",
+                            "indent": 0,
+                            "border": 0,
+                            "elements": [
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "/hack",
+                                            "style": {
+                                                "code": true
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": " - Start a hack hour session."
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "/hack [session]",
+                                            "style": {
+                                                "code": true
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": " - Start a 60min session with a message quickly"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "/cancel",
+                                            "style": {
+                                                "code": true
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": " - cancel an already running session"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "\nSome extras:\n"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_list",
+                            "style": "bullet",
+                            "indent": 0,
+                            "border": 0,
+                            "elements": [
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "/mystats",
+                                            "style": {
+                                                "code": true
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": " - view total stats"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "/reminders",
+                                            "style": {
+                                                "code": true
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": " - modify reminder settings"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "\nExperiment!\n"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_list",
+                            "style": "bullet",
+                            "indent": 0,
+                            "border": 0,
+                            "elements": [
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "Try making your sessions longer or shorter in the hack hour menu"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "Create a goal in the hack hour menu"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "rich_text_section",
+                                    "elements": [
+                                        {
+                                            "type": "text",
+                                            "text": "Attach files to your session"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
-        };
+        }
     }
 }
