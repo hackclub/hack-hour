@@ -336,8 +336,8 @@ class PowerHour implements BasePicnic {
         }
         
         // Check if it's the final hour and same day
-        if (currentTime.getDate() == this.END_TIME.getDate() ||
-            currentTime.getMonth() == this.END_TIME.getMonth() ||
+        if (currentTime.getDate() == this.END_TIME.getDate() &&
+            currentTime.getMonth() == this.END_TIME.getMonth() &&
             currentTime.getHours() == this.END_TIME.getHours()) {
 
             // Check if the community goal was met
