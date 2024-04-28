@@ -531,4 +531,6 @@ minuteInterval.attach(async () => {
     }
 })
 
-hourInterval.attach(powerHour.hourlyCheck);
+hourInterval.attach(async() => {
+    await powerHour.hourlyCheck();
+});
