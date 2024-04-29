@@ -13,6 +13,8 @@ import { assertVal } from '../utils/lib.js';
 import { Blocks } from '../views/messages.js';
 
 import { Picnics } from './events/picnics.js';
+import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
+import { StringIndexed } from '@slack/bolt/dist/types/helpers.js';
 
 const powerHour = Picnics.find((picnic) => picnic.ID === "powerhour");
 assertVal(powerHour);
@@ -21,7 +23,7 @@ assertVal(powerHour);
  * hack
  * The command that starts the hack hour
  */
-app.command(Commands.HACK, async ({ ack, body, client }) => {
+const hack = async ({ ack, body }: SlackCommandMiddlewareArgs) => {
     const text: string = body.text;
     const userId: string = body.user_id;
 
@@ -34,7 +36,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
     });
 
     if (!userData) {
-        await client.views.open({
+        await app.client.views.open({
             trigger_id: body.trigger_id,
             view: OnboardingViews.welcome()
         });
@@ -50,7 +52,7 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
     });
 
     if (session) {
-        await client.chat.postEphemeral({
+        await app.client.chat.postEphemeral({
             channel: Environment.MAIN_CHANNEL,
             text: `🚨 You're already in a session! Finish that one before starting a new one.`,
             user: userId
@@ -62,13 +64,12 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
     const result = await powerHour.userJoin(userId);
 
     console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
-       
 
     // Check if there's text - if there is use shorthand mode
     if (text) {
         const template = randomChoice(Templates.minutesRemaining);
 
-        const message = await client.chat.postMessage({
+        const message = await app.client.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             blocks: await Blocks.session({
                 template: template,
@@ -110,12 +111,15 @@ app.command(Commands.HACK, async ({ ack, body, client }) => {
         return;
     }
 
-    await client.views.open({
+    await app.client.views.open({
         trigger_id: body.trigger_id,
         view: await Views.start(userId),
         private_metadata: body.trigger_id
     });
-});
+};
+
+app.command(Commands.HACK, hack);
+app.command(Commands.HACK_ALIAS, hack);
 
 /**
  * start

@@ -43,6 +43,7 @@ export const Constants = {
 // Commands
 export const Commands = process.env.PROD === 'true' ? {
   HACK: '/hack',
+  HACK_ALIAS: '/hour',
   CANCEL: '/cancel',
   GOALS: '/goals',
   STATS: '/mystats',
@@ -51,6 +52,7 @@ export const Commands = process.env.PROD === 'true' ? {
   INSTRUCTIONS: '/instructions'  
 } : {
   HACK: '/ztesthack',
+  HACK_ALIAS: '/testhour',
   CANCEL: '/testcancel',
   GOALS: '/testgoals',
   STATS: '/testmystats',
