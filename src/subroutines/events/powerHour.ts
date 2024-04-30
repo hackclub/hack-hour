@@ -335,8 +335,13 @@ class PowerHour implements BasePicnic {
         });
 
         let totalMinutes = 0;
+        let completion = 0;
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
+
+            if (contribution.minutes >= (7*60)) {
+                completion += 1;
+            }
         }
         
         // Check if it's the final hour and same day
@@ -385,7 +390,9 @@ class PowerHour implements BasePicnic {
 
         await app.client.conversations.setTopic({
             channel: Environment.MAIN_CHANNEL,
-            topic: `*We do an hour a day, because it keeps the doctor away.* \`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} - ${Math.round((completion / eventContributions.length) * 100)}%`,
+            //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+            // *We do an hour a day, because it keeps the doctor away.* 
         });
 
         console.log("🪅  Hourly Check Complete");
