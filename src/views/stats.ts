@@ -65,7 +65,7 @@ export class Views {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Power Hour Contributions*: ${formatHour(eventContributions[0].minutes)+7} hours\n_(${eventContributions[0].minutes} minutes)_`
+                    "text": `*Power Hour Contributions*: ${formatHour(eventContributions[0].minutes)} hours\n_(${eventContributions[0].minutes} minutes)_`
                 }
             });
         }        
