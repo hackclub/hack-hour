@@ -390,7 +390,7 @@ class PowerHour implements BasePicnic {
 
         await app.client.conversations.setTopic({
             channel: Environment.MAIN_CHANNEL,
-            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} - ${Math.round((completion / eventContributions.length) * 100)}%`,
+            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
             //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
             // *We do an hour a day, because it keeps the doctor away.* 
         });
