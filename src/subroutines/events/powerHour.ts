@@ -339,7 +339,7 @@ class PowerHour implements BasePicnic {
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
 
-            if (contribution.minutes >= (7*60)) {
+            if (contribution.minutes >= (7*59)) {
                 completion += 1;
             }
         }
