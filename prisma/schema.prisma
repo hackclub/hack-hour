@@ -15,6 +15,7 @@ model User {
   reminder         String
   selectedGoal     String
   eventId          String?
+  apiKey           String
   goals            Goals[]
 }
 
