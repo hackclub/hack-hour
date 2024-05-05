@@ -16,9 +16,6 @@ import { Picnics } from './events/picnics.js';
 import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
 import { StringIndexed } from '@slack/bolt/dist/types/helpers.js';
 
-const powerHour = Picnics.find((picnic) => picnic.ID === "powerhour");
-assertVal(powerHour);
-
 /**
  * hack
  * The command that starts the hack hour
@@ -60,11 +57,6 @@ const hack = async ({ ack, body }: SlackCommandMiddlewareArgs) => {
         return;
     }
 
-    // Run user join checks
-    const result = await powerHour.userJoin(userId);
-
-    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
-
     // Check if there's text - if there is use shorthand mode
     if (text) {
         const template = randomChoice(Templates.minutesRemaining);
@@ -105,8 +97,6 @@ const hack = async ({ ack, body }: SlackCommandMiddlewareArgs) => {
         });
 
         console.log(`🟢 Session started by ${userId}`);
-
-        powerHour.createSession(userId, message.ts);
    
         return;
     }
@@ -139,11 +129,6 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     assertVal(task);
     assertVal(minutes);
     assertVal(attachments);
-
-    // Run user join checks
-    const result = await powerHour.userJoin(userId);
-
-    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
 
     let formattedText = format(template, {
         userId: userId,
@@ -240,8 +225,6 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     });
 
     console.log(`🟢 Session ${message.ts} started by ${userId}`);
-
-    powerHour.createSession(userId, message.ts);
 });
 
 /**
@@ -386,7 +369,6 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
             await picnic.cancelSession(session);
         }
     });*/
-    powerHour.cancelSession(session);    
 });
 
 /**
@@ -495,7 +477,6 @@ minuteInterval.attach(async () => {
                 }
             });
             */
-           powerHour.endSession(session);
 
             continue;
         }
@@ -534,7 +515,3 @@ minuteInterval.attach(async () => {
         });
     }
 })
-
-hourInterval.attach(async() => {
-    await powerHour.hourlyCheck();
-});
