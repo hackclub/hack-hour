@@ -170,7 +170,24 @@ class PowerHour implements BasePicnic {
             }
 
             await ack();
-            await this.hourlyCheck();
+
+            const users = await prisma.user.findMany({
+                where: {
+                    eventId: this.ID,
+                },
+            });
+
+            for (const user of users) {
+                await prisma.user.update({
+                    where: {
+                        slackId: user.slackId,
+                        eventId: this.ID,
+                    },
+                    data: {
+                        eventId: "none",
+                    },
+                });
+            } // leave this to be done manually       
         });
     }
 
