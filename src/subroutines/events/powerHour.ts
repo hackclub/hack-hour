@@ -170,24 +170,7 @@ class PowerHour implements BasePicnic {
             }
 
             await ack();
-
-            const users = await prisma.user.findMany({
-                where: {
-                    eventId: this.ID,
-                },
-            });
-
-            for (const user of users) {
-                await prisma.user.update({
-                    where: {
-                        slackId: user.slackId,
-                        eventId: this.ID,
-                    },
-                    data: {
-                        eventId: "none",
-                    },
-                });
-            } // leave this to be done manually       
+            await this.hourlyCheck();
         });
     }
 
@@ -360,6 +343,13 @@ class PowerHour implements BasePicnic {
                 completion += 1;
             }
         }
+
+        await app.client.conversations.setTopic({
+            channel: Environment.MAIN_CHANNEL,
+            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
+            //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+            // *We do an hour a day, because it keeps the doctor away.* 
+        });
         
         // Check if it's the final hour and same day
         if (currentTime.getDate() == this.END_TIME.getDate() &&
@@ -403,13 +393,6 @@ class PowerHour implements BasePicnic {
         await app.client.chat.postMessage({
             channel: Environment.POWERHOUR_ORG,
             text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-        });
-
-        await app.client.conversations.setTopic({
-            channel: Environment.MAIN_CHANNEL,
-            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
-            //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-            // *We do an hour a day, because it keeps the doctor away.* 
         });
 
         console.log("🪅  Hourly Check Complete");
