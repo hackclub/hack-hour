@@ -168,9 +168,36 @@ class PowerHour implements BasePicnic {
                 await ack("looks like you found something secret. here's a cookie 🍪")
                 return;
             }
-
+ 
             await ack();
-            await this.hourlyCheck();
+
+            const eventContributions = await prisma.eventContributions.findMany({
+                where: {
+                    eventId: this.ID,
+                },
+            });
+
+            for (const eventContribution of eventContributions) {
+                let totalMinutes = eventContribution.minutes;
+
+                if (totalMinutes < (7*59)) {
+                    // Skip if they haven't reached 7 hours
+                    continue;
+                }
+
+                if (totalMinutes >= (7*59) && totalMinutes < (7*60)) {
+                    // Round up to 7 hours
+                    totalMinutes = 7*60;
+                }
+
+                await app.client.chat.postMessage({
+                    channel: "U04QD71QWS0",
+                    text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
+                    To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below:                    
+                    
+                    https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5?prefill_SlackID=${eventContribution.slackId}&prefill_Hours=${formatHour(totalMinutes)}`
+                });
+            }
         });
     }
 
