@@ -224,6 +224,11 @@ To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make
 ${url}`,
                 });
             }
+
+            await app.client.chat.postMessage({
+                channel: Environment.POWERHOUR_ORG,
+                text: "Forms were sent! Check your DMs :mailbox_with_mail:",
+            });
         });
     }
 
