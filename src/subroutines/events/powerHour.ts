@@ -226,7 +226,7 @@ ${url}`,
             }
 
             await app.client.chat.postMessage({
-                channel: Environment.POWERHOUR_ORG,
+                channel: Environment.MAIN_CHANNEL,
                 text: "Forms were sent! Check your DMs :mailbox_with_mail:",
             });
         });
