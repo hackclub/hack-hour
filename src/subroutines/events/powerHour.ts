@@ -193,7 +193,7 @@ class PowerHour implements BasePicnic {
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
                     text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
-To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below:                    
+To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make sure you fill it out within the next week! before May 19th)
 
 https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5?prefill_SlackID=${eventContribution.slackId}&prefill_Hours=${formatHour(totalMinutes)}`
                 });
