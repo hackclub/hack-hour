@@ -196,30 +196,34 @@ class PowerHour implements BasePicnic {
                     user: eventContribution.slackId,
                 });
 
-                // Get full name
-                if (!user ||
-                    !user.user ||
-                    !user.user.profile ||
-                    !user.user.profile.real_name
-                ) {
-                    // DM myself if there's an error
-                    await app.client.chat.postMessage({
-                        channel: 'U04QD71QWS0',
-                        text: `Missing user info for <@${eventContribution.slackId}>`,
-                    });
+                const baseUrl = "https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5";
+                const params = new URLSearchParams();
 
-                    continue;
+                params.append("prefill_SlackID", eventContribution.slackId);
+                params.append("prefill_Hours", formatHour(totalMinutes));
+
+                if (user &&
+                    user.user &&
+                    user.user.profile
+                ) {
+                    // Real Name
+                    if (user.user.profile.real_name) {
+                        params.append("prefill_Name", user.user.profile.real_name.replace(" ", "%20"));
+                    }
+                    // Email
+                    if (user.user.profile.email) {
+                        params.append("prefill_Email", user.user.profile.email);
+                    }
                 }
 
-                // Make full name url friendly
-                const fullName = user.user.profile.real_name.replace(" ", "%20");
+                const url = `${baseUrl}?${params.toString()}`;
 
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
                     text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
 To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make sure you fill it out within the next week! before May 19th)
 
-https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5?prefill_SlackID=${eventContribution.slackId}&prefill_Hours=${formatHour(totalMinutes)}&prefill_Name=${fullName}`
+${url}`,
                 });
             }
         });
