@@ -211,7 +211,8 @@ class PowerHour implements BasePicnic {
                     continue;
                 }
 
-                const fullName = user.user.profile.real_name;
+                // Make full name url friendly
+                const fullName = user.user.profile.real_name.replace(" ", "%20");
 
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
