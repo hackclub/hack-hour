@@ -174,8 +174,8 @@ class PowerHour implements BasePicnic {
             const eventContributions = await prisma.eventContributions.findMany({
                 where: {
                     eventId: this.ID,
-//                    slackId: 'U0C7B14Q3',
-                    slackId: 'U04QD71QWS0',
+                    slackId: 'U0C7B14Q3',
+//                    slackId: 'U04QD71QWS0',
                 },
             });
 
@@ -214,12 +214,9 @@ class PowerHour implements BasePicnic {
                     if (user.user.profile.email) {
                         params.append("prefill_Email", user.user.profile.email);
                     }
-
-                    console.log(user.user?.profile);
                 }
 
                 const url = `${baseUrl}?${params.toString()}`;
-
 
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
