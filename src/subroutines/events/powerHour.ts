@@ -214,9 +214,12 @@ class PowerHour implements BasePicnic {
                     if (user.user.profile.email) {
                         params.append("prefill_Email", user.user.profile.email);
                     }
+
+                    console.log(user.user?.profile);
                 }
 
                 const url = `${baseUrl}?${params.toString()}`;
+
 
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
