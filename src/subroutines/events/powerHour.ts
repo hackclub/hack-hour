@@ -208,7 +208,7 @@ class PowerHour implements BasePicnic {
                 ) {
                     // Real Name
                     if (user.user.profile.real_name) {
-                        params.append("prefill_Name", user.user.profile.real_name.replace(" ", "%20"));
+                        params.append("prefill_Name", user.user.profile.real_name);
                     }
                     // Email
                     if (user.user.profile.email) {
