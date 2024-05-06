@@ -174,6 +174,7 @@ class PowerHour implements BasePicnic {
             const eventContributions = await prisma.eventContributions.findMany({
                 where: {
                     eventId: this.ID,
+                    slackId: 'U0C7B14Q3',
                 },
             });
 
