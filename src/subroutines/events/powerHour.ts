@@ -174,7 +174,8 @@ class PowerHour implements BasePicnic {
             const eventContributions = await prisma.eventContributions.findMany({
                 where: {
                     eventId: this.ID,
-                    slackId: 'U0C7B14Q3',
+//                    slackId: 'U0C7B14Q3',
+                    slackId: 'U04QD71QWS0',
                 },
             });
 
@@ -191,12 +192,33 @@ class PowerHour implements BasePicnic {
                     totalMinutes = 7*60;
                 }
 
+                const user = await app.client.users.info({
+                    user: eventContribution.slackId,
+                });
+
+                // Get full name
+                if (!user ||
+                    !user.user ||
+                    !user.user.profile ||
+                    !user.user.profile.real_name
+                ) {
+                    // DM myself if there's an error
+                    await app.client.chat.postMessage({
+                        channel: 'U04QD71QWS0',
+                        text: `Missing user info for <@${eventContribution.slackId}>`,
+                    });
+
+                    continue;
+                }
+
+                const fullName = user.user.profile.real_name;
+
                 await app.client.chat.postMessage({
                     channel: eventContribution.slackId,
                     text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
 To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make sure you fill it out within the next week! before May 19th)
 
-https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5?prefill_SlackID=${eventContribution.slackId}&prefill_Hours=${formatHour(totalMinutes)}`
+https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5?prefill_SlackID=${eventContribution.slackId}&prefill_Hours=${formatHour(totalMinutes)}&prefill_Name=${fullName}`
                 });
             }
         });
