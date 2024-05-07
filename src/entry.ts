@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { app, prisma, minuteInterval, hourInterval } from './app.js';
+import "./subroutines/api.js";
 
 const mainLoop = async () => {
     await prisma.$connect();

@@ -1,14 +1,23 @@
-import bolt from '@slack/bolt'; 
+import bolt, { ExpressReceiver } from '@slack/bolt'; 
 import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
 import { Environment, Constants } from './constants.js';
+
 //import { createId } from '@paralleldrive/cuid2';
+
+const expressReceiver = new bolt.ExpressReceiver({
+    signingSecret: Environment.SLACK_SIGNING_SECRET,
+    endpoints: '/slack/events',
+    processBeforeResponse: true,
+});
+
+export const express = expressReceiver;
+
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
     appToken: Environment.SLACK_APP_TOKEN,
-    signingSecret: Environment.SLACK_SIGNING_SECRET,
 
-    socketMode: Environment.SOCKET_MODE
+    receiver: expressReceiver,
 });
 
 app.error(async (error) => {
