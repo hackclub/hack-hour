@@ -2,7 +2,7 @@ import bolt from '@slack/bolt';
 import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
 import { Environment, Constants } from './constants.js';
-
+//import { createId } from '@paralleldrive/cuid2';
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
     appToken: Environment.SLACK_APP_TOKEN,

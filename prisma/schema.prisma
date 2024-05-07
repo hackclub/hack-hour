@@ -8,42 +8,29 @@ datasource db {
 }
 
 model User {
+  id               String  @id @default(cuid())
+  lifetimeMinutes  Int
+  apiKey           String
+  slackUser        SlackUser?
+  sessions         Session[]
+}
+
+model SlackUser {
   slackId          String  @id
-  totalMinutes     Int
+  user             User    @relation(fields: [userId], references: [id])
+  userId           String  @unique
   tz               String
-  remindersEnabled Boolean
-  reminder         String
-  selectedGoal     String
-  eventId          String?
-  goals            Goals[]
 }
 
 model Session {
-  messageTs  String  @id
+  user       User  @relation(fields: [userId], references: [id])
   userId     String
-  template   String
-  goal       String
-  task       String
+  messageTs  String  @id
+  createdAt  DateTime
   time       Int
   elapsed    Int
+
   completed  Boolean
-  attachment String?
   cancelled  Boolean
-  createdAt  String?
-}
-
-model Goals {
-  goalId   String @id
-  slackId  String
-  goalName String
-  minutes  Int
-  user     User   @relation(fields: [slackId], references: [slackId])
-}
-
-model EventContributions {
-  contributionId Int    @id @default(autoincrement())
-  slackId        String
-  eventId        String
-  minutes        Int
-  sessions       String
+  paused     Boolean
 }

@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/techpixel/hackhour#readme",
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^5.12.1",
     "@slack/bolt": "^3.17.1",
     "csv-parser": "^3.0.0",
