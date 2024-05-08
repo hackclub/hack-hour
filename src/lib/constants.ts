@@ -9,20 +9,22 @@ function assertEnv(envVar: string): string {
 }
 
 export const Environment = {
+  // Server
   SLACK_APP_TOKEN: assertEnv('SLACK_APP_TOKEN'),
   SLACK_BOT_TOKEN: assertEnv('SLACK_BOT_TOKEN'),
   SLACK_SIGNING_SECRET: assertEnv('SLACK_SIGNING_SECRET'),
 
+  PORT: assertEnv('PORT'),
+
+  // Slack Config
   MAIN_CHANNEL: assertEnv('MAIN_CHANNEL'),
-  LOG_CHANNEL: assertEnv('LOG_CHANNEL'),
+  DEV_CHANNEL: assertEnv('DEV_CHANNEL'),
+  INTERNAL_CHANNEL: assertEnv('INTERNAL_CHANNEL'),
 
   PING_USERGROUP: assertEnv('PING_USERGROUP'),
   DEV_USERGROUP: assertEnv('DEV_USERGROUP'),
 
-  POWERHOUR_ORG: assertEnv('POWERHOUR_ORG'),
-
-  PORT: assertEnv('PORT'),
-
+  // Control Flags
   PROD: (process.env.PROD === 'true'),
 }
 
@@ -31,16 +33,11 @@ export const Constants = {
   MIN_MS: 60 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
-  //HACK_HOUR_CHANNEL: 'C06T6MQ1AMN', // PRIVATE
-  //HACK_HOUR_CHANNEL: 'C06SBHMQU8G', // PROD
-//HACK_HOUR_CHANNEL: process.env.HACK_HOUR_CHANNEL,
-
-//HACK_HOUR_USERGROUP: 'S06RMCA6HBP', // PROD
-//HACK_HOUR_USERGROUP: process.env.HACK_HOUR_USERGROUP,
+  PUBLIC_DEV_CHANNEL: 'C0P5NE354',
 };
 
 // Commands
-export const Commands = process.env.PROD === 'true' ? {
+export const Commands = Environment.PROD ? {
   HACK: '/hack',
   HACK_ALIAS: '/hour',
   CANCEL: '/cancel',

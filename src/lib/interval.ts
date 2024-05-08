@@ -1,3 +1,5 @@
+import { Constants } from "./constants.js";
+
 /**
  * Manages intervals
  */
@@ -26,3 +28,8 @@ export class IntervalManager {
         this.delay = delay;
     }
 }
+
+export const minuteInterval = new IntervalManager(Constants.MIN_MS);
+export const hourInterval = new IntervalManager(Constants.HOUR_MS);
+
+hourInterval.setDelay(Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);

@@ -1,5 +1,7 @@
 import { Server } from "http";
-import { prisma, express, minuteInterval } from "../app.js";
+import { prisma } from "../lib/prisma.js";
+import { minuteInterval } from "../lib/interval.js";
+import { express } from "../app.js";
 import { WebSocketServer } from 'ws';
 
 express.app.get('/', async (req, res) => {
