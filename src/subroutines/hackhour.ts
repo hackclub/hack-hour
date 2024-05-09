@@ -61,11 +61,6 @@ const hack = async ({ ack, body }: SlackCommandMiddlewareArgs) => {
         return;
     }
 
-    // Run user join checks
-    const result = await powerHour.userJoin(userId);
-
-    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
-
     // Check if there's text - if there is use shorthand mode
     if (text) {
         const template = randomChoice(Templates.minutesRemaining);
@@ -142,11 +137,6 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     assertVal(task);
     assertVal(minutes);
     assertVal(attachments);
-
-    // Run user join checks
-    const result = await powerHour.userJoin(userId);
-
-    console.log(`🟢 User ${userId} joined the Power Hour - ${result.ok}: ${result.message}`);
 
     let formattedText = format(template, {
         userId: userId,
@@ -543,7 +533,3 @@ minuteInterval.attach(async () => {
         });
     }
 })
-
-hourInterval.attach(async() => {
-    await powerHour.hourlyCheck();
-});

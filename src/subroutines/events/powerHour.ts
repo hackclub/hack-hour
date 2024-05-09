@@ -186,7 +186,65 @@ U06NNELQ4SZ
 U06MWAFGYCX`;
 
             await ack();
-            await this.hourlyCheck();
+
+            const eventContributions = await prisma.eventContributions.findMany({
+                where: {
+                    eventId: this.ID,
+                },
+            });
+
+            for (const eventContribution of eventContributions) {
+                let totalMinutes = eventContribution.minutes;
+
+                if (totalMinutes < (7*59)) {
+                    // Skip if they haven't reached 7 hours
+                    continue;
+                }
+
+                if (totalMinutes >= (7*59) && totalMinutes < (7*60)) {
+                    // Round up to 7 hours
+                    totalMinutes = 7*60;
+                }
+
+                const user = await app.client.users.info({
+                    user: eventContribution.slackId,
+                });
+
+                const baseUrl = "https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5";
+                const params = new URLSearchParams();
+
+                params.append("prefill_SlackID", eventContribution.slackId);
+                params.append("prefill_Hours", formatHour(totalMinutes));
+
+                if (user &&
+                    user.user &&
+                    user.user.profile
+                ) {
+                    // Real Name
+                    if (user.user.profile.real_name) {
+                        params.append("prefill_Name", user.user.profile.real_name);
+                    }
+                    // Email
+                    if (user.user.profile.email) {
+                        params.append("prefill_Email", user.user.profile.email);
+                    }
+                }
+
+                const url = `${baseUrl}?${params.toString()}`;
+
+                await app.client.chat.postMessage({
+                    channel: eventContribution.slackId,
+                    text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
+To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make sure you fill it out within the next week! before May 19th)
+
+${url}`,
+                });
+            }
+
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                text: "Forms were sent! Check your DMs :mailbox_with_mail:",
+            });
         });
     }
 
@@ -359,6 +417,13 @@ U06MWAFGYCX`;
                 completion += 1;
             }
         }
+
+        await app.client.conversations.setTopic({
+            channel: Environment.MAIN_CHANNEL,
+            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
+            //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+            // *We do an hour a day, because it keeps the doctor away.* 
+        });
         
         // Check if it's the final hour and same day
         if (currentTime.getDate() == this.END_TIME.getDate() &&
@@ -402,13 +467,6 @@ U06MWAFGYCX`;
         await app.client.chat.postMessage({
             channel: Environment.POWERHOUR_ORG,
             text: `*Hourly Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-        });
-
-        await app.client.conversations.setTopic({
-            channel: Environment.MAIN_CHANNEL,
-            topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
-            //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
-            // *We do an hour a day, because it keeps the doctor away.* 
         });
 
         console.log("🪅  Hourly Check Complete");
