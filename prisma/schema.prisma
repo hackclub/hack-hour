@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -15,7 +16,6 @@ model User {
   reminder         String
   selectedGoal     String
   eventId          String?
-  apiKey           String
   goals            Goals[]
 }
 
