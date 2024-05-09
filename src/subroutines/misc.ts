@@ -91,6 +91,7 @@ app.view(RemindCallbacks.REMINDERS, async ({ ack, body, client }) => {
     });
 });
 
+/*
 hourInterval.attach(async () => {
     const users = await prisma.user.findMany({
         where: {
@@ -138,3 +139,4 @@ hourInterval.attach(async () => {
         });
     }
 });
+*/
