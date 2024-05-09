@@ -169,6 +169,22 @@ class PowerHour implements BasePicnic {
                 return;
             }
 
+            const rawCell = `U04AQNZRJQ5
+U06V2EMR9U2
+U054VC2KM9P
+U05F4B48GBF
+U015SDXHEPR
+U040N4ESCEL
+U04N415FE4T
+U05A3TSL7UY
+UO5SCJJHUF7
+U04FMKCVASJ
+U06MCHA590E
+U06U13RSLH2
+U05APP82JMR
+U06NNELQ4SZ
+U06MWAFGYCX`;
+
             await ack();
             await this.hourlyCheck();
         });

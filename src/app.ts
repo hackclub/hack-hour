@@ -3,15 +3,13 @@ import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
 import { Environment, Constants } from './constants.js';
 
-import expressWS from 'express-ws';
-
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
     endpoints: '/slack/events',
     processBeforeResponse: true,
 });
 
-export const express = expressWS(expressReceiver.app);;
+export const express = expressReceiver;
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,

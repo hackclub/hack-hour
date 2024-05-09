@@ -13,8 +13,9 @@ import { assertVal } from '../utils/lib.js';
 import { Blocks } from '../views/messages.js';
 
 import { Picnics } from './events/picnics.js';
-import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
-import { StringIndexed } from '@slack/bolt/dist/types/helpers.js';
+import { SlackCommandMiddlewareArgs } from '@slack/bolt';
+
+import { websocketManager } from './api.js';
 
 const powerHour = Picnics.find((picnic) => picnic.ID === "powerhour");
 assertVal(powerHour);
@@ -107,6 +108,8 @@ const hack = async ({ ack, body }: SlackCommandMiddlewareArgs) => {
         console.log(`🟢 Session started by ${userId}`);
 
         powerHour.createSession(userId, message.ts);
+
+        websocketManager.startSession(userId);
    
         return;
     }
@@ -232,7 +235,7 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
             links.push(line);
         }
     });
-
+   
     reactOnContent(app, {
         content: task,
         channel: Environment.MAIN_CHANNEL,
@@ -242,6 +245,8 @@ app.view(Callbacks.START, async ({ ack, body, client }) => {
     console.log(`🟢 Session ${message.ts} started by ${userId}`);
 
     powerHour.createSession(userId, message.ts);
+
+    websocketManager.startSession(userId);
 });
 
 /**
@@ -387,6 +392,8 @@ app.command(Commands.CANCEL, async ({ ack, body, client }) => {
         }
     });*/
     powerHour.cancelSession(session);    
+
+    websocketManager.endSession(userId, true);
 });
 
 /**
@@ -496,6 +503,8 @@ minuteInterval.attach(async () => {
             });
             */
            powerHour.endSession(session);
+
+            websocketManager.endSession(session.userId, false);
 
             continue;
         }

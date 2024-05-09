@@ -46,7 +46,8 @@ app.view(Callbacks.SETUP, async ({ ack, body, client, logger }) => {
                 }
             },
             selectedGoal: selectedGoal,
-            eventId: "None"
+            eventId: "None",
+            apiKey: randomUUID()
         }
     });
 

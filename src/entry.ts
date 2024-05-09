@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { app, prisma, minuteInterval, hourInterval } from './app.js';
+import { app, prisma, minuteInterval, hourInterval, express } from './app.js';
 import "./subroutines/onboarding.js";
 import "./subroutines/events/picnics.js";
 import "./subroutines/events/powerHour.js";
@@ -8,10 +8,14 @@ import "./subroutines/goals.js";
 import "./subroutines/misc.js";
 import "./subroutines/picnics.js";
 import "./subroutines/api.js";
+import { startWSS } from './subroutines/api.js';
 
 const mainLoop = async () => {
     await prisma.$connect();
-    await app.start(process.env.PORT || 3000);
+
+    const server = await app.start(process.env.PORT || 3000);
+    startWSS(server);
+
     minuteInterval.start();
     hourInterval.start();    
 
