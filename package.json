@@ -21,15 +21,20 @@
   "dependencies": {
     "@prisma/client": "^5.12.1",
     "@slack/bolt": "^3.17.1",
+    "@types/ws": "^8.5.10",
     "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5",
-    "lowdb": "^7.0.1"
+    "express": "^4.19.2",
+    "express-ws": "^5.0.2",
+    "lowdb": "^7.0.1",
+    "ws": "^8.17.0"
   },
   "type": "module",
   "engines": {
     "node": ">=16"
   },
   "devDependencies": {
+    "@types/express-ws": "^3.0.4",
     "@types/lowdb": "^1.0.15",
     "@types/node": "^20.12.7",
     "prisma": "^5.12.1",

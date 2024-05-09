@@ -25,4 +25,11 @@ export class IntervalManager {
     public setDelay(delay: number): void {
         this.delay = delay;
     }
+
+    public detach(callback: () => void): void {
+        const index = this.callbacks.indexOf(callback);
+        if (index > -1) {
+            this.callbacks.splice(index, 1);
+        }
+    }
 }

@@ -24,7 +24,6 @@ export const Environment = {
   PORT: assertEnv('PORT'),
 
   PROD: (process.env.PROD === 'true'),
-  SOCKET_MODE: (process.env.SOCKET_MODE === 'true'),
 }
 
 // Constants

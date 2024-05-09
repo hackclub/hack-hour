@@ -3,12 +3,19 @@ import { PrismaClient } from '@prisma/client';
 import { IntervalManager } from './utils/intervalManager.js';
 import { Environment, Constants } from './constants.js';
 
+const expressReceiver = new bolt.ExpressReceiver({
+    signingSecret: Environment.SLACK_SIGNING_SECRET,
+    endpoints: '/slack/events',
+    processBeforeResponse: true,
+});
+
+export const express = expressReceiver;
+
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
     appToken: Environment.SLACK_APP_TOKEN,
     signingSecret: Environment.SLACK_SIGNING_SECRET,
-
-    socketMode: Environment.SOCKET_MODE
+    receiver: expressReceiver,
 });
 
 app.error(async (error) => {
@@ -17,7 +24,7 @@ app.error(async (error) => {
         text: `<@U04QD71QWS0> I summon thee for the following reason: \`Hack Hour had an error! - Bolt JS\`\n*Error:*\n\`\`\`${error.message}\`\`\``, //<!subteam^${process.env.DEV_USERGROUP}|hack-hour-dev>
     });
 });
- 
+
 export const prisma = new PrismaClient();
 
 export const minuteInterval = new IntervalManager(Constants.MIN_MS);
