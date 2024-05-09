@@ -27,7 +27,7 @@ class PowerHour implements BasePicnic {
     private isEventActive(): boolean {
         const currentTime = new Date();
 
-//        return currentTime >= this.START_TIME && currentTime < this.END_TIME;
+        //        return currentTime >= this.START_TIME && currentTime < this.END_TIME;
         return true; // just for testing
     }
 
@@ -38,7 +38,7 @@ class PowerHour implements BasePicnic {
                 eventId: this.ID,
             },
         });
- 
+
         const event = await prisma.eventContributions.findFirst({
             where: {
                 slackId: userId,
@@ -71,7 +71,7 @@ class PowerHour implements BasePicnic {
                 channel: Environment.POWERHOUR_ORG,
                 latest: forwardTs,
                 inclusive: true,
-                limit: 1,                
+                limit: 1,
             })).messages;
 
             let userId = "";
@@ -88,12 +88,12 @@ class PowerHour implements BasePicnic {
                 }
 
                 assertVal(metadata.event_type);
-  
+
                 userId = metadata.event_type;
             } catch (error) {
                 console.error(error);
                 return;
-            }            
+            }
 
             const eventEntry = await prisma.eventContributions.findFirst({
                 where: {
@@ -120,7 +120,7 @@ class PowerHour implements BasePicnic {
                     messageTs: sessionID,
                 },
             });
-    
+
             const elapsedTime = session?.elapsed;
 
             if (!elapsedTime) {
@@ -145,7 +145,7 @@ class PowerHour implements BasePicnic {
                 timestamp: eventSessions[forwardTs],
             });
 
-            delete eventSessions[forwardTs];              
+            delete eventSessions[forwardTs];
 
             await prisma.eventContributions.update({
                 where: {
@@ -157,7 +157,7 @@ class PowerHour implements BasePicnic {
                     },
                     sessions: JSON.stringify(eventSessions),
                 },
-            });            
+            });
 
             console.log(`✅ User <@${userId}>'s session was verified! They contributed ${elapsedTime} minutes to the event.`);
         });
@@ -169,7 +169,8 @@ class PowerHour implements BasePicnic {
                 return;
             }
 
-            const rawCell = `U04AQNZRJQ5
+            const rawCell = `U04QD71QWS0`;
+`U04AQNZRJQ5
 U06V2EMR9U2
 U054VC2KM9P
 U05F4B48GBF
@@ -187,64 +188,14 @@ U06MWAFGYCX`;
 
             await ack();
 
-            const eventContributions = await prisma.eventContributions.findMany({
-                where: {
-                    eventId: this.ID,
-                },
-            });
+            const users = rawCell.split("\n");
 
-            for (const eventContribution of eventContributions) {
-                let totalMinutes = eventContribution.minutes;
-
-                if (totalMinutes < (7*59)) {
-                    // Skip if they haven't reached 7 hours
-                    continue;
-                }
-
-                if (totalMinutes >= (7*59) && totalMinutes < (7*60)) {
-                    // Round up to 7 hours
-                    totalMinutes = 7*60;
-                }
-
-                const user = await app.client.users.info({
-                    user: eventContribution.slackId,
-                });
-
-                const baseUrl = "https://airtable.com/app1VxI7f3twOIs2g/shrzR18hyWDHzT4C5";
-                const params = new URLSearchParams();
-
-                params.append("prefill_SlackID", eventContribution.slackId);
-                params.append("prefill_Hours", formatHour(totalMinutes));
-
-                if (user &&
-                    user.user &&
-                    user.user.profile
-                ) {
-                    // Real Name
-                    if (user.user.profile.real_name) {
-                        params.append("prefill_Name", user.user.profile.real_name);
-                    }
-                    // Email
-                    if (user.user.profile.email) {
-                        params.append("prefill_Email", user.user.profile.email);
-                    }
-                }
-
-                const url = `${baseUrl}?${params.toString()}`;
-
+            for (const user of users) {
                 await app.client.chat.postMessage({
-                    channel: eventContribution.slackId,
-                    text: `Hey <@${eventContribution.slackId}>!!! Congrats for finishing Power Hour! You completed ${formatHour(totalMinutes)} as a whole :tada::tada::tada:
-To recieve your :raspberry-pi-logo: CLOCK, please fill out the form below: (Make sure you fill it out within the next week! before May 19th)
-
-${url}`,
+                    channel: user,
+                    text: `Hey <@${user}>! Since we're unable to send you the pi clock, we'll get you something else instead: some FUDGE!!!! While I know you were excited about the clock, I promise you that this fudge is AMAZING (and straight from vermont!)`
                 });
             }
-
-            await app.client.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                text: "Forms were sent! Check your DMs :mailbox_with_mail:",
-            });
         });
     }
 
@@ -265,7 +216,7 @@ ${url}`,
             text: "Make sure to provide us updates & show us your progress!!!",
             icon_emoji: this.CUSTOM_EMOJI,
             username: this.CUSTOM_NAME,
-        });        
+        });
     }
 
     async endSession(session: Session): Promise<void> {
@@ -297,7 +248,7 @@ ${url}`,
                 event_type: session.userId,
                 event_payload: {
                     slackUserRef: session.userId,
-                }   
+                }
             }
         });
 
@@ -413,7 +364,7 @@ ${url}`,
         for (const contribution of eventContributions) {
             totalMinutes += contribution.minutes;
 
-            if (contribution.minutes >= (7*59)) {
+            if (contribution.minutes >= (7 * 59)) {
                 completion += 1;
             }
         }
@@ -424,7 +375,7 @@ ${url}`,
             //Progress: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
             // *We do an hour a day, because it keeps the doctor away.* 
         });
-        
+
         // Check if it's the final hour and same day
         if (currentTime.getDate() == this.END_TIME.getDate() &&
             currentTime.getMonth() == this.END_TIME.getMonth() &&
@@ -457,7 +408,7 @@ ${url}`,
             } // leave this to be done manually        
             */
 
-            console.log("🎉  PowerHour Event Complete");                
+            console.log("🎉  PowerHour Event Complete");
         }
 
         if (!this.isEventActive()) {
@@ -471,7 +422,7 @@ ${url}`,
 
         console.log("🪅  Hourly Check Complete");
     }
-    
+
     async userJoin(userId: string): Promise<{ ok: boolean, message: string }> {
         // Check if the event is still active
         const currentTime = new Date();
@@ -491,10 +442,10 @@ ${url}`,
             };
         }
         */
-        
+
         // Check if the user is already in the database, if not add them
         const eventEntry = await this.isRegistered(userId);
- 
+
         if (eventEntry) {
             return {
                 ok: false,
