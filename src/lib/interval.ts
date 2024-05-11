@@ -17,6 +17,7 @@ export class IntervalManager {
     }
 
     public start(): void {
+        this.callbacks.forEach(async callback => await callback());
         setTimeout(() => {
             setInterval(async () => {
                 this.callbacks.forEach(async callback => await callback());

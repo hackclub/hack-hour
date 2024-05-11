@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -19,13 +20,14 @@ model SlackUser {
   slackId          String  @id
   user             User    @relation(fields: [userId], references: [id])
   userId           String  @unique
-  tz               String
+  tz_offset        Int
 }
 
 model Session {
   user       User  @relation(fields: [userId], references: [id])
   userId     String
   messageTs  String  @id
+  controlTs  String
   createdAt  DateTime
   time       Int
   elapsed    Int
