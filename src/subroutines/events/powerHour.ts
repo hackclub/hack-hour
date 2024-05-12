@@ -169,8 +169,7 @@ class PowerHour implements BasePicnic {
                 return;
             }
 
-            const rawCell = `U04QD71QWS0`;
-`U04AQNZRJQ5
+            const rawCell = `U04AQNZRJQ5
 U06V2EMR9U2
 U054VC2KM9P
 U05F4B48GBF
