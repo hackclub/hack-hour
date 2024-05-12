@@ -190,10 +190,12 @@ U06MWAFGYCX`;
             const users = rawCell.split("\n");
 
             for (const user of users) {
+                console.log(user);
+                /*
                 await app.client.chat.postMessage({
                     channel: user,
                     text: `Hey <@${user}>! Since we're unable to send you the pi clock, we'll get you something else instead: some FUDGE!!!! While I know you were excited about the clock, I promise you that this fudge is AMAZING (and straight from vermont!)`
-                });
+                });*/
             }
         });
     }
