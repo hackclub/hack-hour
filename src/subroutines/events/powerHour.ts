@@ -169,36 +169,38 @@ class PowerHour implements BasePicnic {
                 return;
             }
 
-            const rawCell = `U04AQNZRJQ5
-U06V2EMR9U2
-U054VC2KM9P
-U05F4B48GBF
-U015SDXHEPR
-U040N4ESCEL
-U04N415FE4T
-U05A3TSL7UY
-UO5SCJJHUF7
-U04FMKCVASJ
-U06MCHA590E
-U06U13RSLH2
-U05APP82JMR
-U06NNELQ4SZ
-U06MWAFGYCX`;
-
             await ack();
 
-            const users = rawCell.split("\n");
+            const eventContributions = await prisma.eventContributions.findMany({
+                where: {
+                    eventId: this.ID,
+                },
+            });
 
-            for (const user of users) {
-                try {
-                    await app.client.chat.postMessage({
-                        channel: user,
-                        text: `Hey <@${user}>! Since we're unable to send you the pi clock, we'll get you something else instead: some FUDGE!!!! While I know you were excited about the clock, I promise you that this fudge is AMAZING (and straight from vermont!)\nIf you are recieving this message again, please ignore it.`
-                    });
-                } catch (error) {
-                    console.log("Failed for user: " + user + " with error: " + error);
-                }                 
+            let totalMinutes = 0;
+            let completion = 0;
+            for (const contribution of eventContributions) {
+                totalMinutes += contribution.minutes;
+
+                if (contribution.minutes >= (7 * 59)) {
+                    completion += 1;
+                }
+
+                await app.client.chat.postMessage({
+                    channel: Environment.POWERHOUR_ORG,
+                    text: `User <@${contribution.slackId}> has contributed ${formatHour(contribution.minutes)} hours (${contribution.minutes} >= ${7*59}) to the event.`,
+                });
             }
+
+            await app.client.conversations.setTopic({
+                channel: Environment.LOG_CHANNEL,
+                topic: `\`/hack\` to start. | Total hours contributed: ${formatHour(totalMinutes)} | Completion: ${completion}/${eventContributions.length} reached the 7 hour goal - ${Math.round((completion / eventContributions.length) * 100)}%`,
+            });
+
+            await app.client.chat.postMessage({
+                channel: Environment.POWERHOUR_ORG,
+                text: `*Updates:*\n\n*Total hours contributed*: ${formatHour(totalMinutes)}\n*Progress*: ${Math.round((totalMinutes / this.COMMUNITY_GOAL) * 100)}%`,
+            });
         });
     }
 
