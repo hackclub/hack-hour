@@ -283,7 +283,7 @@ app.command(Commands.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
+            return;
         }
 
         const updatedSession = await pauseUpdate(session);
@@ -338,7 +338,7 @@ app.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
+            return;
         }
 
         if (!session.paused) {
@@ -472,13 +472,50 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
         });
 
         if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
+            // Send a message to the user in the channel they ran the command
+            return;
         }
 
         await cancelSession(slackId, session);
     } catch (error) {
         handle(error);
     }    
+});
+
+/*
+Time Extension
+*/
+app.action(Actions.EXTEND, async ({ ack, body }) => {
+
+});
+
+app.command(Commands.EXTEND, async ({ ack, body }) => {
+    try {
+        await ack();
+
+        const session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    slackUser: {
+                        slackId: body.user_id
+                    }
+                },
+                completed: false,
+                cancelled: false,
+            }
+        });
+
+        if (!session) {
+            // Send a message to the user in the channel they ran the command
+        }
+
+        await app.client.views.open({
+            trigger_id: body.trigger_id,
+            view: Controller.extendHourModal()
+        })
+    } catch (error) {
+        handle(error);
+    }
 });
 
 /*
@@ -549,7 +586,7 @@ minuteInterval.attach(async () => {
                 });                
                 continue;
             } else if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
-                await prisma.session.update({
+                const updatedSession = await prisma.session.update({
                     where: {
                         messageTs: session.messageTs
                     },
@@ -569,9 +606,8 @@ minuteInterval.attach(async () => {
                 await app.client.chat.update({
                     ts: controllerTs,
                     channel: Environment.MAIN_CHANNEL,
-                    text: t(`complete`, {
-                        slackId: slackUser.slackId,
-                    })
+                    blocks: await Controller.panel(updatedSession),
+                    text: "todo: replace with accessibility friendly text", // TODO: Replace with accessibility friendly text
                 });                
 
                 await prisma.user.update({
@@ -595,7 +631,7 @@ minuteInterval.attach(async () => {
 
                 continue;
             }
-            else if ((session.elapsed - 1) % 15 == 0) {
+            else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0) {
                 // Send a reminder every 15 minutes
                 await app.client.chat.postMessage({
                     thread_ts: session.messageTs,

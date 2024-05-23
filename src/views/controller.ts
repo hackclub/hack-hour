@@ -1,7 +1,8 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../lib/prisma.js"
 import { t, formatHour } from "../lib/templates.js";
-import { Actions } from "../lib/constants.js";
+import { Actions, Callbacks } from "../lib/constants.js";
+import { View } from "@slack/bolt";
 
 export class Controller {
     public static async panel(data: Session) {
@@ -15,6 +16,45 @@ export class Controller {
 
         if (!curGoal) {
             throw new Error(`Could not find goal for user ${data.userId}`);
+        }
+
+        // Context Info
+        const context = {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": `*Goal:* ${curGoal.name}`
+                }
+            ]
+        };
+
+        if (data.completed) {
+            const slackUser = await prisma.slackUser.findUnique({
+                where: {
+                    userId: data.userId
+                }
+            });
+
+            if (!slackUser) {
+                throw new Error(`Could not find slack user for user ${data.userId}`);
+            }
+
+            return [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": t('complete', {
+                            slackId: slackUser.slackId,
+                        })
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                context
+            ]
         }
 
         // Assemble the message
@@ -54,17 +94,6 @@ export class Controller {
             pause.text.text = "Pause";
             pause.action_id = Actions.PAUSE;
         }
-
-        // Context Info
-        const context = {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "mrkdwn",
-                    "text": `*Goal:* ${curGoal.name}`
-                }
-            ]
-        };
 
         if (data.paused) {
             return [
@@ -122,5 +151,44 @@ export class Controller {
                 "block_id": "panel"                
             }
         ]
+    }
+
+    public static extendHourModal(): View {
+        return {
+            "type": "modal",
+            "callback_id": Callbacks.EXTENDHOUR,
+            "title": {
+                "type": "plain_text",
+                "text": "Extend Hour",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Extend",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "input",
+                    "element": {
+                        "type": "number_input",
+                        "is_decimal_allowed": false,
+                        "action_id": "extendTime",
+                        "min_value": "1",
+                        "initial_value": "10"
+                    },
+                    "label": {
+                        "type": "plain_text",
+                        "text": "# of minutes to extend hour by:",
+                        "emoji": true,
+                    }
+                }
+            ]
+        }
     }
 }

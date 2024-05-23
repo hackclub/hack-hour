@@ -33,7 +33,7 @@ export const Environment = {
 
 // Constants
 export const Constants = {
-  MIN_MS: 60 * 1000,
+  MIN_MS: 60 * 10,
   HOUR_MS: 60 * 60 * 1000,
 
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
@@ -71,4 +71,8 @@ export const Actions = {
   RESUME: 'resume',
   EXTEND: 'extend',
   CANCEL: 'cancel',
+};
+
+export const Callbacks = {
+  EXTENDHOUR: 'extendhour',
 };
