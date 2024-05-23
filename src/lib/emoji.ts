@@ -1,4 +1,4 @@
-import { App } from "@slack/bolt";
+import { app } from "./bolt.js";
 
 const emojis = {
     yay: "yay",
@@ -246,7 +246,7 @@ const emojis = {
     "hack hour": "the_doctor"
 } as { [key: string]: string };
 
-export async function reactOnContent(app: App, data: {
+export async function reactOnContent(data: {
     content: string,
     channel: string,
     ts: string

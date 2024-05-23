@@ -14,20 +14,23 @@ model User {
   apiKey           String
   slackUser        SlackUser?
   sessions         Session[]
+  goals            Goal[]
 }
-
+ 
 model SlackUser {
   slackId          String  @id
   user             User    @relation(fields: [userId], references: [id])
   userId           String  @unique
   tz_offset        Int
+
+  slackToken       String?
 }
 
 model Session {
   user       User  @relation(fields: [userId], references: [id])
   userId     String
   messageTs  String  @id
-  controlTs  String
+  controlTs  String  @unique
   createdAt  DateTime
   time       Int
   elapsed    Int
@@ -35,4 +38,18 @@ model Session {
   completed  Boolean
   cancelled  Boolean
   paused     Boolean
+}
+
+model Goal {
+  id          String  @id
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String
+
+  name        String
+  description String
+
+  totalMinutes        Int
+  createdAt   DateTime
+
+  selected   Boolean
 }

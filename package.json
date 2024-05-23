@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build/entry.js",
-    "app": "npm run build && npm run start"
+    "prisma_deploy": "prisma migrate deploy",
+    "app": "npm run prisma_deploy && npm run build && npm run start"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "lowdb": "^7.0.1",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "yaml": "^2.4.2"
   },
   "type": "module",
   "engines": {

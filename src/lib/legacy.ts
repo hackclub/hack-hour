@@ -1,3 +1,5 @@
+// Saved for legacy reasons & backwards compatibility
+
 export function assertVal<T>(value: T | undefined | null): asserts value is T {
     // Throw if the value is undefined
     if (value === undefined) { throw new Error(`${value} is undefined`) }

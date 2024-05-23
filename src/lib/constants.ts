@@ -9,10 +9,13 @@ function assertEnv(envVar: string): string {
 }
 
 export const Environment = {
-  // Server
+  // Server/Slack App
   SLACK_APP_TOKEN: assertEnv('SLACK_APP_TOKEN'),
   SLACK_BOT_TOKEN: assertEnv('SLACK_BOT_TOKEN'),
   SLACK_SIGNING_SECRET: assertEnv('SLACK_SIGNING_SECRET'),
+
+  CLIENT_ID: assertEnv('CLIENT_ID'),
+  CLIENT_SECRET: assertEnv('CLIENT_SECRET'),
 
   PORT: assertEnv('PORT'),
 

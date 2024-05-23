@@ -1,0 +1,39 @@
+update:
+    - heads up <@${slackId}>! you only have `${minutes}` minutes remaining!
+    - time's ticking <@${slackId}>, looks like you have `${minutes}` minutes left!
+    - you have `${minutes}` minutes left <@${slackId}>! keep it up!
+    - almost there <@${slackId}>, `${minutes}` minutes left! take a coffee break while you're at it!
+    - power through <@${slackId}>! you have `${minutes}` minutes left!
+    - you're amazing <@${slackId}>! only `${minutes}` minutes left!
+    - impressive work! just `${minutes}` minutes left <@${slackId}>!
+
+complete:
+    - WOOOOO! YOU DID IT <@${slackId}>!
+    - guess what? <@${slackId}> finished their hour!
+    - <@${slackId}>'s pretty wizard! they finished their hour!
+    - epic job <@${slackId}>, you're done!
+    - pretty wizard <@${slackId}>! you finished your hour!
+    - have a nice break <@${slackId}>! you finished your hour!
+    - excellent work <@${slackId}>! :D
+    - "amazing work <@${slackId}>! C:"
+    - you're a rockstar <@${slackId}>! you finished!
+    - legendary <@${slackId}>! you're done!
+    - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
+
+cancel:
+    - yikes! <@${slackId}> cancelled their hack hour!
+    - <@${slackId}> cancelled their hack hour early.
+    - oh no! <@${slackId}> cancelled their hour!
+    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
+
+encouragement:
+    - "Keep it up!"
+    - "You're doing great!"
+    - "You've got this!"
+    - "You are ducktastic!"
+    - "Wizard!"    
+
+minutesRemaining: #for posterity
+    - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` minutes remaining to work on:"
+    - "<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:"
+    - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"  

@@ -1,4 +1,4 @@
-import { Constants } from "./constants.js";
+import { Constants, Environment } from "./constants.js";
 
 /**
  * Manages intervals
@@ -18,6 +18,11 @@ export class IntervalManager {
 
     public start(): void {
         this.callbacks.forEach(async callback => await callback());
+
+        if (!Environment.PROD) {
+            this.callbacks.forEach(async callback => await callback());
+        }
+
         setTimeout(() => {
             setInterval(async () => {
                 this.callbacks.forEach(async callback => await callback());
