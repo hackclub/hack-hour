@@ -1,7 +1,7 @@
 import { stringify, parse } from 'yaml';
 import fs from 'fs';
 
-type template = 'update' | 'complete' | 'encouragement';
+type template = 'update' | 'complete' | 'encouragement' | 'cancel';
 
 interface data {
     slackId?: string,

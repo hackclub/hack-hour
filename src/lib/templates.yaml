@@ -24,7 +24,7 @@ cancel:
     - yikes! <@${slackId}> cancelled their hack hour!
     - <@${slackId}> cancelled their hack hour early.
     - oh no! <@${slackId}> cancelled their hour!
-    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
+#    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
 
 encouragement:
     - "Keep it up!"

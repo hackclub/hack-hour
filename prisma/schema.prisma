@@ -9,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id               String  @id @default(cuid())
+  id               String  @id
   lifetimeMinutes  Int
   apiKey           String
   slackUser        SlackUser?
@@ -34,6 +34,7 @@ model Session {
   createdAt  DateTime
   time       Int
   elapsed    Int
+  elapsedSincePause Int
 
   completed  Boolean
   cancelled  Boolean

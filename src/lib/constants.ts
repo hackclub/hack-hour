@@ -41,21 +41,34 @@ export const Constants = {
 
 // Commands
 export const Commands = Environment.PROD ? {
-  HACK: '/hack',
-  HACK_ALIAS: '/hour',
+  PAUSE: '/pause',
+  START: '/start',
+  EXTEND: '/extend',
   CANCEL: '/cancel',
+  /*
   GOALS: '/goals',
   STATS: '/mystats',
   REMINDERS: '/reminders',
   EVENTS: '/picnics',
   INSTRUCTIONS: '/instructions'  
+  */
 } : {
-  HACK: '/ztesthack',
-  HACK_ALIAS: '/testhour',
+  PAUSE: '/testpause',
+  START: '/teststart',
+  EXTEND: '/testextend',
   CANCEL: '/testcancel',
+  /*
   GOALS: '/testgoals',
   STATS: '/testmystats',
   REMINDERS: '/testreminders',
   EVENTS: '/testpicnics',
   INSTRUCTIONS: '/testinstructions'
+  */
+};
+
+export const Actions = {
+  PAUSE: 'pause',
+  RESUME: 'resume',
+  EXTEND: 'extend',
+  CANCEL: 'cancel',
 };

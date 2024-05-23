@@ -17,8 +17,6 @@ export class IntervalManager {
     }
 
     public start(): void {
-        this.callbacks.forEach(async callback => await callback());
-
         if (!Environment.PROD) {
             this.callbacks.forEach(async callback => await callback());
         }

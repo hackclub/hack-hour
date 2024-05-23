@@ -2,12 +2,9 @@
   "name": "hackhour",
   "version": "1.0.0",
   "description": "",
-  "exports": "./src/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node ./build/entry.js",
     "prisma_deploy": "prisma migrate deploy",
-    "app": "npm run prisma_deploy && npm run build && npm run start"
+    "app": "npm run prisma_deploy && tsx ./src/entry.ts"
   },
   "repository": {
     "type": "git",
@@ -42,6 +39,7 @@
     "prisma": "^5.12.1",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
+    "tsx": "^4.10.5",
     "typescript": "^5.4.5"
   }
 }
