@@ -8,7 +8,6 @@ import { handle } from "../lib/errors.js";
 import { Controller } from "../views/controller.js";
 import { Prisma } from "@prisma/client";
 
-// Get the type of the session model
 type Session = Prisma.SessionGetPayload<{}>;
 
 async function fetchSlackId(userId: string) {
@@ -25,6 +24,38 @@ async function fetchSlackId(userId: string) {
     }
 
     return slackUser.slackId;
+}
+
+// Function that sends an ephemeral message to the user if able, if not, DMs the user
+async function informUser(slackId: string, message: string, channel: string, thread_ts: undefined | string = undefined) {
+    const result = await app.client.chat.postEphemeral({
+        user: slackId,
+        channel,
+        text: message,
+        thread_ts        
+    });
+
+    if (!result.ok) {
+        // If the error is due to access permissions, just dm the user
+        if (result.error === 'not_in_channel') { 
+            await app.client.chat.postMessage({
+                channel: slackId,
+                thread_ts,
+                text: message
+            });
+        } else {
+            throw new Error(`Error sending message: ${result.error}`);
+        }
+    }
+}
+
+async function updateController(session: Session) {
+    await app.client.chat.update({
+        ts: session.controlTs,
+        channel: Environment.MAIN_CHANNEL,
+        blocks: await Controller.panel(session),
+        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
+    });
 }
 
 /*
@@ -148,12 +179,7 @@ app.event("message", async ({ event }) => {
             }
         });
 
-        await app.client.chat.update({
-            ts: controller.ts,
-            channel: Environment.MAIN_CHANNEL,
-            blocks: await Controller.panel(session),
-            text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
-        });
+        await updateController(session);
     } catch (error) {
         handle(error);
     }
@@ -175,12 +201,7 @@ async function pauseUpdate(session: Session) {
         }
     });
 
-    await app.client.chat.update({
-        ts: session.controlTs,
-        channel: Environment.MAIN_CHANNEL,
-        blocks: await Controller.panel(updatedSession),
-        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
-    });
+    await updateController(updatedSession);
 
     return updatedSession;
 }
@@ -283,36 +304,17 @@ app.command(Commands.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
+            informUser(slackId, `There is no running session!`, body.channel_id);
             return;
         }
 
         const updatedSession = await pauseUpdate(session);
 
         const toggleMessage = updatedSession.paused ?
-            `Session paused! Run \`/pause\` again or \`/start\` to resume. You still have ${updatedSession.time - updatedSession.elapsed} minutes left.` :
-            `Resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`/pause\` again to pause.`;
+            `Session paused! Run \`${Commands.PAUSE}\` again or \`${Commands.START}\` to resume. You still have ${updatedSession.time - updatedSession.elapsed} minutes left.` :
+            `Resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` again to pause.`;
 
-        // Send a message to the user in the channel they ran the command
-        const result = await app.client.chat.postEphemeral({
-            user: slackId,
-            channel: body.channel_id,
-            text: /*t(`pause`, {
-                paused: updatedSession.paused
-            })*/ toggleMessage
-        });
-
-        if (!result.ok) {
-            // If the error is due to access permissions, just send a message to the thread
-            if (result.error === 'not_in_channel') { 
-                await app.client.chat.postMessage({
-                    channel: body.channel_id,
-                    thread_ts: body.message_ts,
-                    text: toggleMessage
-                });
-            } else {
-                throw new Error(`Error sending message: ${result.error}`);
-            }
-        }
+        informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
         handle(error);
     }
@@ -338,51 +340,18 @@ app.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
+            informUser(slackId, "There is no running session!", body.channel_id);
             return;
         }
 
         if (!session.paused) {
-            const result = await app.client.chat.postEphemeral({
-                user: slackId,
-                channel: body.channel_id,
-                text: `Session is already running! Run \`/pause\` to pause.`
-            });
-
-            if (!result.ok) {
-                // If the error is due to access permissions, just dm the user
-                if (result.error === 'not_in_channel') { 
-                    await app.client.chat.postMessage({
-                        channel: slackId,
-                        thread_ts: body.message_ts,
-                        text: `Session is already running! Run \`/pause\` to pause.`
-                    });
-                } else {
-                    throw new Error(`Error sending message: ${result.error}`);
-                }
-            }
+            informUser(slackId, `Session is already running! Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
         }
 
         const updatedSession = await pauseUpdate(session);
 
         // Send a message to the user in the channel they ran the command
-        const result = await app.client.chat.postEphemeral({
-            user: slackId,
-            channel: body.channel_id,
-            text: `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`/pause\` to pause.`
-        });
-
-        if (!result.ok) {
-            // If the error is due to access permissions, just send a message to the thread
-            if (result.error === 'not_in_channel') { 
-                await app.client.chat.postMessage({
-                    channel: body.channel_id,
-                    thread_ts: body.message_ts,
-                    text: `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`/pause\` to pause.`
-                });
-            } else {
-                throw new Error(`Error sending message: ${result.error}`);
-            }
-        }
+        informUser(slackId, `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
     } catch (error) {
         handle(error);
     }
@@ -409,12 +378,7 @@ async function cancelSession(slackId: string, session: Session) {
         })
     });
 
-    await app.client.chat.update({
-        ts: updatedSession.controlTs,
-        channel: Environment.MAIN_CHANNEL,
-        blocks: await Controller.panel(updatedSession),
-        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
-    });
+    await updateController(updatedSession);
 }
 
 app.action(Actions.CANCEL, async ({ ack, body }) => {
@@ -473,6 +437,8 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
 
         if (!session) {
             // Send a message to the user in the channel they ran the command
+            informUser(slackId, `There is no running session!`, body.channel_id);
+
             return;
         }
 
@@ -486,13 +452,17 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
 Time Extension
 */
 app.action(Actions.EXTEND, async ({ ack, body }) => {
-
+    await ack();
+    // TODO
+    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
 });
 
 app.command(Commands.EXTEND, async ({ ack, body }) => {
     try {
         await ack();
-
+        
+        const slackId = body.user_id;
+        
         const session = await prisma.session.findFirst({
             where: {
                 user: {
@@ -506,13 +476,34 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
         });
 
         if (!session) {
-            // Send a message to the user in the channel they ran the command
+            informUser(slackId, `There is no running session!`, body.channel_id);
+
+            return;
         }
 
-        await app.client.views.open({
-            trigger_id: body.trigger_id,
-            view: Controller.extendHourModal()
-        })
+        const minutes = parseInt(body.text);
+
+        if (isNaN(minutes) || minutes <= 0) {
+            informUser(slackId, `Invalid time!`, body.channel_id);
+
+            return;
+        }
+
+        const updatedSession = await prisma.session.update({
+            where: {
+                messageTs: session.messageTs
+            },
+            data: {
+                time: {
+                    increment: minutes
+                }
+            }
+        });
+
+        informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedSession.elapsed} out of ${updatedSession.time} minutes`, body.channel_id);
+
+        // Update the session ts
+        await updateController(updatedSession);
     } catch (error) {
         handle(error);
     }
@@ -577,13 +568,9 @@ minuteInterval.attach(async () => {
                         }
                     }
                 });
+                
+                await updateController(session);
 
-                await app.client.chat.update({
-                    ts: controllerTs,
-                    channel: Environment.MAIN_CHANNEL,
-                    blocks: await Controller.panel(session),
-                    text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
-                });                
                 continue;
             } else if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
                 const updatedSession = await prisma.session.update({
@@ -603,12 +590,7 @@ minuteInterval.attach(async () => {
                     })
                 });
 
-                await app.client.chat.update({
-                    ts: controllerTs,
-                    channel: Environment.MAIN_CHANNEL,
-                    blocks: await Controller.panel(updatedSession),
-                    text: "todo: replace with accessibility friendly text", // TODO: Replace with accessibility friendly text
-                });                
+                await updateController(updatedSession);         
 
                 await prisma.user.update({
                     where: {
@@ -654,12 +636,7 @@ minuteInterval.attach(async () => {
                 }
             });
 
-            await app.client.chat.update({
-                ts: controllerTs,
-                channel: Environment.MAIN_CHANNEL,
-                blocks: await Controller.panel(session),
-                text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
-            });
+            await updateController(session);
         }
     } catch (error) {
         handle(error);

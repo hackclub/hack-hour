@@ -33,7 +33,7 @@ export const Environment = {
 
 // Constants
 export const Constants = {
-  MIN_MS: 60 * 10,
+  MIN_MS: 60 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
