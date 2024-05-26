@@ -4,11 +4,13 @@ import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
 import { app } from './lib/bolt.js'
 
-import './subroutines/slack.js';
+import './subroutines/slack/slack.js';
 
 ((async () => {
     await prisma.$connect();
     await app.start(process.env.PORT || 3000);
+
+    emitter.emit("init");
 
     console.log(`⏳ Let the Hack Houring Begin! Running on port ${process.env.PORT || 3000}...`);
 })()).catch(async (error) => {

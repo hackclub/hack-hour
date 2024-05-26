@@ -1,18 +1,20 @@
-import { app } from "../lib/bolt.js";
-import { Commands, Environment } from "../lib/constants.js";
-import { prisma, uid } from "../lib/prisma.js";
-import { emitter } from "../lib/emitter.js";
-import { t, t_fetch } from "../lib/templates.js";
+import { app } from "../../lib/bolt.js";
+import { Commands, Environment } from "../../lib/constants.js";
+import { prisma, uid } from "../../lib/prisma.js";
+import { emitter } from "../../lib/emitter.js";
+import { t, t_fetch } from "../../lib/templates.js";
 
-import { updateController, updateTopLevel, cancelSession, informUser } from "./slack/lib.js";
+import { updateController, updateTopLevel, cancelSession, informUser } from "./lib.js";
 
-import "./slack/functions/pause.js";
-import "./slack/functions/cancel.js";
-import "./slack/functions/extend.js";
+import "./functions/pause.js";
+import "./functions/cancel.js";
+import "./functions/extend.js";
 
 /*
 Session Creation
 */
+
+/*
 app.event("message", async ({ event }) => {
     try {
         const { subtype, channel, ts } = event;
@@ -135,6 +137,7 @@ app.event("message", async ({ event }) => {
         emitter.emit('error', error);
     }
 });
+*/
 
 // Default command to start a session
 app.command(Commands.HACK, async ({ command, ack, respond }) => {
