@@ -4,7 +4,7 @@ import { prisma } from './lib/prisma.js';
 import { minuteInterval, hourInterval } from './lib/interval.js';
 import { express, app } from './lib/bolt.js'
 
-import './subroutines/main.js';
+import './subroutines/slack.js';
 
 ((async () => {
     await prisma.$connect();
