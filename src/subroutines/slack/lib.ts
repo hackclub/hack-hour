@@ -3,9 +3,10 @@ import { Environment } from "../../lib/constants.js";
 
 import { app } from "../../lib/bolt.js";
 import { prisma } from "../../lib/prisma.js";
-import { Controller } from "../../views/controller.js";
-
 import { t } from "../../lib/templates.js";
+
+import { Controller } from "../../views/controller.js";
+import { TopLevel } from "../../views/topLevel.js";
 
 export type Session = Prisma.SessionGetPayload<{}>;
 
@@ -14,6 +15,20 @@ export async function updateController(session: Session) {
         ts: session.controlTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await Controller.panel(session),
+        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
+    });
+}
+
+export async function updateTopLevel(session: Session) {
+    // Only update the top level if the session contains the metadata
+    if (!session.metadata) {
+        return;
+    }
+
+    await app.client.chat.update({
+        ts: session.messageTs,
+        channel: Environment.MAIN_CHANNEL,
+        blocks: await TopLevel.topLevel(session),
         text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
     });
 }
@@ -76,4 +91,5 @@ export async function cancelSession(slackId: string, session: Session) {
     });
 
     await updateController(updatedSession);
+    await updateTopLevel(updatedSession);
 }

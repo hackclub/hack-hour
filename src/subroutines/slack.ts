@@ -1,11 +1,10 @@
 import { app } from "../lib/bolt.js";
-import { Environment } from "../lib/constants.js";
+import { Commands, Environment } from "../lib/constants.js";
 import { prisma, uid } from "../lib/prisma.js";
-import { minuteInterval } from "../lib/interval.js";
-import { t } from "../lib/templates.js";
-import { handle } from "../lib/errors.js";
+import { emitter } from "../lib/emitter.js";
+import { t, t_fetch } from "../lib/templates.js";
 
-import { updateController, cancelSession } from "./slack/lib.js";
+import { updateController, updateTopLevel, cancelSession, informUser } from "./slack/lib.js";
 
 import "./slack/functions/pause.js";
 import "./slack/functions/cancel.js";
@@ -133,14 +132,153 @@ app.event("message", async ({ event }) => {
 
         await updateController(session);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
+});
+
+// Default command to start a session
+app.command(Commands.HACK, async ({ command, ack, respond }) => {
+    const slackId = command.user_id;
+
+    if (!command.text || command.text.length == 0) {
+        await ack({
+            response_type: 'ephemeral',
+            text: "Please provide a description of what you're working on."
+        });
+
+        return;
+    }
+    
+    await ack();
+
+    let slackUser = await prisma.slackUser.findUnique(
+        {
+            where: {
+                slackId,
+            }
+        }
+    );
+    
+    if (!slackUser) {
+        const slackUserData = await app.client.users.info({
+            user: slackId
+        });
+
+        if (!slackUserData.user) {
+            throw new Error(`Could not find user ${slackId}!`)
+        } else if (!slackUserData.user.tz_offset) {
+            throw new Error(`Could not retrieve timezone of ${slackId}`)
+        }
+
+        slackUser = await prisma.slackUser.create(
+            {
+                data: {
+                    slackId,
+                    user: {
+                        create: {
+                            id: uid(),
+                            lifetimeMinutes: 0,
+                            apiKey: uid(),
+                            goals: {
+                                create: {
+                                    id: uid(),
+                                    
+                                    name: "No Goal",
+                                    description: "A default goal for users who have not set one.",
+                                  
+                                    totalMinutes: 0,
+                                    createdAt: new Date(),
+                                  
+                                    selected: true
+                                }
+                            }
+                        }
+                    },
+                    tz_offset: slackUserData.user.tz_offset
+                }
+            }
+        );        
+    }
+
+    const existingSession = await prisma.session.findFirst({
+        where: {
+            userId: slackUser.userId,
+            completed: false,
+            cancelled: false
+        }
+    });
+
+    if (existingSession) {
+        await informUser(slackId, "You already have an active session. Please cancel it before starting a new one.", command.channel_id);
+        return;
+    }
+
+    const topLevel = await app.client.chat.postMessage({
+        channel: command.channel_id,
+        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+    });
+
+    if (!topLevel || !topLevel.ts) {
+        throw new Error(`Failed to create a message for ${slackId}`)
+    }
+
+    const user = await prisma.user.findUnique(
+        {
+            where: {
+                id: slackUser.userId
+            }
+        }
+    );
+
+    if (!user) {
+        throw new Error(`User ${slackUser.userId} not found!`)
+    }
+
+    // Create a controller message in the thread
+    const controller = await app.client.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        thread_ts: topLevel.ts,
+        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+    })
+
+    if (!controller || !controller.ts) {
+        throw new Error(`Failed to create a message for ${slackId}`)
+    }
+
+    const session = await prisma.session.create({
+        data: {
+            userId: user.id,
+            messageTs: topLevel.ts,
+            controlTs: controller.ts,
+            
+            createdAt: new Date(),
+            time: 60,
+            elapsed: 0,
+          
+            completed: false,
+            cancelled : false,
+            paused: false,
+
+            elapsedSincePause: 0,
+
+            metadata: {
+                toplevel: true,
+                toplevel_template: t_fetch('toplevel'),
+                work: command.text
+            }
+        }
+    });
+
+    await updateController(session);
+    await updateTopLevel(session);
+
+    emitter.emit('start', session);
 });
 
 /*
 Minute tracker
 */
-minuteInterval.attach(async () => {
+emitter.on('minute', async () => {
     try {
         const sessions = await prisma.session.findMany({
             where: {
@@ -178,8 +316,6 @@ minuteInterval.attach(async () => {
                 continue;
             }
 
-            const controllerTs = session.controlTs;
-
             const slackUser = await prisma.slackUser.findUnique({
                 where: {
                     userId: session.userId
@@ -191,7 +327,7 @@ minuteInterval.attach(async () => {
             }
 
             if (session.paused) {
-                await prisma.session.update({
+                const updatedSession = await prisma.session.update({
                     where: {
                         messageTs: session.messageTs
                     },
@@ -201,8 +337,8 @@ minuteInterval.attach(async () => {
                         }
                     }
                 });
-                
-                await updateController(session);
+
+                await updateController(updatedSession);         
 
                 continue;
             } else if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
@@ -218,12 +354,13 @@ minuteInterval.attach(async () => {
                 await app.client.chat.postMessage({
                     thread_ts: session.messageTs,
                     channel: Environment.MAIN_CHANNEL,
-                    text: t(`complete`, {
-                        slackId: slackUser.slackId,
+                    text: t('complete', {
+                        slackId: slackUser.slackId
                     })
                 });
 
                 await updateController(updatedSession);         
+                await updateTopLevel(updatedSession);
 
                 await prisma.user.update({
                     where: {
@@ -270,8 +407,17 @@ minuteInterval.attach(async () => {
             });
 
             await updateController(session);
+            await updateTopLevel(session);
         }
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
+});
+
+emitter.on('error', async (error) => {
+    await app.client.chat.postMessage({
+        token: process.env.SLACK_BOT_TOKEN,        
+        channel: process.env.LOG_CHANNEL || 'C0P5NE354' ,
+        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour crashed!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+    });
 });

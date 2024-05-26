@@ -4,9 +4,9 @@ Pause Management
 import { app } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { handle } from "../../../lib/errors.js";
+import { emitter } from "../../../lib/emitter.js";
 
-import { Session, updateController, fetchSlackId, informUser } from "../lib.js";
+import { Session, updateController, updateTopLevel, fetchSlackId, informUser } from "../lib.js";
 
 async function pauseUpdate(session: Session) {
     // If resuming the session, reset the elapsed time since pause
@@ -21,6 +21,7 @@ async function pauseUpdate(session: Session) {
     });
 
     await updateController(updatedSession);
+    await updateTopLevel(updatedSession);
 
     return updatedSession;
 }
@@ -60,7 +61,7 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
 
         await pauseUpdate(session);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });
 
@@ -99,7 +100,7 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
 
         await pauseUpdate(session);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });
 
@@ -135,7 +136,7 @@ app.command(Commands.PAUSE, async ({ ack, body }) => {
 
         informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });
 
@@ -172,6 +173,6 @@ app.command(Commands.START, async ({ ack, body }) => {
         // Send a message to the user in the channel they ran the command
         informUser(slackId, `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });

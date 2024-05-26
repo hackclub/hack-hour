@@ -1,7 +1,7 @@
 import { stringify, parse } from 'yaml';
 import fs from 'fs';
 
-type template = 'update' | 'complete' | 'encouragement' | 'cancel';
+type template = 'update' | 'complete' | 'encouragement' | 'cancel' | 'toplevel' | 'pause';
 
 interface data {
     slackId?: string,
@@ -10,11 +10,19 @@ interface data {
 
 type attribute = keyof data;
 
+const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
+const templates = parse(file);
+
 export function t(template: template, data: data) {
-    const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
-    const templates = parse(file);
-    
     return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
+}
+
+export function t_fetch(template: template) {
+    return (randomChoice(templates[template]) as string);
+}
+
+export function t_format(template: string, data: data) {
+    return template.replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
 }
 
 export function randomChoice<T>(arr: T[]): T {

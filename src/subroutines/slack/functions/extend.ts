@@ -1,9 +1,9 @@
 import { app } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { handle } from "../../../lib/errors.js";
+import { emitter } from "../../../lib/emitter.js";
 
-import { updateController, informUser } from "../lib.js";
+import { updateController, updateTopLevel, informUser } from "../lib.js";
 
 /*
 Time Extension
@@ -61,7 +61,8 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
 
         // Update the session ts
         await updateController(updatedSession);
+        await updateTopLevel(updatedSession);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });

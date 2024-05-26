@@ -18,6 +18,17 @@ export class Controller {
             throw new Error(`Could not find goal for user ${data.userId}`);
         }
 
+        // Pre-fetch the slack user
+        const slackUser = await prisma.slackUser.findUnique({
+            where: {
+                userId: data.userId
+            }
+        });
+
+        if (!slackUser) {
+            throw new Error(`Could not find slack user for user ${data.userId}`);
+        }
+
         // Context Info
         const context = {
             "type": "context",
@@ -30,16 +41,6 @@ export class Controller {
         };
 
         if (data.completed) {
-            const slackUser = await prisma.slackUser.findUnique({
-                where: {
-                    userId: data.userId
-                }
-            });
-
-            if (!slackUser) {
-                throw new Error(`Could not find slack user for user ${data.userId}`);
-            }
-
             return [
                 {
                     "type": "section",
@@ -71,6 +72,8 @@ export class Controller {
             info.text.text = `You have paused your session. You have \`${data.time - data.elapsed}\` minutes remaining. \`${data.elapsedSincePause || 0}\` minutes since paused.`
         } else if (data.cancelled) {
             info.text.text = `You have cancelled your session.`
+        } else if (data.completed) {
+            info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
             info.text.text = `You have \`${data.time - data.elapsed}\` minutes remaining! ${t('encouragement', {})}`
         }
@@ -110,7 +113,7 @@ export class Controller {
                 },
                 context
             ]        
-        } else if (data.cancelled) {
+        } else if (data.cancelled || data.completed) {
             return [
                 info,
                 {

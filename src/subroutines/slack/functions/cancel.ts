@@ -4,9 +4,9 @@ Cancellation
 import { app } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { handle } from "../../../lib/errors.js";
+import { emitter } from "../../../lib/emitter.js";
 
-import { fetchSlackId, informUser, cancelSession } from "../lib.js";
+import { fetchSlackId, informUser, cancelSession, updateTopLevel } from "../lib.js";
 
 app.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
@@ -40,7 +40,7 @@ app.action(Actions.CANCEL, async ({ ack, body }) => {
 
         await cancelSession(slackId, session);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }
 });
                 
@@ -71,6 +71,6 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
 
         await cancelSession(slackId, session);
     } catch (error) {
-        handle(error);
+        emitter.emit('error', error);
     }    
 });

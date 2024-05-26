@@ -1,0 +1,60 @@
+// Typed event emitter
+// Adapted from https://rjzaworski.com/2019/10/event-emitters-in-typescript
+
+import { Session } from "@prisma/client";
+import { Environment, Constants } from "./constants.js";
+
+type EventMap = {
+    init: () => void,
+    error: (error: any) => void,
+
+    minute: () => void,
+    hour: () => void,
+
+    start: (session: Session) => void,
+}
+
+type Event = keyof EventMap;
+
+class Emitter {
+    private listeners: Partial<Record<Event, Set<Function>>> = {};
+
+    on<E extends Event>(event: E, listener: EventMap[E]) {
+        if (!this.listeners[event]) {
+            this.listeners[event] = new Set();
+        }
+        this.listeners[event]!.add(listener);
+    }
+
+    off<E extends Event>(event: E, listener: EventMap[E]) {
+        if (!this.listeners[event]) {
+            return;
+        }
+        this.listeners[event]!.delete(listener);
+    }
+
+    emit<E extends Event>(event: E, ...args: Parameters<EventMap[E]>) {
+        if (!this.listeners[event]) {
+            return;
+        }
+        this.listeners[event]!.forEach(listener => listener(...args));
+    }
+}
+
+export const emitter = new Emitter();
+
+emitter.on("init", async () => {
+    if (!Environment.PROD) {
+        emitter.emit("minute");
+    }
+
+    setInterval(async () => {
+        emitter.emit("minute");
+    }, Constants.MIN_MS);    
+
+    setTimeout(() => {
+        setInterval(async () => {
+            emitter.emit("minute");
+        }, Constants.HOUR_MS);
+    }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
+});

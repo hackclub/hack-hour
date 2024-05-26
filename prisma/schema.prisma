@@ -39,6 +39,8 @@ model Session {
   completed  Boolean
   cancelled  Boolean
   paused     Boolean
+
+  metadata   Json?
 }
 
 model Goal {
