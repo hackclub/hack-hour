@@ -1,6 +1,6 @@
-import bolt, { ExpressReceiver } from '@slack/bolt'; 
-import { prisma } from './prisma.js';
+import bolt from '@slack/bolt'; 
 import { Environment } from './constants.js';
+import { emitter } from './emitter.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -68,8 +68,10 @@ export const app = new bolt.App({
 });
 
 app.error(async (error) => {
-    await app.client.chat.postMessage({
-        channel: process.env.LOG_CHANNEL || 'C0P5NE354' ,
-        text: `<@U04QD71QWS0> I summon thee for the following reason: \`Hack Hour had an error! - Bolt JS\`\n*Error:*\n\`\`\`${error.message}\`\`\``, //<!subteam^${process.env.DEV_USERGROUP}|hack-hour-dev>
+    emitter.emit('error', {
+        code: error.code,
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
     });
 });

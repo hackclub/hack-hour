@@ -4,6 +4,7 @@ import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
 import { app } from './lib/bolt.js'
 
+import './subroutines/core.js';
 import './subroutines/slack/slack.js';
 
 ((async () => {

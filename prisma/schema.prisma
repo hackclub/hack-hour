@@ -40,6 +40,8 @@ model Session {
   cancelled  Boolean
   paused     Boolean
 
+  verifiedSession VerifiedSession?
+
   metadata   Json?
 }
 
@@ -51,8 +53,18 @@ model Goal {
   name        String
   description String
 
-  totalMinutes        Int
+  totalMinutes Int
   createdAt   DateTime
 
-  selected   Boolean
+  selected    Boolean
+}
+
+model VerifiedSession {
+  sessionId   String @id
+  session     Session @relation(fields: [sessionId], references: [messageTs])
+
+  verifiedAt  DateTime @default(now())
+  verifiedBy  String
+
+  metadata   Json?
 }

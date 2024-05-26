@@ -6,7 +6,7 @@ import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { Session, updateController, updateTopLevel, fetchSlackId, informUser } from "../lib.js";
+import { Session, updateController, updateTopLevel, fetchSlackId, informUser } from "../lib/lib.js";
 
 async function pauseUpdate(session: Session) {
     // If resuming the session, reset the elapsed time since pause

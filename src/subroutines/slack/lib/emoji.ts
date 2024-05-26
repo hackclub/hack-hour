@@ -1,4 +1,4 @@
-import { app } from "./bolt.js";
+import { app } from "../../../lib/bolt.js";
 
 const emojis = {
     yay: "yay",

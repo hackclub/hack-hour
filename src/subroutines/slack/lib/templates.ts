@@ -10,7 +10,7 @@ interface data {
 
 type attribute = keyof data;
 
-const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
+const file = fs.readFileSync('./src/subroutines/slack/lib/templates.yaml', 'utf8');
 const templates = parse(file);
 
 export function t(template: template, data: data) {

@@ -1,8 +1,6 @@
 import { Session } from "@prisma/client";
-import { prisma } from "../lib/prisma.js"
-import { t, formatHour, t_format } from "../lib/templates.js";
-import { Actions, Callbacks } from "../lib/constants.js";
-import { View } from "@slack/bolt";
+import { prisma } from "../../../lib/prisma.js"
+import { formatHour, t, t_format } from "../lib/templates.js";
 
 export class TopLevel {
     public static async topLevel(session: Session) {
@@ -76,7 +74,7 @@ export class TopLevel {
             elements: [
                 {
                     "type": "mrkdwn",
-                    "text": `*Goal:* ${curGoal.name}`
+                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.totalMinutes)} hours`
                 }
             ]
         });

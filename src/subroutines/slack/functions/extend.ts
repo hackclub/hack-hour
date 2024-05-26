@@ -3,7 +3,7 @@ import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { updateController, updateTopLevel, informUser } from "../lib.js";
+import { updateController, updateTopLevel, informUser } from "../lib/lib.js";
 
 /*
 Time Extension

@@ -6,17 +6,18 @@ import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { fetchSlackId, informUser, cancelSession, updateTopLevel } from "../lib.js";
+import { fetchSlackId, informUser, cancelSession, updateTopLevel } from "../lib/lib.js";
 
 app.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
         await ack();
 
         const slackId = body.user.id;
+        const messageTs = (body as any).message.thread_ts;
 
         const session = await prisma.session.findFirst({
             where: {
-                messageTs: (body as any).message.thread_ts,
+                messageTs,
                 completed: false,
                 cancelled: false,
             }
@@ -32,7 +33,7 @@ app.action(Actions.CANCEL, async ({ ack, body }) => {
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot cancel another user's session!`,
-                thread_ts: (body as any).message.thread_ts
+                thread_ts: messageTs
             });                
 
             return;

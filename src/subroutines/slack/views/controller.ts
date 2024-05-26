@@ -1,32 +1,32 @@
 import { Session } from "@prisma/client";
-import { prisma } from "../lib/prisma.js"
+import { prisma } from "../../../lib/prisma.js"
 import { t, formatHour } from "../lib/templates.js";
-import { Actions, Callbacks } from "../lib/constants.js";
+import { Constants, Actions, Callbacks } from "../../../lib/constants.js";
 import { View } from "@slack/bolt";
 
 export class Controller {
-    public static async panel(data: Session) {
+    public static async panel(session: Session) {
         // Pre-fetch the goal
         const curGoal = await prisma.goal.findFirst({
             where: {
-                userId: data.userId,
+                userId: session.userId,
                 selected: true
             }
         });
 
         if (!curGoal) {
-            throw new Error(`Could not find goal for user ${data.userId}`);
+            throw new Error(`Could not find goal for user ${session.userId}`);
         }
 
         // Pre-fetch the slack user
         const slackUser = await prisma.slackUser.findUnique({
             where: {
-                userId: data.userId
+                userId: session.userId
             }
         });
 
         if (!slackUser) {
-            throw new Error(`Could not find slack user for user ${data.userId}`);
+            throw new Error(`Could not find slack user for user ${session.userId}`);
         }
 
         // Context Info
@@ -35,12 +35,12 @@ export class Controller {
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": `*Goal:* ${curGoal.name}`
+                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.totalMinutes)} hours`
                 }
             ]
         };
 
-        if (data.completed) {
+        if (session.completed) {
             return [
                 {
                     "type": "section",
@@ -68,14 +68,14 @@ export class Controller {
             }
         };
 
-        if (data.paused) {
-            info.text.text = `You have paused your session. You have \`${data.time - data.elapsed}\` minutes remaining. \`${data.elapsedSincePause || 0}\` minutes since paused.`
-        } else if (data.cancelled) {
+        if (session.paused) {
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is cancelled.`
+        } else if (session.cancelled) {
             info.text.text = `You have cancelled your session.`
-        } else if (data.completed) {
+        } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
-            info.text.text = `You have \`${data.time - data.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
         }
 
         // Pause Button
@@ -86,11 +86,11 @@ export class Controller {
                 "text": "",
                 "emoji": true
             },
-            "value": data.messageTs,
+            "value": session.messageTs,
             "action_id": ""
         };
 
-        if (data.paused) {
+        if (session.paused) {
             pause.text.text = "Resume";
             pause.action_id = Actions.RESUME;
         } else {
@@ -98,7 +98,7 @@ export class Controller {
             pause.action_id = Actions.PAUSE;
         }
 
-        if (data.paused) {
+        if (session.paused) {
             return [
                 info,
                 {
@@ -107,13 +107,22 @@ export class Controller {
                 {
                     "type": "actions",
                     "elements": [
-                        pause
+                        pause,
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Change Goal",
+                                "emoji": true
+                            },
+                            "action_id": Actions.OPEN_GOAL
+                        }
                     ],                    
                     "block_id": "panel"                
                 },
                 context
             ]        
-        } else if (data.cancelled || data.completed) {
+        } else if (session.cancelled || session.completed) {
             return [
                 info,
                 {
@@ -149,17 +158,27 @@ export class Controller {
                             "emoji": true
                         },
                         "action_id": Actions.CANCEL
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Change Goal",
+                            "emoji": true
+                        },
+                        "action_id": Actions.OPEN_GOAL
                     }
                 ],
                 "block_id": "panel"                
-            }
+            },
+            context
         ]
     }
 
     public static extendHourModal(): View {
         return {
             "type": "modal",
-            "callback_id": Callbacks.EXTENDHOUR,
+            "callback_id": Callbacks.EXTEND_HOUR,
             "title": {
                 "type": "plain_text",
                 "text": "Extend Hour",

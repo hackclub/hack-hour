@@ -9,9 +9,12 @@ type EventMap = {
     error: (error: any) => void,
 
     minute: () => void,
+    sessionUpdate: (session: Session) => void,
     hour: () => void,
 
     start: (session: Session) => void,
+    complete: (session: Session) => void,
+    cancel: (session: Session) => void,
 }
 
 type Event = keyof EventMap;

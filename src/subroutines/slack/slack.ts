@@ -2,13 +2,16 @@ import { app } from "../../lib/bolt.js";
 import { Commands, Environment } from "../../lib/constants.js";
 import { prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
-import { t, t_fetch } from "../../lib/templates.js";
+import { t, t_fetch } from "./lib/templates.js";
 
-import { updateController, updateTopLevel, cancelSession, informUser } from "./lib.js";
+import { updateController, updateTopLevel, cancelSession, informUser } from "./lib/lib.js";
+
+import { Session } from "@prisma/client";
 
 import "./functions/pause.js";
 import "./functions/cancel.js";
 import "./functions/extend.js";
+import "./functions/goals.js";
 
 /*
 Session Creation
@@ -151,7 +154,7 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
 
         return;
     }
-    
+
     await ack();
 
     let slackUser = await prisma.slackUser.findUnique(
@@ -161,7 +164,7 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             }
         }
     );
-    
+
     if (!slackUser) {
         const slackUserData = await app.client.users.info({
             user: slackId
@@ -185,13 +188,13 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
                             goals: {
                                 create: {
                                     id: uid(),
-                                    
+
                                     name: "No Goal",
                                     description: "A default goal for users who have not set one.",
-                                  
+
                                     totalMinutes: 0,
                                     createdAt: new Date(),
-                                  
+
                                     selected: true
                                 }
                             }
@@ -200,7 +203,7 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
                     tz_offset: slackUserData.user.tz_offset
                 }
             }
-        );        
+        );
     }
 
     const existingSession = await prisma.session.findFirst({
@@ -253,13 +256,13 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             userId: user.id,
             messageTs: topLevel.ts,
             controlTs: controller.ts,
-            
+
             createdAt: new Date(),
             time: 60,
             elapsed: 0,
-          
+
             completed: false,
-            cancelled : false,
+            cancelled: false,
             paused: false,
 
             elapsedSincePause: 0,
@@ -281,146 +284,130 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
 /*
 Minute tracker
 */
-emitter.on('minute', async () => {
+emitter.on('sessionUpdate', async (session: Session) => {
     try {
-        const sessions = await prisma.session.findMany({
+        // Check if the prisma user has a slack component
+        const slackUser = await prisma.slackUser.findUnique({
             where: {
-                completed: false,
-                cancelled: false,
-                // slackUser of the user is optional. make sure it exists
-                user: {
-                    slackUser: {
-                        isNot: null
-                    }
-                }
+                userId: session.userId
             }
         });
 
-        console.log(`🕒 Updating ${sessions.length} sessions`);
+        if (!slackUser) {
+//            throw new Error(`Missing slack component of ${session.userId}`)
+            return;
+        }
 
-        for (const session of sessions) {
-            // Check if the message exists
-            const message = await app.client.conversations.history({
-                channel: Environment.MAIN_CHANNEL,
-                latest: session.messageTs,
-                limit: 1
-            });
+        // Check if the message exists
+        const message = await app.client.conversations.history({
+            channel: Environment.MAIN_CHANNEL,
+            latest: session.messageTs,
+            limit: 1
+        });
 
-            if (message.messages == undefined || message.messages.length == 0) {
-                console.log(`❌ Session ${session.messageTs} does not exist`);
+        if (message.messages == undefined || message.messages.length == 0) {
+            console.log(`❌ Session ${session.messageTs} does not exist`);
 
-                // Remove the session
-                await prisma.session.delete({
-                    where: {
-                        messageTs: session.messageTs
-                    }
-                });
-
-                continue;
-            }
-
-            const slackUser = await prisma.slackUser.findUnique({
-                where: {
-                    userId: session.userId
-                }
-            });
-
-            if (!slackUser) {
-                throw new Error(`Missing slack component of ${session.userId}`)
-            }
-
-            if (session.paused) {
-                const updatedSession = await prisma.session.update({
-                    where: {
-                        messageTs: session.messageTs
-                    },
-                    data: {
-                        elapsedSincePause: {
-                            increment: 1
-                        }
-                    }
-                });
-
-                await updateController(updatedSession);         
-
-                continue;
-            } else if (session.elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
-                const updatedSession = await prisma.session.update({
-                    where: {
-                        messageTs: session.messageTs
-                    },
-                    data: {
-                        completed: true
-                    }
-                });
-
-                await app.client.chat.postMessage({
-                    thread_ts: session.messageTs,
-                    channel: Environment.MAIN_CHANNEL,
-                    text: t('complete', {
-                        slackId: slackUser.slackId
-                    })
-                });
-
-                await updateController(updatedSession);         
-                await updateTopLevel(updatedSession);
-
-                await prisma.user.update({
-                    where: {
-                        id: session.userId
-                    },
-                    data: {
-                        lifetimeMinutes: {
-                            increment: session.time
-                        },
-                    }
-                });
-
-                await app.client.reactions.add({
-                    name: "tada",
-                    channel: Environment.MAIN_CHANNEL,
-                    timestamp: session.messageTs
-                });
-
-                console.log(`🏁 Session ${session.messageTs} completed by ${session.userId}`);
-
-                continue;
-            }
-            else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0) {
-                // Send a reminder every 15 minutes
-                await app.client.chat.postMessage({
-                    thread_ts: session.messageTs,
-                    channel: Environment.MAIN_CHANNEL,
-                    text: t(`update`, {
-                        slackId: slackUser.slackId,
-                        minutes: session.time - session.elapsed
-                    })
-                });
-            }
-
-            await prisma.session.update({
+            // Remove the session
+            await prisma.session.delete({
                 where: {
                     messageTs: session.messageTs
-                },
-                data: {
-                    elapsed: {
-                        increment: 1
-                    }
                 }
             });
 
-            await updateController(session);
-            await updateTopLevel(session);
+            return;
         }
+
+        if (session.paused) {
+            await updateController(session);
+
+            return;
+        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0) {
+            // Send a reminder every 15 minutes
+            await app.client.chat.postMessage({
+                thread_ts: session.messageTs,
+                channel: Environment.MAIN_CHANNEL,
+                text: t(`update`, {
+                    slackId: slackUser.slackId,
+                    minutes: session.time - session.elapsed
+                })
+            });
+        }
+
+        await updateController(session);
+        await updateTopLevel(session);
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-emitter.on('error', async (error) => {
+emitter.on('complete', async (session: Session) => {
+    const slackUser = await prisma.slackUser.findUnique({
+        where: {
+            userId: session.userId
+        }
+    });
+
+    if (!slackUser) {
+        // Skip
+        return;
+    }
+
     await app.client.chat.postMessage({
-        token: process.env.SLACK_BOT_TOKEN,        
-        channel: process.env.LOG_CHANNEL || 'C0P5NE354' ,
-        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour crashed!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+        thread_ts: session.messageTs,
+        channel: Environment.MAIN_CHANNEL,
+        text: t('complete', {
+            slackId: slackUser.slackId
+        })
+    });
+
+    await updateController(session);
+    await updateTopLevel(session);
+
+    await app.client.reactions.add({
+        name: "tada",
+        channel: Environment.MAIN_CHANNEL,
+        timestamp: session.messageTs
+    });
+
+    return;
+});
+
+emitter.on('cancel', async (session: Session) => {
+    const slackUser = await prisma.slackUser.findUnique({
+        where: {
+            userId: session.userId
+        }
+    });
+
+    if (!slackUser) {
+        // Skip
+        return;
+    }
+
+    await app.client.chat.postMessage({
+        thread_ts: session.messageTs,
+        channel: Environment.MAIN_CHANNEL,
+        text: t(`cancel`, {
+            slackId: slackUser.slackId
+        })
+    });
+
+    await updateController(session);
+    await updateTopLevel(session);
+});
+
+emitter.on('error', async (error) => {
+    const msg = await app.client.chat.postMessage({
+        token: process.env.SLACK_BOT_TOKEN,
+        channel: process.env.LOG_CHANNEL || 'C0P5NE354',
+        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} crashed!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+    });
+
+    await app.client.reactions.add({
+        token: process.env.SLACK_BOT_TOKEN,
+        channel: msg.channel,
+        name: 'eyes_shaking',
+        timestamp: msg.ts
     });
 });
