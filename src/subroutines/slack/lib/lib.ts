@@ -73,6 +73,7 @@ export async function informUser(slackId: string, message: string, channel: stri
     }
 }
 
+// Todo: Move to core standard lib
 export async function cancelSession(slackId: string, session: Session) {
     const updatedSession = await prisma.session.update({
         where: {
@@ -82,17 +83,6 @@ export async function cancelSession(slackId: string, session: Session) {
             cancelled: true
         }
     });
-    
-    await app.client.chat.postMessage({
-        thread_ts: updatedSession.messageTs,
-        channel: Environment.MAIN_CHANNEL,
-        text: t(`cancel`, {
-            slackId
-        })
-    });
 
     emitter.emit('cancel', updatedSession);
-
-    await updateController(updatedSession);
-    await updateTopLevel(updatedSession);
 }

@@ -6,7 +6,8 @@ import { app } from './lib/bolt.js'
 
 import './subroutines/core.js';
 import './subroutines/slack/index.js';
-import './subroutines/slack_verifier/index.js';
+//import './subroutines/slack_verifier/index.js';
+//import './subroutines/arcade_hour/index.js';
 
 ((async () => {
     await prisma.$connect();

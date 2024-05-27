@@ -11,7 +11,7 @@ emitter.on('minute', async () => {
             }
         });
 
-        console.log(`[${new Date()}] 🕒 Updating ${sessions.length} sessions`);
+        console.log(`[${new Date().toISOString()}] 🕒 Updating ${sessions.length} sessions`);
 
         for (const session of sessions) {   
             let updatedSession = session;
@@ -102,17 +102,17 @@ emitter.on('minute', async () => {
 });
 
 emitter.on('start', async (session) => {
-    console.log(`[${new Date()}] 🚀 Session started: ${session.messageTs}`);
+    console.log(`[${new Date().toISOString()}] 🚀 Session started: ${session.messageTs}`);
 });
 
 emitter.on('cancel', async (session) => {
-    console.log(`[${new Date()}] 🚫 Session cancelled: ${session.messageTs}`);
+    console.log(`[${new Date().toISOString()}] 🚫 Session cancelled: ${session.messageTs}`);
 });
 
 emitter.on('complete', async (session) => {
-    console.log(`[${new Date()}] 🏁 Session ${session.messageTs} completed by ${session.userId}`);
+    console.log(`[${new Date().toISOString()}] 🏁 Session ${session.messageTs} completed by ${session.userId}`);
 });
 
 emitter.on('error', async (error) => {
-    console.error(`[${new Date()}] 🚨 Error: ${error.message}`);
+    console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}`);
 });

@@ -8,6 +8,8 @@ type EventMap = {
     init: () => void,
     error: (error: any) => void,
 
+    setFlag: (flag: string, value: any) => void,
+
     minute: () => void,
     sessionUpdate: (session: Session) => void,
     hour: () => void,

@@ -15,6 +15,8 @@ model User {
   slackUser        SlackUser?
   sessions         Session[]
   goals            Goal[]
+
+  metadata         Json?
 }
  
 model SlackUser {
@@ -31,7 +33,7 @@ model Session {
   userId     String
   messageTs  String  @id
   controlTs  String  @unique
-  createdAt  DateTime
+  createdAt  DateTime @default(now())
   time       Int
   elapsed    Int
   elapsedSincePause Int

@@ -2,18 +2,34 @@
 Cancellation
 */
 import { app } from "../../../lib/bolt.js";
-import { Environment, Actions, Commands } from "../../../lib/constants.js";
+import { Environment, Actions, Commands, Callbacks } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
 import { fetchSlackId, informUser, cancelSession, updateTopLevel } from "../lib/lib.js";
+import { Cancel } from "../views/cancel.js";
 
 app.action(Actions.CANCEL, async ({ ack, body }) => {
+    try {
+        const thread_ts = (body as any).message.thread_ts;
+
+        await ack();
+
+        await app.client.views.open({
+            trigger_id: (body as any).trigger_id,
+            view: await Cancel.cancel(thread_ts)
+        });
+    } catch (error) {
+        emitter.emit('error', error);
+    }
+});
+
+app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     try {
         await ack();
 
         const slackId = body.user.id;
-        const messageTs = (body as any).message.thread_ts;
+        const messageTs = view.private_metadata;
 
         const session = await prisma.session.findFirst({
             where: {

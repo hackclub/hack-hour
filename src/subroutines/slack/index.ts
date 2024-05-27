@@ -1,9 +1,10 @@
 import { app } from "../../lib/bolt.js";
-import { Commands, Environment } from "../../lib/constants.js";
+import { Actions, Commands, Environment } from "../../lib/constants.js";
 import { prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
-import { t, t_fetch } from "./lib/templates.js";
 
+import { t, t_fetch } from "./lib/templates.js";
+import { reactOnContent } from "./lib/emoji.js";
 import { updateController, updateTopLevel, cancelSession, informUser } from "./lib/lib.js";
 
 import { Session } from "@prisma/client";
@@ -258,7 +259,6 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             messageTs: topLevel.ts,
             controlTs: controller.ts,
 
-            createdAt: new Date(),
             time: 60,
             elapsed: 0,
 
@@ -280,6 +280,12 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
     await updateTopLevel(session);
 
     emitter.emit('start', session);
+
+    await reactOnContent({
+        content: command.text,
+        channel: Environment.MAIN_CHANNEL,
+        ts: topLevel.ts
+    });
 });
 
 /*
@@ -359,7 +365,26 @@ emitter.on('complete', async (session: Session) => {
         channel: Environment.MAIN_CHANNEL,
         text: t('complete', {
             slackId: slackUser.slackId
-        })
+        }),
+        blocks: [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": t('complete', {
+                        slackId: slackUser.slackId
+                    })
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "View Stats"
+                    },
+                    "action_id": Actions.VIEW_STATS,
+                }
+            }
+        ]
     });
 
     await updateController(session);
@@ -391,7 +416,26 @@ emitter.on('cancel', async (session: Session) => {
         channel: Environment.MAIN_CHANNEL,
         text: t(`cancel`, {
             slackId: slackUser.slackId
-        })
+        }),
+        blocks: [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": t('complete', {
+                        slackId: slackUser.slackId
+                    })
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "View Stats"
+                    },
+                    "action_id": Actions.VIEW_STATS,
+                }
+            }
+        ]        
     });
 
     await updateController(session);
@@ -399,16 +443,9 @@ emitter.on('cancel', async (session: Session) => {
 });
 
 emitter.on('error', async (error) => {
-    const msg = await app.client.chat.postMessage({
+    await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
         text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
-    });
-
-    await app.client.reactions.add({
-        token: process.env.SLACK_BOT_TOKEN,
-        channel: msg.channel,
-        name: 'eyes_shaking',
-        timestamp: msg.ts
     });
 });

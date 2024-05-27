@@ -33,8 +33,8 @@ export const Environment = {
 
 // Constants
 export const Constants = {
-  //MIN_MS: 60 * 1000,
   MIN_MS: 60 * 1000,
+  //MIN_MS: 1 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
@@ -83,6 +83,8 @@ export const Actions = {
   SELECT_GOAL: 'selectgoal',
   CREATE_GOAL: 'creategoal',
   DELETE_GOAL: 'deletegoal',
+
+  VIEW_STATS: 'viewstats',
 };
 
 export const Callbacks = {
@@ -93,4 +95,6 @@ export const Callbacks = {
   DELETE_GOAL: 'callback_deletegoal',
 
   STATS: 'stats',
+
+  CANCEL: 'cancel',
 };

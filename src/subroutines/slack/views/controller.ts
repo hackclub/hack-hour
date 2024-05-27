@@ -175,6 +175,7 @@ export class Controller {
         ]
     }
 
+    /*
     public static extendHourModal(): View {
         return {
             "type": "modal",
@@ -212,5 +213,5 @@ export class Controller {
                 }
             ]
         }
-    }
+    }*/
 }

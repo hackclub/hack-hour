@@ -7,7 +7,17 @@ import { Constants } from "./constants.js";
 import { Environment, Constants as GlobalConstants } from "../../lib/constants.js";
 import { Verify } from "./views/verify.js";
 
+let enableVerify = false;
+
+emitter.on('setFlag', (flag, value) => {
+    if (flag === 'enableVerify') {
+        enableVerify = value;
+    }
+});
+
 emitter.on('complete', async (session) => {
+    if (!enableVerify) return;
+    
     // Send a message in the verification channel
     const alert = await app.client.chat.postMessage({
         channel: Constants.VERIFIER_CHANNEL,
@@ -34,6 +44,8 @@ emitter.on('complete', async (session) => {
 });
 
 emitter.on('cancel', async (session) => {
+    if (!enableVerify) return;
+
     // Send a message in the verification channel
     const alert = await app.client.chat.postMessage({
         channel: Constants.VERIFIER_CHANNEL,
@@ -60,6 +72,8 @@ emitter.on('cancel', async (session) => {
 });
 
 app.event('reaction_added', async ({ event }) => {
+    if (!enableVerify) return;
+
     // Check if :white_check_mark: reaction was added in the main channel - all messages with those are considered verified
     if (!Constants.VERIFIERS?.includes(event.user)) return;
 
