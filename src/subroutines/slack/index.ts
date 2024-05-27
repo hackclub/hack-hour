@@ -178,6 +178,22 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             throw new Error(`Could not retrieve timezone of ${slackId}`)
         }
 
+        // Add the slack user to the usergroup, if it's not already there
+        const usergroup = await app.client.usergroups.users.list({
+            usergroup: Environment.PING_USERGROUP
+        });
+
+        if (!usergroup.users) {
+            throw new Error(`Could not retrieve users of usergroup ${Environment.PING_USERGROUP}`)
+        }
+
+        if (!usergroup.users.includes(slackId)) {
+            await app.client.usergroups.users.update({
+                usergroup: Environment.PING_USERGROUP,
+                users: [...usergroup.users, slackId].join(',')
+            });
+        }        
+
         slackUser = await prisma.slackUser.create(
             {
                 data: {
