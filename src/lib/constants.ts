@@ -49,7 +49,7 @@ export const Commands = Environment.PROD ? {
   EXTEND: '/extend',
   CANCEL: '/cancel',
   HACK: '/hack',
-  STATS: '/stats',
+  STATS: '/mystats',
   /*
   GOALS: '/goals',
   STATS: '/mystats',

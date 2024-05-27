@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "prisma_deploy": "prisma migrate deploy",
-    "app": "npm run prisma_deploy && tsx ./src/entry.ts"
+    "start": "npm run prisma_deploy && tsx ./src/entry.ts"
   },
   "repository": {
     "type": "git",
