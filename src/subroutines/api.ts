@@ -1,3 +1,4 @@
+/*
 import { Server } from "http";
 import { prisma } from "../lib/prisma.js";
 import { minuteInterval } from "../lib/interval.js";
@@ -65,7 +66,7 @@ export function startWSS(server: Server) {
                         minutes: results[0].time - results[0].elapsed,
                     }));
                 }
-                */
+                *//*
             }
         });
     });
@@ -103,3 +104,4 @@ export function startWSS(server: Server) {
         });
     }
 }
+*/

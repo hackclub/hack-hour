@@ -1,16 +1,14 @@
-import { prisma } from "../app.js";
+import { prisma } from "../../../lib/prisma.js";
 import { KnownBlock, View } from "@slack/bolt";
-import { formatHour } from "../utils/string.js";
+import { formatHour } from "../lib/templates.js";
 
-export const Callbacks = {
-    STATS: 'stats'
-}
+import { Callbacks } from "../../../lib/constants.js";
 
-export class Views {
+export class Stats {
     public static async stats(userId: string): Promise<View> {
         const userData = await prisma.user.findUnique({
             where: {
-                slackId: userId
+                id: userId
             }
         });
 
@@ -18,9 +16,9 @@ export class Views {
             throw new Error(`User ${userId} not found.`);
         }
 
-        const goals = await prisma.goals.findMany({
+        const goals = await prisma.goal.findMany({
             where: {
-                slackId: userId
+                userId: userId
             }
         });
 
@@ -33,7 +31,7 @@ export class Views {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*${goal.goalName}*: ${formatHour(goal.minutes)} hours spent\n_(${goal.minutes} minutes)_`
+                    "text": `*${goal.name}*: ${formatHour(goal.totalMinutes)} hours spent\n_(${goal.totalMinutes} minutes)_`
                 }
             }
         });
@@ -45,10 +43,11 @@ export class Views {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*Lifetime Hours Spent*: ${formatHour(userData?.totalMinutes)}\n_(${userData?.totalMinutes} minutes)_`
+                "text": `*Lifetime Hours Spent*: ${formatHour(userData?.lifetimeMinutes)}\n_(${userData?.lifetimeMinutes} minutes)_`
             }
         });
 
+        /*
         // Check if user is in eventContributions
         const eventContributions = await prisma.eventContributions.findMany({
             where: {
@@ -68,7 +67,8 @@ export class Views {
                     "text": `*Power Hour Contributions*: ${formatHour(eventContributions[0].minutes)} hours\n_(${eventContributions[0].minutes} minutes)_`
                 }
             });
-        }        
+        }       
+        */ 
 
         return {
             "type": "modal",

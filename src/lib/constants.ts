@@ -33,8 +33,8 @@ export const Environment = {
 
 // Constants
 export const Constants = {
+  //MIN_MS: 60 * 1000,
   MIN_MS: 60 * 1000,
-  //MIN_MS: 1000,
   HOUR_MS: 60 * 60 * 1000,
 
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
@@ -49,6 +49,7 @@ export const Commands = Environment.PROD ? {
   EXTEND: '/extend',
   CANCEL: '/cancel',
   HACK: '/hack',
+  STATS: '/stats',
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -62,6 +63,7 @@ export const Commands = Environment.PROD ? {
   EXTEND: '/testextend',
   CANCEL: '/testcancel',
   HACK: '/testhack',
+  STATS: '/teststats',
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',
@@ -84,8 +86,11 @@ export const Actions = {
 };
 
 export const Callbacks = {
-  EXTEND_HOUR: 'extendhour',
+//  EXTEND_HOUR: 'extendhour',
+
   MAIN_GOAL: 'maingoal',
   CREATE_GOAL: 'callback_creategoal',
   DELETE_GOAL: 'callback_deletegoal',
+
+  STATS: 'stats',
 };

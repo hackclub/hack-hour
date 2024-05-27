@@ -7,6 +7,7 @@ import { t } from "./templates.js";
 
 import { Controller } from "../views/controller.js";
 import { TopLevel } from "../views/topLevel.js";
+import { emitter } from "../../../lib/emitter.js";
 
 export type Session = Prisma.SessionGetPayload<{}>;
 
@@ -89,6 +90,8 @@ export async function cancelSession(slackId: string, session: Session) {
             slackId
         })
     });
+
+    emitter.emit('cancel', updatedSession);
 
     await updateController(updatedSession);
     await updateTopLevel(updatedSession);

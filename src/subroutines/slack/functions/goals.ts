@@ -66,7 +66,7 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
         });
 
         await ack();
-        
+
         await client.views.update({
             view_id: (body as any).view.root_view_id,
             view: await Goals.main(goalData.userId)
@@ -183,7 +183,35 @@ app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
         const trigger_id: string = (body as any).trigger_id;
 
         if (goalId === 'NONE') {
-            await ack();
+            await ack({
+                response_action: 'errors',
+                errors: {
+                    goal_actions: 'Please select a goal to delete'
+                }
+            } as any);
+
+            return;
+        }
+
+        // Ensure that it is not the last goal
+        const goals = await prisma.goal.aggregate({
+            where: {
+                user: {
+                    slackUser: {
+                        slackId: body.user.id                    
+                    }
+                }
+            },
+            _count: true
+        });
+
+        if (goals._count === 1) {
+            await ack({
+                response_action: 'errors',
+                errors: {
+                    goal_actions: 'You cannot delete your last goal'
+                }
+            } as any);
 
             return;
         }
@@ -211,6 +239,25 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             }
         });
 
+        const firstGoal = await prisma.goal.findFirst({
+            where: {
+                userId: goalData.userId
+            }
+        });
+
+        if (!firstGoal) {
+            throw new Error(`First goal not found`);
+        }
+
+        await prisma.goal.update({
+            where: {
+                id: firstGoal.id
+            },
+            data: {
+                selected: true
+            }
+        });
+
         if (!body.view.root_view_id) {
             // User should not have been able to get here
             throw new Error(`Root view not found`);
@@ -218,7 +265,7 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
 
         await client.views.update({
             view_id: body.view.root_view_id,
-            view: await Goals.main(goalData.id)
+            view: await Goals.main(goalData.userId)
         });
     } catch (error) {
         emitter.emit('error', error);

@@ -146,7 +146,8 @@ export class Goals {
 					"value": selectedGoal ? selectedGoal.id : 'NONE',
 					"action_id": Actions.DELETE_GOAL
 				}
-			]
+			],
+            "block_id": "goal_actions"
 		} as any);
 
         if (selectedGoal) {

@@ -12,6 +12,7 @@ import "./functions/pause.js";
 import "./functions/cancel.js";
 import "./functions/extend.js";
 import "./functions/goals.js";
+import "./functions/stats.js"
 
 /*
 Session Creation
@@ -220,7 +221,7 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
     }
 
     const topLevel = await app.client.chat.postMessage({
-        channel: command.channel_id,
+        channel: Environment.MAIN_CHANNEL,
         text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
     });
 
@@ -401,7 +402,7 @@ emitter.on('error', async (error) => {
     const msg = await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
-        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} crashed!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
     });
 
     await app.client.reactions.add({

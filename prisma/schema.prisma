@@ -66,5 +66,7 @@ model VerifiedSession {
   verifiedAt  DateTime @default(now())
   verifiedBy  String
 
+  verified   Boolean
+
   metadata   Json?
 }
