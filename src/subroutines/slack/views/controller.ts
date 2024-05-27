@@ -7,7 +7,7 @@ import { View } from "@slack/bolt";
 export class Controller {
     public static async panel(session: Session) {
         // Pre-fetch the goal
-        const curGoal = await prisma.goal.findFirst({
+        let curGoal = await prisma.goal.findFirst({
             where: {
                 userId: session.userId,
                 selected: true
@@ -15,7 +15,26 @@ export class Controller {
         });
 
         if (!curGoal) {
-            throw new Error(`Could not find goal for user ${session.userId}`);
+            // Set the first goal as the selected goal
+            const goals = await prisma.goal.findMany({
+                where: {
+                    userId: session.userId
+                }
+            });
+            curGoal = goals[0];
+
+            if (goals.length == 0) {
+                throw new Error(`No goals found for user ${session.userId}`);
+            }
+
+            await prisma.goal.update({
+                where: {
+                    id: curGoal.id
+                },
+                data: {
+                    selected: true
+                }
+            });
         }
 
         // Pre-fetch the slack user
