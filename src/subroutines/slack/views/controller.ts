@@ -1,8 +1,8 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
 import { t, formatHour } from "../lib/templates.js";
-import { Constants, Actions, Callbacks } from "../../../lib/constants.js";
-import { View } from "@slack/bolt";
+import { Constants, Actions, Environment } from "../../../lib/constants.js";
+import { app } from "../../../lib/bolt.js";
 
 export class Controller {
     public static async panel(session: Session) {
@@ -192,6 +192,62 @@ export class Controller {
             },
             context
         ]
+    }
+
+    public static async quick(session: Session) {
+        // Pre-fetch the slack user
+        const slackUser = await prisma.slackUser.findUnique({
+            where: {
+                userId: session.userId
+            }
+        });
+
+        if (!slackUser) {
+            throw new Error(`Could not find slack user for user ${session.userId}`);
+        }
+
+        const info = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ""
+            }
+        };
+
+        if (session.paused) {
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is cancelled.`
+        } else if (session.cancelled) {
+            info.text.text = `You have cancelled your session.`
+        } else if (session.completed) {
+            info.text.text = t(`complete`, { slackId: slackUser.slackId })
+        } else {
+            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+        }
+
+        const permalink = await app.client.chat.getPermalink({
+            channel: Environment.MAIN_CHANNEL,
+            message_ts: session.controlTs
+        });
+
+        if (!permalink) {
+            throw new Error(`Could not get permalink for message ${session.controlTs}`);
+        }
+
+        const reach = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `<${permalink.permalink}|View Session>`
+            }
+        };
+
+        return [
+            info,
+            {
+                "type": "divider"
+            },
+            reach
+        ];
     }
 
     /*
