@@ -21,8 +21,11 @@ async function pauseUpdate(session: Session) {
         }
     });
 
-    await updateController(updatedSession);
-    await updateTopLevel(updatedSession);
+    if (updatedSession.paused) {
+        emitter.emit('pause', updatedSession);
+    } else {
+        emitter.emit('resume', updatedSession);
+    }
 
     return updatedSession;
 }

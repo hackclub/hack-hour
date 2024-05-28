@@ -461,6 +461,16 @@ emitter.on('cancel', async (session: Session) => {
     await updateTopLevel(session);
 });
 
+emitter.on('pause', async (session: Session) => {
+    await updateController(session);
+    await updateTopLevel(session);
+});
+
+emitter.on('resume', async (session: Session) => {
+    await updateController(session);
+    await updateTopLevel(session);
+});
+
 emitter.on('init', async () => {
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,

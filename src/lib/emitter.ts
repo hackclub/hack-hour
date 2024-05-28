@@ -17,6 +17,8 @@ type EventMap = {
     start: (session: Session) => void,
     complete: (session: Session) => void,
     cancel: (session: Session) => void,
+    pause: (session: Session) => void,
+    resume: (session: Session) => void,
 
     verified: (verifiedSession: VerifiedSession) => void,
 }
