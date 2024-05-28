@@ -461,6 +461,14 @@ emitter.on('cancel', async (session: Session) => {
     await updateTopLevel(session);
 });
 
+emitter.on('init', async () => {
+    await app.client.chat.postMessage({
+        token: process.env.SLACK_BOT_TOKEN,
+        channel: process.env.LOG_CHANNEL || 'C0P5NE354',
+        text: `Hack Hour has been initialized${Environment.PROD ? '' : ' (DEV)'}.`,
+    });
+});
+
 emitter.on('error', async (error) => {
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
