@@ -39,11 +39,7 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             }
         });
 
-        if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
-        }
-        
-        if (slackId !== await fetchSlackId(session.userId)) {
+        if (!session || slackId !== await fetchSlackId(session.userId)) {
             // Send an ephemeral message to the actor
             await app.client.chat.postEphemeral({
                 user: slackId,

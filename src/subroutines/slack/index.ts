@@ -5,7 +5,7 @@ import { emitter } from "../../lib/emitter.js";
 
 import { t, t_fetch } from "./lib/templates.js";
 import { reactOnContent } from "./lib/emoji.js";
-import { updateController, updateTopLevel, cancelSession, informUser } from "./lib/lib.js";
+import { updateController, updateTopLevel, cancelSession, informUser, informUserBlocks } from "./lib/lib.js";
 
 import { Session } from "@prisma/client";
 
@@ -14,6 +14,7 @@ import "./functions/cancel.js";
 import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js"
+import { Controller } from "./views/controller.js";
 
 /*
 Session Creation
@@ -148,15 +149,6 @@ app.event("message", async ({ event }) => {
 app.command(Commands.HACK, async ({ command, ack, respond }) => {
     const slackId = command.user_id;
 
-    if (!command.text || command.text.length == 0) {
-        await ack({
-            response_type: 'ephemeral',
-            text: "Please provide a description of what you're working on."
-        });
-
-        return;
-    }
-
     await ack();
 
     let slackUser = await prisma.slackUser.findUnique(
@@ -231,6 +223,17 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             cancelled: false
         }
     });
+
+    if (!command.text || command.text.length == 0) {
+        if (existingSession) {
+            await informUserBlocks(slackId, await Controller.quick(existingSession), command.channel_id);
+        } else {
+            await informUser(slackId, "Please provide a description of what you're working on.", command.channel_id);
+        }
+
+        return;
+    }
+
 
     if (existingSession) {
         await informUser(slackId, "You already have an active session. Please cancel it before starting a new one.", command.channel_id);
@@ -438,7 +441,7 @@ emitter.on('cancel', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t('complete', {
+                    "text": t('cancel', {
                         slackId: slackUser.slackId
                     })
                 },

@@ -52,25 +52,56 @@ export async function fetchSlackId(userId: string) {
 
 // Function that sends an ephemeral message to the user if able, if not, DMs the user
 export async function informUser(slackId: string, message: string, channel: string, thread_ts: undefined | string = undefined) {
-    const result = await app.client.chat.postEphemeral({
-        user: slackId,
-        channel,
-        text: message,
-        thread_ts        
-    });
+    try {
+        await app.client.chat.postEphemeral({
+            user: slackId,
+            channel,
+            text: message,
+            thread_ts
+        });
+    } catch (error) {
+        const response = (error as any).data;
 
-    if (!result.ok) {
-        // If the error is due to access permissions, just dm the user
-        if (result.error === 'not_in_channel') { 
-            await app.client.chat.postMessage({
-                channel: slackId,
-                thread_ts,
-                text: message
-            });
-        } else {
-            throw new Error(`Error sending message: ${result.error}`);
+        await app.client.chat.postEphemeral({
+            user: slackId,
+            channel: slackId,
+            thread_ts,
+            text: message
+        });
+
+        if (response.error !== 'channel_not_found') {
+            // Error not caused by access perms
+            emitter.emit('error', error);
         }
     }
+}
+
+export async function informUserBlocks(slackId: string, blocks: any[], channel: string, thread_ts: undefined | string = undefined) {
+    try {
+        await app.client.chat.postEphemeral({
+            user: slackId,
+            channel,
+            blocks,
+            text: "Hack Hour",
+            thread_ts
+        });
+    } catch (error) {
+        const response = (error as any).data;
+
+        await app.client.chat.postEphemeral({
+            user: slackId,
+            channel: slackId,
+            thread_ts,
+            text: "Hack Hour",
+            blocks
+        });
+
+        if (response.error !== 'channel_not_found') {
+            // Error not caused by access perms
+            emitter.emit('error', error);
+        }
+    }
+    
 }
 
 // Todo: Move to core standard lib

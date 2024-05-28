@@ -8,6 +8,7 @@ import { emitter } from "../../../lib/emitter.js";
 
 import { Session, updateController, updateTopLevel, fetchSlackId, informUser } from "../lib/lib.js";
 
+// TODO: Move to a standard library
 async function pauseUpdate(session: Session) {
     // If resuming the session, reset the elapsed time since pause
     const updatedSession = await prisma.session.update({
@@ -42,7 +43,15 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
+            // Send an ephemeral message to the actor
+            await app.client.chat.postEphemeral({
+                user: slackId,
+                channel: Environment.MAIN_CHANNEL,
+                text: `You cannot pause another user's session!`,
+                thread_ts: (body as any).message.thread_ts
+            });                
+
+            return;
         }
 
         const slackOwnerId = await fetchSlackId(session.userId);
@@ -81,7 +90,15 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
         });
 
         if (!session) {
-            throw new Error(`Session not found for ${slackId}`);
+            // Send an ephemeral message to the actor
+            await app.client.chat.postEphemeral({
+                user: slackId,
+                channel: Environment.MAIN_CHANNEL,
+                text: `You cannot resume another user's session!`,
+                thread_ts: (body as any).message.thread_ts
+            });                
+
+            return;
         }
 
         const slackOwnerId = await fetchSlackId(session.userId);
