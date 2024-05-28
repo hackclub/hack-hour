@@ -19,8 +19,6 @@ type EventMap = {
     cancel: (session: Session) => void,
     pause: (session: Session) => void,
     resume: (session: Session) => void,
-
-    verified: (verifiedSession: VerifiedSession) => void,
 }
 
 type Event = keyof EventMap;

@@ -9,7 +9,7 @@ export class Cancel {
             "callback_id": Callbacks.CANCEL,
             "title": {
                 "type": "plain_text",
-                "text": "Delete Goal",
+                "text": "Cancel Session",
                 "emoji": true
             },
             "submit": {

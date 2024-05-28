@@ -59,6 +59,9 @@ model Goal {
   createdAt   DateTime
 
   selected    Boolean
+
+  completed   Boolean @default(false)
+  metadata    Json?
 }
 
 model VerifiedSession {
