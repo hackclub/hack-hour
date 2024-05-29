@@ -11,7 +11,7 @@ datasource db {
 model User {
   id               String  @id
   lifetimeMinutes  Int
-  apiKey           String
+  apiKey           String  @unique
   slackUser        SlackUser?
   sessions         Session[]
   goals            Goal[]

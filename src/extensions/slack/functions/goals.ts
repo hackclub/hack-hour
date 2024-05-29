@@ -2,8 +2,8 @@ import { app } from "../../../lib/bolt.js";
 import { prisma, uid } from "../../../lib/prisma.js";
 
 import { Goals } from "../views/goals.js";
-import { Constants, Actions, Callbacks, Environment } from "../../../lib/constants.js";
-import { informUser, updateController } from "../lib/lib.js";
+import { Actions, Callbacks } from "../../../lib/constants.js";
+import { informUser } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
 
 app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
@@ -61,7 +61,7 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
                 id: goalId
             },
             data: {
-                selected: true
+                selected: true 
             }
         });
 

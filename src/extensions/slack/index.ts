@@ -472,6 +472,8 @@ emitter.on('resume', async (session: Session) => {
 });
 
 emitter.on('init', async () => {
+    console.log('🤖 Slack Subroutine Initialized!');
+
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
