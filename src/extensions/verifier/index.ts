@@ -174,3 +174,18 @@ app.event('reaction_added', async ({ event }) => {
         console.log(`✅ Session ${session.messageTs} verified for ${session.userId}`);
     }
 });
+
+app.command('/admin_toggleverify', async ({ ack, body }) => {
+    if (!Constants.VERIFIERS?.includes(body.user_id)) {
+        return;
+    }
+
+    await ack();
+
+    enableVerify = !enableVerify;
+
+    await app.client.chat.postMessage({
+        channel: body.channel_id,
+        text: `Verification is now ${enableVerify ? 'enabled' : 'disabled'}`
+    });
+});
