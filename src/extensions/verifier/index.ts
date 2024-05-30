@@ -175,7 +175,7 @@ app.event('reaction_added', async ({ event }) => {
     }
 });
 
-app.command('/admin_toggleverify', async ({ ack, body }) => {
+app.command('/_admin_toggleverify', async ({ ack, body }) => {
     if (!Constants.VERIFIERS?.includes(body.user_id)) {
         return;
     }
