@@ -47,7 +47,7 @@ model Session { // Hack Hour
   cancelled  Boolean
   paused     Boolean
 
-  Goal       Goal? @relation(fields: [goalId], references: [id])
+  goal       Goal? @relation(fields: [goalId], references: [id])
   goalId     String?
 
   bank       Bank? @relation(fields: [bankId], references: [id])

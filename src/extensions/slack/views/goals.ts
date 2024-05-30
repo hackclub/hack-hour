@@ -102,7 +102,7 @@ export class Goals {
                         }
                     }
                 },
-                Goal: true
+                goal: true
             }
         });
 
@@ -112,7 +112,7 @@ export class Goals {
 
         const goals = session.user.goals;
 
-        const selectedGoal = session.Goal;
+        const selectedGoal = session.goal;
 
         blocks.push({
             "type": "actions",
@@ -236,7 +236,7 @@ export class Goals {
                 messageTs: sessionTs
             },
             include: {
-                Goal: true
+                goal: true
             }
         });
 
@@ -263,7 +263,7 @@ export class Goals {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Are you sure you want to delete goal ${session.Goal?.name}?`
+                        "text": `Are you sure you want to delete goal ${session.goal?.name}?`
                     }
                 }
             ],

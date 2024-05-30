@@ -94,7 +94,7 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
                 messageTs: session.messageTs
             },
             data: {
-                Goal: {
+                goal: {
                     connect: {
                         id: goalData.id
                     }
@@ -250,7 +250,7 @@ app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
                 messageTs: sessionTs
             },
             include: {
-                Goal: true
+                goal: true
             }
         });
 
@@ -258,39 +258,16 @@ app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
             throw new Error(`Session not found`);
         }
 
-        if (!session.Goal) {
+        if (!session.goal) {
             throw new Error(`Goal not found`);
         }
 
         // Ensure that it is not "No Goal"
-        if (session.Goal.name === 'No Goal') {
+        if (session.goal.name === 'No Goal') {
             await ack({
                 response_action: 'errors',
                 errors: {
                     goal_actions: 'You cannot delete "No Goal"'
-                }
-            } as any);
-
-            return;
-        }
-
-        // Ensure that it is not the last goal
-        const goalsAgg = await prisma.goal.aggregate({
-            where: {
-                user: {
-                    slackUser: {
-                        slackId: body.user.id
-                    }
-                }
-            },
-            _count: true
-        });
-
-        if (goalsAgg._count === 1) {
-            await ack({
-                response_action: 'errors',
-                errors: {
-                    goal_actions: 'You cannot delete your last goal'
                 }
             } as any);
 
@@ -330,7 +307,7 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             },
             data: {
                 selected: false,
-                completed: false
+                completed: true
             }            
         });
 

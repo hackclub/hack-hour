@@ -485,7 +485,7 @@ emitter.on('resume', async (session: Session) => {
 emitter.on('init', async () => {
     console.log('🤖 Slack Subroutine Initialized!');
 
-    if (Environment.PROD || true) {
+    if (Environment.PROD) {
         const message = t('init', {
             repo: "https://github.com/hackclub/hack-hour",
             main: Environment.MAIN_CHANNEL
@@ -517,7 +517,7 @@ emitter.on('init', async () => {
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": `Release ${releaseVersion}-${buildDesc}`
+                            "text": `Hack Hour 3 - Release ${releaseVersion}-${buildDesc}`
                         }
                     ]
                 }
