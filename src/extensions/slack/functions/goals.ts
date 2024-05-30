@@ -112,8 +112,6 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             return;
         }
 
-        await ack();
-
         const user = await prisma.user.findFirst({
             where: {
                 slackUser: {
@@ -136,7 +134,29 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             }
         });
 
-        const goal = await prisma.goal.create({
+        // Check if goal already exists
+        const existingGoal = await prisma.goal.findFirst({
+            where: {
+                name: goalName,
+                userId: user.id
+            }
+        });
+
+        if (existingGoal) {
+            // User should not have been able to get here
+            await ack({
+                response_action: 'errors',
+                errors: {
+                    goal_name: 'Goal with this name already exists'
+                }
+            });
+
+            return;
+        }
+
+        await ack();
+
+        const newGoal = await prisma.goal.create({
             data: {
                 id: uid(),
                 
@@ -156,7 +176,7 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             }
         });
 
-        if (!goal) {
+        if (!newGoal) {
             // User should not have been able to get here
             throw new Error(`Goal with name ${goalName} not created`);
         }

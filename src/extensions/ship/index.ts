@@ -1,3 +1,4 @@
+/*
 import Airtable from "airtable";
 
 import { emitter } from "../../lib/emitter.js";
@@ -6,7 +7,7 @@ import { prisma } from "../../lib/prisma.js";
 import { formatHour } from "../slack/lib/templates.js";
 import { Environment } from "../../lib/constants.js";
 
-import { Ship } from "./view.js";
+import { Actions, Callbacks, Ship } from "./view.js";
 
 /*
 How it works:
@@ -17,8 +18,8 @@ How it works:
 - The bot updates the message with the goal selected
 - The bot updates the goal in the database
 - The bot updates an external database (airtable)
-*/
-
+*//*
+ 
 type AirtableUser = {
     "Name": string,
     "Internal ID": string,
@@ -33,10 +34,6 @@ type AirtableSession = {
     "Work": string,
     "Minutes": number,
     "Code URL": string
-}
-
-const Actions = {
-    GOAL_COMPLETE: 'goal_complete'
 }
 
 Airtable.configure({
@@ -109,12 +106,23 @@ emitter.on('complete', async (session) => {
     }]);
 });
 
-*/
+*//*
 app.message(async ({ message, say }) => {
     if (message.channel !== Environment.SHIP_CHANNEL) return;
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
 
     const { text, ts, user } = message;
+
+    const slackUser = await prisma.slackUser.findUnique({
+        where: {
+            slackId: user
+        },
+        include: {
+            user: true
+        }
+    });
+
+    if (!slackUser) return;
 
     const response = await app.client.chat.postMessage({
         channel: Environment.SHIP_CHANNEL,
@@ -133,7 +141,7 @@ app.message(async ({ message, say }) => {
                         "text": "Complete Goal"
                     },
                     "action_id": Actions.GOAL_COMPLETE,
-                    "value": JSON.stringify({ts, user})
+                    "value": slackUser.user.id
                 }
             }
         ],
@@ -141,21 +149,8 @@ app.message(async ({ message, say }) => {
     });
 
     if (!response) return;
-
-    const slackUser = await prisma.slackUser.findUnique({
-        where: {
-            slackId: user
-        },
-        include: {
-            user: true
-        }
-    });
-
-    if (!slackUser) return;
-    if (!slackUser.user) return;
-    if (!slackUser.user.metadata) return;
     
-    const meta: any = slackUser?.user?.metadata;
+    const meta: any = slackUser.user.metadata;
 
     meta.shipPosts = meta.shipPosts ? meta.shipPosts : [];
 
@@ -177,6 +172,44 @@ app.message(async ({ message, say }) => {
 app.action(Actions.GOAL_COMPLETE, async ({ ack, body, client }) => {
     ack();
 
-    console.log(body.actions[0].value);
-    const { ts, user } = JSON.parse(body.actions[0].value);
+    const slackId = (body as any).user.id;
+    const userId = JSON.parse((body as any).actions[0].value);
+
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        include: {
+            slackUser: true
+        }
+    });
+
+    if (!user) return;
+    if (!user.slackUser) return;
+
+    if (slackId !== user.slackUser.slackId) {
+        await client.chat.postEphemeral({
+            channel: slackId,
+            text: `You can't complete another user's goal!`,
+            user: slackId,
+            thread_ts: (body as any).message.ts
+        });
+
+        return;
+    }
+
+    const responseTs = (body as any).message.ts;
+
+    const meta: any = user.metadata;
+    if (!meta.shipPosts) return;
+
+    const shipPost = meta.shipPosts.find((post: any) => post.responseTs === responseTs);
+
+    if (!shipPost) return;
+
+    await client.views.open({
+        trigger_id: (body as any).trigger_id,
+        view: await Ship.completeModal(userId)
+    });
 });
+*/
