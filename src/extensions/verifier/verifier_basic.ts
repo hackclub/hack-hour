@@ -1,4 +1,5 @@
 /*
+// Hours verification component
 import { emitter } from "../../lib/emitter.js";
 import { prisma } from "../../lib/prisma.js";
 import { app } from "../../lib/bolt.js";
@@ -9,7 +10,7 @@ import { Verify } from "./views/verify.js";
 
 import Airtable from "airtable";
 
-let enableVerify = false;
+let enableVerify = true;
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -184,8 +185,7 @@ app.command('/_admin_toggleverify', async ({ ack, body }) => {
 
     enableVerify = !enableVerify;
 
-    await app.client.chat.postEphemeral({
-        user: body.user_id,
+    await app.client.chat.postMessage({
         channel: body.channel_id,
         text: `Verification is now ${enableVerify ? 'enabled' : 'disabled'}`
     });

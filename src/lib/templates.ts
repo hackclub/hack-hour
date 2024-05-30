@@ -1,14 +1,16 @@
 import { stringify, parse } from 'yaml';
 import fs from 'fs';
 
-type template = 'update' | 'complete' | 'encouragement' | 'cancel' | 'toplevel' | 'pause';
+type template = 'update' | 'complete' | 'encouragement' | 'cancel' | 'toplevel' | 'pause' | 'init';
 
 interface data {
     slackId?: string,
-    minutes?: number
+    minutes?: number,
+    repo?: string,
+    main?: string,
 }
 
-const file = fs.readFileSync('./src/extensions/slack/lib/templates.yaml', 'utf8');
+const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
 const templates = parse(file);
 
 export function t(template: template, data: data) {

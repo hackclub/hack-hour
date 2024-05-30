@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma.js";
 import { KnownBlock, View } from "@slack/bolt";
-import { formatHour } from "../lib/templates.js";
+import { formatHour } from "../../../lib/templates.js";
 
 import { Callbacks } from "../../../lib/constants.js";
 

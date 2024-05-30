@@ -40,7 +40,7 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
                 cancelled: false,
             }
         });
-
+ 
         if (!session || slackId !== await fetchSlackId(session.userId)) {
             // Send an ephemeral message to the actor
             await app.client.chat.postEphemeral({
@@ -87,5 +87,5 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
         await Session.cancel(session);
     } catch (error) {
         emitter.emit('error', error);
-    }    
+    }
 });
