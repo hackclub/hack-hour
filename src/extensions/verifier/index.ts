@@ -184,7 +184,8 @@ app.command('/_admin_toggleverify', async ({ ack, body }) => {
 
     enableVerify = !enableVerify;
 
-    await app.client.chat.postMessage({
+    await app.client.chat.postEphemeral({
+        user: body.user_id,
         channel: body.channel_id,
         text: `Verification is now ${enableVerify ? 'enabled' : 'disabled'}`
     });
