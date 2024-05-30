@@ -1,6 +1,6 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
-import { t, formatHour } from "../lib/templates.js";
+import { t, formatHour } from "../../../lib/templates.js";
 import { Constants, Actions, Environment } from "../../../lib/constants.js";
 import { app } from "../../../lib/bolt.js";
 
@@ -59,24 +59,6 @@ export class Controller {
             ]
         };
 
-        if (session.completed) {
-            return [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": t('complete', {
-                            slackId: slackUser.slackId,
-                        })
-                    }
-                },
-                {
-                    "type": "divider"
-                },
-                context
-            ]
-        }
-
         // Assemble the message
         // Info section
         const info = {
@@ -117,7 +99,26 @@ export class Controller {
             pause.action_id = Actions.PAUSE;
         }
 
-        if (session.paused) {
+        const openGoal = {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "Change Goal",
+                "emoji": true
+            },
+            "value": session.messageTs,
+            "action_id": Actions.OPEN_GOAL
+        };
+
+        if (session.bankId) {
+            return [
+                info,
+                {
+                    "type": "divider"
+                },
+                context
+            ]            
+        } else if (session.paused) {
             return [
                 info,
                 {
@@ -127,15 +128,6 @@ export class Controller {
                     "type": "actions",
                     "elements": [
                         pause,
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Change Goal",
-                                "emoji": true
-                            },
-                            "action_id": Actions.OPEN_GOAL
-                        }
                     ],                    
                     "block_id": "panel"                
                 },
@@ -146,6 +138,13 @@ export class Controller {
                 info,
                 {
                     "type": "divider"
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        openGoal
+                    ],                    
+                    "block_id": "panel"                
                 },
                 context
             ]

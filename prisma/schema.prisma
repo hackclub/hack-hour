@@ -8,6 +8,7 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+// the user... duh
 model User {
   id               String  @id
   lifetimeMinutes  Int
@@ -17,8 +18,11 @@ model User {
   goals            Goal[]
 
   metadata         Json?
+
+  submissions      Bank[]
 }
- 
+
+// slack data of the user
 model SlackUser {
   slackId          String  @id
   user             User    @relation(fields: [userId], references: [id])
@@ -28,7 +32,8 @@ model SlackUser {
   slackToken       String?
 }
 
-model Session {
+// tracks the user's hour (/hack)
+model Session { // Hack Hour
   user       User  @relation(fields: [userId], references: [id])
   userId     String
   messageTs  String  @id
@@ -42,12 +47,17 @@ model Session {
   cancelled  Boolean
   paused     Boolean
 
-  verifiedSession VerifiedSession?
+  Goal       Goal? @relation(fields: [goalId], references: [id])
+  goalId     String?
+
+  bank       Bank? @relation(fields: [bankId], references: [id])
+  bankId     String?
 
   metadata   Json?
 }
 
-model Goal {
+// Categorizes the user's sessions (group)
+model Goal { // Group
   id          String  @id
   user        User    @relation(fields: [userId], references: [id])
   userId      String
@@ -62,16 +72,42 @@ model Goal {
 
   completed   Boolean @default(false)
   metadata    Json?
+
+  sessions    Session[]
 }
 
-model VerifiedSession {
-  sessionId   String @id
-  session     Session @relation(fields: [sessionId], references: [messageTs])
+// Ship posts & etc. - anything that counts as a banked hour
+model Bank { 
+  id          String  @id
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String
 
-  verifiedAt  DateTime @default(now())
-  verifiedBy  String
+  minutes     Int
 
-  verified   Boolean
+  approved    Boolean @default(false)
 
-  metadata   Json?
+  type        String // "ship"/"ysws"/"scrapbook"
+
+  createdAt   DateTime @default(now())
+
+  sessions    Session[]
+
+  data    Json
+  // { "shipLink": "URL", "goalId": "###" }
 }
+
+// flow:
+//- user has a hack hour (minute: 1)
+//- hack hour finished, go to bank their points in #ship (bot DMs after)
+//  - show a list of goals and below that a list of ungoal'd (ungrouped) hack hours
+//- we review hours (prioritize banked hours)
+//- once a banked hour is approved, remove the ability to change group or remove from bank
+//  - AND LOCK THIS IN THE DATABASE (CRITICAL)
+
+//hour.banked?
+//user.hours.where(:banked?)
+//hour.bank_association_exists?
+
+// questions:
+//- how many banked hours in total does a user have?
+//  - user.sessions.where(banked: bank, goal: id).sum(:minutes)

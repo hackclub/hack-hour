@@ -3,7 +3,7 @@ import { Actions, Commands, Environment } from "../../lib/constants.js";
 import { prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
 
-import { t, t_fetch } from "./lib/templates.js";
+import { t, t_fetch } from "../../lib/templates.js";
 import { reactOnContent } from "./lib/emoji.js";
 import { updateController, updateTopLevel, cancelSession, informUser, informUserBlocks } from "./lib/lib.js";
 
@@ -15,6 +15,7 @@ import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js"
 import { Controller } from "./views/controller.js";
+import { connect } from "http2";
 
 /*
 Session Creation
@@ -253,6 +254,13 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
         {
             where: {
                 id: slackUser.userId
+            },
+            include: {
+                goals: {
+                    where: {
+                        name: "No Goal"
+                    }
+                }
             }
         }
     );
@@ -288,10 +296,13 @@ app.command(Commands.HACK, async ({ command, ack, respond }) => {
             elapsedSincePause: 0,
 
             metadata: {
-                toplevel: true,
-                toplevel_template: t_fetch('toplevel'),
+                slack: {
+                    template: t_fetch('toplevel'),
+                },
                 work: command.text
-            }
+            },
+
+            goalId: user.goals[0].id
         }
     });
 
@@ -474,11 +485,45 @@ emitter.on('resume', async (session: Session) => {
 emitter.on('init', async () => {
     console.log('🤖 Slack Subroutine Initialized!');
 
-    await app.client.chat.postMessage({
-        token: process.env.SLACK_BOT_TOKEN,
-        channel: process.env.LOG_CHANNEL || 'C0P5NE354',
-        text: `Hack Hour has been initialized${Environment.PROD ? '' : ' (DEV)'}.`,
-    });
+    if (Environment.PROD || true) {
+        const message = t('init', {
+            repo: "https://github.com/hackclub/hack-hour",
+            main: Environment.MAIN_CHANNEL
+        });
+
+        let releaseVersion = process.env.HEROKU_RELEASE_VERSION || 'vDev';
+        
+        let buildDesc = process.env.HEROKU_BUILD_DESCRIPTION;
+        if (buildDesc) {
+            buildDesc = buildDesc.replace('Deploy ', '');
+        } else {
+            buildDesc = 'Development';
+        }
+
+        await app.client.chat.postMessage({
+            token: process.env.SLACK_BOT_TOKEN,
+            channel: process.env.LOG_CHANNEL || 'C0P5NE354',
+            text: `_${message}_`,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `_${message}_\n\n<https://github.com/hackclub/hack-hour|Repository>`
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `Release ${releaseVersion}-${buildDesc}`
+                        }
+                    ]
+                }
+            ]
+        });
+    }
 });
 
 emitter.on('error', async (error) => {

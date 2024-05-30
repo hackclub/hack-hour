@@ -58,6 +58,7 @@ emitter.on('minute', async () => {
                 });
             }
 
+            /*
             await prisma.goal.updateMany({                
                 where: {
                     userId: session.userId,
@@ -69,6 +70,7 @@ emitter.on('minute', async () => {
                     }
                 }
             });
+            */
 
             await prisma.user.update({
                 where: {

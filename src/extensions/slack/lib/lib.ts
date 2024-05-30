@@ -3,7 +3,7 @@ import { Environment } from "../../../lib/constants.js";
 
 import { app } from "../../../lib/bolt.js";
 import { prisma } from "../../../lib/prisma.js";
-import { t } from "./templates.js";
+import { t } from "../../../lib/templates.js";
 
 import { Controller } from "../views/controller.js";
 import { TopLevel } from "../views/topLevel.js";

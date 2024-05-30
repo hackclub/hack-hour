@@ -42,3 +42,15 @@ toplevel:
     - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` minutes remaining to work on:"
     - "<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:"
     - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"  
+
+init:
+    - "tick tock tick tock, it looks like <${repo}|I'm> on the clock! <#${main}>"
+    - "watching time is a daunting task. but <${repo}|I'm> up for the task! <#${main}>"
+    - "new formula, same great taste! <#${main}>"
+    - "every hour more power...<#${main}>"
+    - "if scrapbook is the past and ship is the future, then <${repo}|I> am the present...<#${main}>"
+    - "watching for new hours in <#${main}>"
+    - "no, I am not hack minute. <${repo}|I am> <#${main}>!"
+    - "I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>"    
+    - "time travelling in <#${main}> like there's no tomorrow!"
+    - "perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>"

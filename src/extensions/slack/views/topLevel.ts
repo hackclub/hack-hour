@@ -1,6 +1,6 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
-import { formatHour, t, t_format } from "../lib/templates.js";
+import { formatHour, t, t_format } from "../../../lib/templates.js";
 
 export class TopLevel {
     public static async topLevel(session: Session) {
@@ -37,7 +37,7 @@ export class TopLevel {
         } else if (session.completed) {
             topLevelMessage.text.text = t('complete', { slackId: slackUser?.slackId })
         } else {
-            topLevelMessage.text.text = t_format(metadata.toplevel_template, { slackId: slackUser?.slackId, minutes: session.time - session.elapsed });
+            topLevelMessage.text.text = t_format(metadata.slack.template, { slackId: slackUser?.slackId, minutes: session.time - session.elapsed });
         }
 
         blocks.push(topLevelMessage);

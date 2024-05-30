@@ -1,7 +1,7 @@
 // Typed event emitter
 // Adapted from https://rjzaworski.com/2019/10/event-emitters-in-typescript
 
-import { Session, VerifiedSession } from "@prisma/client";
+import { Session } from "@prisma/client";
 import { Environment, Constants } from "./constants.js";
 import { Server } from "http";
 

@@ -1,10 +1,10 @@
 import { View, Block } from "@slack/bolt";
 import { Actions, Callbacks } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js"
-import { formatHour } from "../lib/templates.js";
+import { formatHour } from "../../../lib/templates.js";
 
 export class Goals {
-    public static async main(userId: string): Promise<View> {
+    public static async main(sessionTs: string): Promise<View> {
         const modal: View = {
             "type": "modal",
             "submit": {
@@ -23,7 +23,8 @@ export class Goals {
                 "emoji": true
             },
             blocks: [] as Block[],
-            callback_id: Callbacks.MAIN_GOAL
+            callback_id: Callbacks.MAIN_GOAL,
+            "private_metadata": sessionTs
         }
 
         const blocks = [
@@ -84,17 +85,34 @@ export class Goals {
             }
         ]
 
-        const goals = await prisma.goal.findMany({
+        const session = await prisma.session.findUnique({
             where: {
-                userId,
-                completed: false
+                messageTs: sessionTs
             },
-            orderBy: {
-                createdAt: "asc"
+            include: {
+                user: {
+                    include: {
+                        goals: {
+                            where: {
+                                completed: false
+                            },
+                            orderBy: {
+                                createdAt: "asc"
+                            }                     
+                        }
+                    }
+                },
+                Goal: true
             }
         });
 
-        const selectedGoal = goals.find(goal => goal.selected);
+        if (!session) {
+            throw new Error(`Session not found`);
+        }
+
+        const goals = session.user.goals;
+
+        const selectedGoal = session.Goal;
 
         blocks.push({
             "type": "actions",
@@ -170,7 +188,7 @@ export class Goals {
         return modal;
     }
 
-    public static async create(): Promise<View> {
+    public static async create(sessionTs: string): Promise<View> {
         return {
             "type": "modal",
             "callback_id": Callbacks.CREATE_GOAL,
@@ -206,12 +224,22 @@ export class Goals {
                     },
                     "block_id": "goal_name"
                 }
-            ]
+            ],
+            "private_metadata": sessionTs
         }
     }
 
-    public static async delete(goalId: string): Promise<View> {
+    public static async delete(sessionTs: string): Promise<View> {
         // Are you sure you want to delete this goal?
+        const session = await prisma.session.findUniqueOrThrow({
+            where: {
+                messageTs: sessionTs
+            },
+            include: {
+                Goal: true
+            }
+        });
+
         return {
             "type": "modal",
             "callback_id": Callbacks.DELETE_GOAL,
@@ -235,11 +263,11 @@ export class Goals {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Are you sure you want to delete this goal?"
+                        "text": `Are you sure you want to delete goal ${session.Goal?.name}?`
                     }
                 }
             ],
-            "private_metadata": goalId
+            "private_metadata": sessionTs
         }
     }
-}
+} 
