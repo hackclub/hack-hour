@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
 import { updateController, updateTopLevel, informUser } from "../lib/lib.js";
+import { Session } from "../../../lib/corelib.js";
 
 /*
 Time Extension
@@ -46,16 +47,7 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
             return;
         }
 
-        const updatedSession = await prisma.session.update({
-            where: {
-                messageTs: session.messageTs
-            },
-            data: {
-                time: {
-                    increment: minutes
-                }
-            }
-        });
+        const updatedSession = await Session.extend(session, minutes);
 
         informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedSession.elapsed} out of ${updatedSession.time} minutes`, body.channel_id);
 

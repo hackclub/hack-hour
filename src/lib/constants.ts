@@ -24,6 +24,8 @@ export const Environment = {
   DEV_CHANNEL: assertEnv('DEV_CHANNEL'),
   INTERNAL_CHANNEL: assertEnv('INTERNAL_CHANNEL'),
 
+  SHIP_CHANNEL: assertEnv('SHIP_CHANNEL'),
+
   PING_USERGROUP: assertEnv('PING_USERGROUP'),
   DEV_USERGROUP: assertEnv('DEV_USERGROUP'),
 

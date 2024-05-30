@@ -3,9 +3,10 @@
 
 import { Session, VerifiedSession } from "@prisma/client";
 import { Environment, Constants } from "./constants.js";
+import { Server } from "http";
 
 type EventMap = {
-    init: () => void,
+    init: (server: Server) => void,
     error: (error: any) => void,
 
     setFlag: (flag: string, value: any) => void,
@@ -19,11 +20,9 @@ type EventMap = {
     cancel: (session: Session) => void,
     pause: (session: Session) => void,
     resume: (session: Session) => void,
-
-    verified: (verifiedSession: VerifiedSession) => void,
 }
 
-type Event = keyof EventMap;
+export type Event = keyof EventMap;
 
 class Emitter {
     private listeners: Partial<Record<Event, Set<Function>>> = {};

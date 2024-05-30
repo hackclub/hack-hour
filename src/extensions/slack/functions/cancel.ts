@@ -6,8 +6,10 @@ import { Environment, Actions, Commands, Callbacks } from "../../../lib/constant
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { fetchSlackId, informUser, cancelSession, updateTopLevel } from "../lib/lib.js";
+import { fetchSlackId, informUser, updateTopLevel } from "../lib/lib.js";
 import { Cancel } from "../views/cancel.js";
+
+import { Session } from "../../../lib/corelib.js";
 
 app.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
@@ -51,7 +53,7 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             return;
         }
 
-        await cancelSession(slackId, session);
+        await Session.cancel(session);
     } catch (error) {
         emitter.emit('error', error);
     }
@@ -82,7 +84,7 @@ app.command(Commands.CANCEL, async ({ ack, body }) => {
             return;
         }
 
-        await cancelSession(slackId, session);
+        await Session.cancel(session);
     } catch (error) {
         emitter.emit('error', error);
     }    

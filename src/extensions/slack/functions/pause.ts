@@ -5,30 +5,11 @@ import { app } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
+import { Session } from "../../../lib/corelib.js";
 
-import { Session, updateController, updateTopLevel, fetchSlackId, informUser } from "../lib/lib.js";
+import { fetchSlackId, informUser } from "../lib/lib.js";
 
 // TODO: Move to a standard library
-async function pauseUpdate(session: Session) {
-    // If resuming the session, reset the elapsed time since pause
-    const updatedSession = await prisma.session.update({
-        where: {
-            messageTs: session.messageTs
-        },
-        data: {
-            paused: !session.paused,
-            elapsedSincePause: session.paused ? 0 : session.elapsedSincePause
-        }
-    });
-
-    if (updatedSession.paused) {
-        emitter.emit('pause', updatedSession);
-    } else {
-        emitter.emit('resume', updatedSession);
-    }
-
-    return updatedSession;
-}
 
 app.action(Actions.PAUSE, async ({ ack, body }) => {
     try {
@@ -71,7 +52,7 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
             return;
         }
 
-        await pauseUpdate(session);
+        await Session.pause(session);
     } catch (error) {
         emitter.emit('error', error);
     }
@@ -118,7 +99,7 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
             return;
         }
 
-        await pauseUpdate(session);
+        await Session.pause(session);
     } catch (error) {
         emitter.emit('error', error);
     }
@@ -148,7 +129,7 @@ app.command(Commands.PAUSE, async ({ ack, body }) => {
             return;
         }
 
-        const updatedSession = await pauseUpdate(session);
+        const updatedSession = await Session.pause(session);
 
         const toggleMessage = updatedSession.paused ?
             `Session paused! Run \`${Commands.PAUSE}\` again or \`${Commands.START}\` to resume. You still have ${updatedSession.time - updatedSession.elapsed} minutes left.` :
@@ -188,7 +169,7 @@ app.command(Commands.START, async ({ ack, body }) => {
             informUser(slackId, `Session is already running! Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
         }
 
-        const updatedSession = await pauseUpdate(session);
+        const updatedSession = await Session.pause(session);
 
         // Send a message to the user in the channel they ran the command
         informUser(slackId, `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);

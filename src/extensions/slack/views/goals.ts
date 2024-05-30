@@ -86,7 +86,8 @@ export class Goals {
 
         const goals = await prisma.goal.findMany({
             where: {
-                userId
+                userId,
+                completed: false
             },
             orderBy: {
                 createdAt: "asc"

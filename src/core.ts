@@ -1,6 +1,6 @@
-import { prisma } from "../lib/prisma.js";
-import { emitter } from "../lib/emitter.js";
-import { Constants } from "../lib/constants.js";
+import { prisma } from "./lib/prisma.js";
+import { emitter } from "./lib/emitter.js";
+import { Constants } from "./lib/constants.js";
 
 emitter.on('minute', async () => {
     try {
@@ -115,4 +115,8 @@ emitter.on('complete', async (session) => {
 
 emitter.on('error', async (error) => {
     console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}`);
+});
+
+emitter.on('init', async () => {
+    console.log('🕒 Core Subroutine Initialized!');
 });
