@@ -180,6 +180,7 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
         const existingGoal = await prisma.goal.findFirst({
             where: {
                 name: goalName,
+                completed: false,
                 userId: user.id
             }
         });

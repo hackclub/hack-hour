@@ -1,8 +1,8 @@
-import { View } from "@slack/bolt";
+import { Block, KnownBlock } from "@slack/bolt";
 import { prisma } from "../../lib/prisma.js";
 
 export const Actions = {
-    GOAL_COMPLETE: 'goal_complete'
+    INIT_BANK_GOAL: 'bankGoalInit'
 }
 
 export const Callbacks = {
@@ -10,6 +10,36 @@ export const Callbacks = {
 }
 
 export class Ship {
+    public static async bankGoalInit(shipTs: string): Promise<KnownBlock[]> {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Awesome job with that ship! Let's get your hours banked in!"
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Let's Do It!",
+                            "emoji": true
+                        },
+                        "value": shipTs,
+                        "action_id": Actions.INIT_BANK_GOAL
+                    }
+                ]
+            }
+        ]
+    }
+    /*
     public static async completeModal(userId: string): Promise<View> {
         const goals = await prisma.goal.findMany({
             where: {
@@ -108,4 +138,5 @@ export class Ship {
             ]
         };
     }
+    */
 }
