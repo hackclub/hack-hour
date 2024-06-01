@@ -60,17 +60,6 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     try {
         const goalId = (body as any).actions[0].selected_option.value;
 
-        const session = await prisma.session.findUnique({
-            where: {
-                messageTs: (body as any).view.private_metadata,
-                bankId: null
-            }
-        });
-
-        if (!session) {
-            throw new Error(`Session not found`);
-        }
-
         await prisma.goal.updateMany({
             where: {
                 selected: true
@@ -89,9 +78,13 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             }
         });
 
-        await prisma.session.update({
+        const session = await prisma.session.update({
             where: {
-                messageTs: session.messageTs
+                messageTs: (body as any).view.private_metadata,
+                goal: {
+                    completed: false
+                },
+                bankId: null
             },
             data: {
                 goal: {
@@ -292,7 +285,8 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
 
         await ack();
 
-        const session = await prisma.session.findUniqueOrThrow({
+        // Mark the goal as complete
+        let session = await prisma.session.findUniqueOrThrow({
             where: {
                 messageTs: sessionTs
             }
@@ -302,33 +296,24 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             throw new Error(`Goal not found`);
         }
 
-        const goalData = await prisma.goal.update({
+        const oldGoal = await prisma.goal.update({
             where: {
                 id: session.goalId
             },
             data: {
-                selected: false,
                 completed: true
-            }            
+            }
         });
 
+        // Update the session with "No Goal"
         const noGoal = await prisma.goal.findFirstOrThrow({
             where: {
-                userId: goalData.userId,
+                userId: session.userId,
                 name: "No Goal"
             }
         });
 
-        await prisma.goal.update({
-            where: {
-                id: noGoal.id
-            },
-            data: {
-                selected: true
-            }
-        });
-
-        await prisma.session.update({
+        session = await prisma.session.update({
             where: {
                 messageTs: sessionTs
             },
@@ -341,6 +326,17 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             // User should not have been able to get here
             throw new Error(`Root view not found`);
         }
+
+        (await prisma.session.findMany({
+            where: {
+                goal: {
+                    id: oldGoal.id                
+                }
+            }
+        })).forEach(async (session) => {
+            updateController(session);
+            updateTopLevel(session);
+        });
 
         updateController(session);
         updateTopLevel(session);
