@@ -44,12 +44,15 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
             text: "O.o"
         });
 
+        console.log(`Unauthorized user ${command.user_id} tried to access the admin command`);
+
         return;
     }
 
     await ack();
 
     enabled = !enabled;
+    console.log(`Arcade is now ${enabled ? "enabled" : "disabled"}`);
 
     await app.client.chat.postEphemeral({
         channel: Environment.SHIP_CHANNEL,
