@@ -15,7 +15,7 @@ let enabled = false;
 
 app.message(async ({ message }) => {
     if (!enabled) { return; }
-    if (message.channel !== Environment.SHIP_CHANNEL) return;
+    if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== process.env.SCRAPBOOK_CHANNEL) return;
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
     
     // Make sure the user is in the database
