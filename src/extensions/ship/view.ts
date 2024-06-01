@@ -6,6 +6,7 @@ import { formatHour } from "../../lib/templates.js";
 
 export const Actions = {
     OPEN_SESSION_REVIEW: 'openSessionReview',
+    UPDATE_SESSION_GOAL: 'updateSessionGoal',
     OPEN_GOAL_SELECT: 'openGoalSelect',
     CONFIRM_GOAL_SELECT: 'confirmGoalSelect',
     SUBMIT: 'submit'
@@ -164,7 +165,7 @@ export class Ship {
                                     })
                                 }
                             }),
-                            "action_id": Actions.OPEN_GOAL_SELECT,
+                            "action_id": Actions.UPDATE_SESSION_GOAL,
                         }
                     ]                    
                 },

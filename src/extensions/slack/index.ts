@@ -417,9 +417,6 @@ emitter.on('complete', async (session: Session) => {
         ]
     });
 
-    await updateController(session);
-    await updateTopLevel(session);
-
     await app.client.reactions.add({
         name: "tada",
         channel: Environment.MAIN_CHANNEL,
@@ -438,7 +435,8 @@ emitter.on('complete', async (session: Session) => {
         }
     });    
 
-    return;
+    await updateController(session);
+    await updateTopLevel(session);
 });
 
 emitter.on('cancel', async (session: Session) => {
@@ -492,14 +490,14 @@ emitter.on('cancel', async (session: Session) => {
         }
     });
 
-    await updateController(session);
-    await updateTopLevel(session);
-
     await app.client.reactions.add({
         name: "x",
         channel: Environment.MAIN_CHANNEL,
         timestamp: session.messageTs
     });    
+
+    await updateController(session);
+    await updateTopLevel(session);
 });
 
 emitter.on('pause', async (session: Session) => {

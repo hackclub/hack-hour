@@ -37,8 +37,15 @@ app.message(async ({ message }) => {
 });
 
 // Test ship flow
-app.command("/testadmin", async ({ command, ack }) => {
-    if (Constants.VERIFIERS.includes(command.user_id)) { return; }
+app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack }) => {
+    if (!Constants.VERIFIERS.includes(command.user_id)) { 
+        ack({
+            response_type: "ephemeral",
+            text: "O.o"
+        });
+
+        return;
+    }
 
     await ack();
 
@@ -71,7 +78,7 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
     });
 });
 
-app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
+app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
     const { goalId, sessionTs } = JSON.parse((body as any).actions[0].selected_option.value);
     const { id } = body.channel as any;
     const { user, ts } = (body as any).message;
@@ -80,7 +87,15 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
 
     let session = await prisma.session.findUniqueOrThrow({
         where: {
-            messageTs: sessionTs
+            messageTs: sessionTs,
+            OR: [
+                {
+                    completed: true
+                },
+                {
+                    cancelled: true
+                }
+            ]            
         },
         include: {
             goal: true
@@ -107,6 +122,17 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
         });
         return;
     }
+    
+    await prisma.goal.update({
+        where: {
+            id: session.goal.id
+        },
+        data: {
+            totalMinutes: {
+                decrement: session.elapsed
+            }
+        }
+    });
 
     // Update the session with the goal id
     session = await prisma.session.update({
@@ -125,6 +151,17 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
         },
         include: {
             goal: true
+        }
+    });   
+
+    await prisma.goal.update({
+        where: {
+            id: goalId
+        },
+        data: {
+            totalMinutes: {
+                increment: session.elapsed
+            }
         }
     });
 

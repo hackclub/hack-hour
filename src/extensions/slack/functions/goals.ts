@@ -240,7 +240,7 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
                 createdAt: new Date(),
                 selected: true,
 
-                totalMinutes: session.elapsed,
+                totalMinutes: 0,
 
                 user: {
                     connect: {
@@ -249,30 +249,6 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
                 }
             }
         });
-
-        if (session.completed || session.cancelled) {
-            await prisma.goal.update({
-                where: {
-                    id: session.goalId as string
-                },
-                data: {
-                    totalMinutes: {
-                        decrement: session.elapsed
-                    }
-                }
-            });
-
-            await prisma.goal.update({
-                where: {
-                    id: newGoal.id
-                },
-                data: {
-                    totalMinutes: {
-                        increment: session.elapsed
-                    }
-                }
-            });
-        }
 
         if (!body.view.root_view_id) {
             // User should not have been able to get here
