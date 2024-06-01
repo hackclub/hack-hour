@@ -29,6 +29,8 @@ export const Environment = {
   PING_USERGROUP: assertEnv('PING_USERGROUP'),
   DEV_USERGROUP: assertEnv('DEV_USERGROUP'),
 
+  SCRAPBOOK_CHANNEL: assertEnv('SCRAPBOOK_CHANNEL'),
+
   // Control Flags
   PROD: (process.env.PROD === 'true'),
 }

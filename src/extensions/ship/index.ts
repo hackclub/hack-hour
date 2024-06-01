@@ -15,7 +15,7 @@ let enabled = false;
 
 app.message(async ({ message }) => {
     if (!enabled) { return; }
-    if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== process.env.SCRAPBOOK_CHANNEL) return;
+    if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== Environment.SCRAPBOOK_CHANNEL) return;
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
     
     // Make sure the user is in the database
@@ -44,18 +44,15 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
             text: "O.o"
         });
 
-        console.log(`Unauthorized user ${command.user_id} tried to access the admin command`);
-
         return;
     }
 
     await ack();
 
     enabled = !enabled;
-    console.log(`Arcade is now ${enabled ? "enabled" : "disabled"}`);
 
     await app.client.chat.postEphemeral({
-        channel: Environment.SHIP_CHANNEL,
+        channel: command.channel_id,
         user: command.user_id,
         text: `Arcade is now ${enabled ? "enabled" : "disabled"}`
     });
