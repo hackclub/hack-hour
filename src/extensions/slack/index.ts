@@ -426,6 +426,18 @@ emitter.on('complete', async (session: Session) => {
         timestamp: session.messageTs
     });
 
+    // Increment minutes in goals
+    await prisma.goal.update({
+        where: {
+            id: session.goalId as string
+        },
+        data: {
+            totalMinutes: {
+                increment: session.elapsed
+            }
+        }
+    });    
+
     return;
 });
 
@@ -468,8 +480,26 @@ emitter.on('cancel', async (session: Session) => {
         ]        
     });
 
+    // Increment minutes in goals
+    await prisma.goal.update({
+        where: {
+            id: session.goalId as string
+        },
+        data: {
+            totalMinutes: {
+                increment: session.elapsed
+            }
+        }
+    });
+
     await updateController(session);
     await updateTopLevel(session);
+
+    await app.client.reactions.add({
+        name: "x",
+        channel: Environment.MAIN_CHANNEL,
+        timestamp: session.messageTs
+    });    
 });
 
 emitter.on('pause', async (session: Session) => {

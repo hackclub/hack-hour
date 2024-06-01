@@ -59,6 +59,19 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
 app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     try {
         const goalId = (body as any).actions[0].selected_option.value;
+        const sessionTs = (body as any).view.private_metadata
+
+        let session = await prisma.session.findUniqueOrThrow({
+            where: {
+                messageTs: sessionTs
+            }
+        });
+
+        const oldGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: session?.goalId as string
+            }
+        });
 
         await prisma.goal.updateMany({
             where: {
@@ -69,18 +82,18 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             }
         });
 
-        const goalData = await prisma.goal.update({
+        const newGoal = await prisma.goal.update({
             where: {
                 id: goalId
             },
             data: {
-                selected: true
+                selected: true,
             }
         });
 
-        const session = await prisma.session.update({
+        session = await prisma.session.update({
             where: {
-                messageTs: (body as any).view.private_metadata,
+                messageTs: sessionTs,
                 goal: {
                     completed: false
                 },
@@ -89,11 +102,35 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             data: {
                 goal: {
                     connect: {
-                        id: goalData.id
+                        id: newGoal.id
                     }
                 }
             }
         });
+
+        if (session.completed || session.cancelled) {
+            await prisma.goal.update({
+                where: {
+                    id: oldGoal.id
+                },
+                data: {
+                    totalMinutes: {
+                        decrement: session.elapsed
+                    }
+                }
+            });
+
+            await prisma.goal.update({
+                where: {
+                    id: newGoal.id
+                },
+                data: {
+                    totalMinutes: {
+                        increment: session.elapsed
+                    }
+                }
+            });
+        }
 
         await ack();
 
@@ -147,18 +184,19 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             return;
         }
 
-        const user = await prisma.user.findFirst({
+        const session = await prisma.session.findUniqueOrThrow({
+            where: {
+                messageTs: sessionTs
+            }
+        });
+
+        const user = await prisma.user.findFirstOrThrow({
             where: {
                 slackUser: {
                     slackId: slackId
                 }
             }
         });
-
-        if (!user) {
-            // User should not have been able to get here
-            throw new Error(`User with slackId ${slackId} not found`);
-        }
 
         await prisma.goal.updateMany({
             where: {
@@ -202,7 +240,7 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
                 createdAt: new Date(),
                 selected: true,
 
-                totalMinutes: 0,
+                totalMinutes: session.elapsed,
 
                 user: {
                     connect: {
@@ -212,9 +250,28 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             }
         });
 
-        if (!newGoal) {
-            // User should not have been able to get here
-            throw new Error(`Goal with name ${goalName} not created`);
+        if (session.completed || session.cancelled) {
+            await prisma.goal.update({
+                where: {
+                    id: session.goalId as string
+                },
+                data: {
+                    totalMinutes: {
+                        decrement: session.elapsed
+                    }
+                }
+            });
+
+            await prisma.goal.update({
+                where: {
+                    id: newGoal.id
+                },
+                data: {
+                    totalMinutes: {
+                        increment: session.elapsed
+                    }
+                }
+            });
         }
 
         if (!body.view.root_view_id) {
@@ -337,6 +394,31 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             updateController(session);
             updateTopLevel(session);
         });
+
+
+        if (session.completed || session.cancelled) {
+            await prisma.goal.update({
+                where: {
+                    id: oldGoal.id
+                },
+                data: {
+                    totalMinutes: {
+                        decrement: session.elapsed
+                    }
+                }
+            });
+
+            await prisma.goal.update({
+                where: {
+                    id: noGoal.id
+                },
+                data: {
+                    totalMinutes: {
+                        increment: session.elapsed
+                    }
+                }
+            });
+        }        
 
         updateController(session);
         updateTopLevel(session);

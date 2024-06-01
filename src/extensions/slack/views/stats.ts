@@ -18,10 +18,11 @@ export class Stats {
 
         const goals = await prisma.goal.findMany({
             where: {
-                userId: userId
+                userId: userId,
+                completed: false
             }
         });
-
+ 
         if (goals.length === 0) {
             throw new Error(`Goals of ${userId} not found.`);
         }
