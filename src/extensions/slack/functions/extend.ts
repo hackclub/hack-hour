@@ -17,6 +17,7 @@ app.action(Actions.EXTEND, async ({ ack, body }) => {
 
 app.command(Commands.EXTEND, async ({ ack, body }) => {
     try {
+        // TODO: Stop current session & create a new session with exact same details + 60 minutes
         await ack();
         
         const slackId = body.user_id;
@@ -39,7 +40,8 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
             return;
         }
 
-        const minutes = parseInt(body.text);
+        //const minutes = parseInt(body.text);
+        const minutes = 60;
 
         if (isNaN(minutes) || minutes <= 0) {
             informUser(slackId, `Invalid time!`, body.channel_id);

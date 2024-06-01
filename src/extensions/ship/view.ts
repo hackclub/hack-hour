@@ -47,7 +47,9 @@ export class Ship {
         ]
     }
 
-    public static async openSessionReview(slackId: string): Promise<KnownBlock[]> {
+    public static async openSessionReview(slackId: string, shipTs: string): Promise<KnownBlock[]> {
+        const date = new Date(parseInt(shipTs.split(".")[0]) * 1000);
+
         const sessions = await prisma.session.findMany({
             where: {
                 user: {
@@ -58,7 +60,10 @@ export class Ship {
                 goal: {
                     completed: false
                 },
-                bankId: null
+                bankId: null,
+                createdAt: {
+                    lte: date
+                }
             },
             orderBy: [
                 {
@@ -79,6 +84,43 @@ export class Ship {
                 goal: true,
             }
         });
+
+        if (sessions.length === 0) {
+            return [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "No Sessions Found",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "You have completed no sessions."
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Refresh",
+                                "emoji": true
+                            },
+                            "action_id": Actions.OPEN_SESSION_REVIEW
+                        }
+                    ]
+                }
+            ]
+        }        
 
         const goals = await prisma.goal.findMany({
             where: {
@@ -379,7 +421,7 @@ export class Ship {
                         },
                         "style": "danger",
                         "value": goalId,
-                        "action_id": Callbacks.COMPLETE_GOAL
+                        "action_id": Actions.SUBMIT
                     }
                 ]
             }

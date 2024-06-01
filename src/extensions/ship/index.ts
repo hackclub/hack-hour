@@ -11,7 +11,7 @@ import { Prisma, Session } from "@prisma/client";
 
 import { Constants } from "./constants.js";
 
-let enabled = false;
+let enabled = true;
 
 app.message(async ({ message }) => {
     if (!enabled) { return; }
@@ -32,7 +32,13 @@ app.message(async ({ message }) => {
     // DM the user to let them know that their ship has been received
     await app.client.chat.postMessage({
         channel: message.user,
-        blocks: await Ship.init(shipTs)
+        blocks: await Ship.init(shipTs),
+        metadata: {
+            event_type: "shipTs",
+            event_payload: {
+                ts: shipTs
+            }
+        }
     });
 });
 
@@ -47,6 +53,21 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
         return;
     }
 
+    if (command.text.split(" ")[0] === "remove") {
+        // Delete message from link
+        await ack();
+
+        const channel = command.text.split(" ")[1];
+        const ts = command.text.split(" ")[2];
+
+        await app.client.chat.delete({
+            channel,
+            ts
+        });
+
+        return;
+    }
+
     await ack();
 
     enabled = !enabled;
@@ -56,19 +77,20 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
         user: command.user_id,
         text: `Arcade is now ${enabled ? "enabled" : "disabled"}`
     });
+
 });
 
 app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
     const { id } = body.channel as any;
     const { user, ts } = (body as any).message;
-    const shipTs = (body as any).actions[0].value;
+    const shipTs = (body as any).message.metadata.event_payload.ts;
 
     await ack();
 
     await app.client.chat.update({
         channel: id,
         ts,
-        blocks: await Ship.openSessionReview(user.id),
+        blocks: await Ship.openSessionReview(user.id, shipTs),
         metadata: {
             event_type: "shipTs",
             event_payload: {
@@ -102,8 +124,6 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
         }
     });
 
-    console.log(session);
-
     if (!session.goal) { throw new Error(`No goal found for session ${sessionTs}`); }
 
     if (session.goal.completed) {
@@ -112,7 +132,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
         await app.client.chat.update({
             channel: id,
             ts,
-            blocks: await Ship.openSessionReview(user.id),
+            blocks: await Ship.openSessionReview(user.id, shipTs),
             metadata: {
                 event_type: "shipTs",
                 event_payload: {
@@ -168,7 +188,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
     await app.client.chat.update({
         channel: id,
         ts,
-        blocks: await Ship.openSessionReview(user.id),
+        blocks: await Ship.openSessionReview(user.id, shipTs),
         metadata: {
             event_type: "shipTs",
             event_payload: {
@@ -368,9 +388,14 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         })
     });
 
+    if (!body.channel?.id) {
+        emitter.emit('error', new Error(`No channel found for ${body.user.id}`));
+        return;
+    }
+
     await app.client.chat.update({
-        channel: Environment.SHIP_CHANNEL,
-        ts: shipTs,
+        channel: body.channel.id,
+        ts: (body as any).message.ts,
         blocks: await Ship.complete(),
     });
 });
