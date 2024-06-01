@@ -89,6 +89,8 @@ model Bank {
   type        String // "ship"/"ysws"/"scrapbook"
 
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+//lastBankedAt DateTime
 
   sessions    Session[]
 

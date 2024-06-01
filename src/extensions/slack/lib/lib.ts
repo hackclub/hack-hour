@@ -16,7 +16,17 @@ export async function updateController(session: Session) {
         ts: session.controlTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await Controller.panel(session),
-        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
+        text: `Time Remaining: ${session.time-session.elapsed} minutes - ${(() => {
+            if (session.paused) {
+                return "Paused";
+            } else if (session.cancelled) {
+                return "Cancelled";
+            } else if (session.completed) {
+                return "Completed";
+            } else {
+                return "In Progress";
+            }
+        })()}` // TODO: Replace with accessibility friendly text
     });
 }
 
@@ -30,7 +40,7 @@ export async function updateTopLevel(session: Session) {
         ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await TopLevel.topLevel(session),
-        text: "todo: replace with accessibility friendly text" // TODO: Replace with accessibility friendly text
+        text: `${(session.metadata as any).work}` // TODO: Replace with accessibility friendly text
     });
 }
 

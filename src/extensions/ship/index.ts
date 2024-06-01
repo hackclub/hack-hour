@@ -1,215 +1,395 @@
-/*
-import Airtable from "airtable";
-
 import { emitter } from "../../lib/emitter.js";
 import { app } from "../../lib/bolt.js";
-import { prisma } from "../../lib/prisma.js";
-import { formatHour } from "../slack/lib/templates.js";
+import { prisma, uid } from "../../lib/prisma.js";
+
 import { Environment } from "../../lib/constants.js";
+import { Actions, Ship } from "./view.js";
+import { updateController, updateTopLevel } from "../slack/lib/lib.js";
 
-import { Actions, Callbacks, Ship } from "./view.js";
+import { AirtableAPI } from "./airtable.js";
+import { Prisma, Session } from "@prisma/client";
 
-/*
-How it works:
-- User sends a ship (a message in the ship channel
-- The bot responds with a ship message and a button to open modals
-- The modal asks the user which goal they want to complete
-- The user selects a goal
-- The bot updates the message with the goal selected
-- The bot updates the goal in the database
-- The bot updates an external database (airtable)
-*//*
- 
-type AirtableUser = {
-    "Name": string,
-    "Internal ID": string,
-    "Slack ID": string,
-}
+import { Constants } from "./constants.js";
 
-type AirtableSession = {
-    "Timestamp": string,
-    "V2: Users": [
-        string
-    ],
-    "Work": string,
-    "Minutes": number,
-    "Code URL": string
-}
+let enabled = false;
 
-Airtable.configure({
-    apiKey: process.env.AIRTABLE_TOKEN
-});
-
-const base = Airtable.base('app1VxI7f3twOIs2g')
-const users = base('V2: Users');
-const sessions = base('V2: Sessions');
-
-emitter.on('init', async () => {
-    console.log('🚢 Ship Subroutine Initialized!');
-});
-
-/*
-emitter.on('complete', async (session) => {
-    // Check if the user is in the users base
-    const user = await users.select({
-        filterByFormula: `{Internal ID} = '${session.userId}'`
-    }).firstPage();
-
-    let userRecord;
-
-    if (!user.length) {
-        // Add the user to the airtable
-        const userDB = await prisma.user.findUnique({
-            where: {
-                id: session.userId
-            },
-            include: {
-                slackUser: true
-            }
-        });
-
-        if (!userDB || !userDB.slackUser) { return };
-        if (!session.metadata) { return };
-
-        const userInfo = await app.client.users.info({
-            user: userDB.slackUser.slackId
-        });
-
-        if (!userInfo.user) { emitter.emit('error', `User ${userDB.slackUser.slackId} not found`); return };
-
-        userRecord = (await users.create([{
-            "fields": {
-                "Name": userInfo.user.real_name,
-                "Internal ID": userDB.id,
-                "Slack ID": userDB.slackUser.slackId,
-            } as AirtableUser
-        }]))[0];
-    } else {
-        userRecord = (await users.select({
-            filterByFormula: `{Internal ID} = '${session.userId}'`
-        }).firstPage())[0];
-    }
-
-    const codeURL = (await app.client.chat.getPermalink({
-        channel: Environment.SHIP_CHANNEL,
-        message_ts: session.messageTs
-    })).permalink;
-
-    await sessions.create([{
-        "fields": {
-            "Timestamp": session.createdAt.toISOString(),
-            "V2: Users": [userRecord.id],
-            "Work": (session.metadata as any).work,
-            "Minutes": session.elapsed,
-            "Code URL": session.messageTs
-        } as AirtableSession
-    }]);
-});
-
-*//*
-app.message(async ({ message, say }) => {
+app.message(async ({ message }) => {
+    if (!enabled) { return; }
     if (message.channel !== Environment.SHIP_CHANNEL) return;
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
-
-    const { text, ts, user } = message;
-
-    const slackUser = await prisma.slackUser.findUnique({
+    
+    // Make sure the user is in the database
+    const user = await prisma.slackUser.findUnique({
         where: {
-            slackId: user
-        },
-        include: {
-            user: true
+            slackId: message.user
         }
     });
 
-    if (!slackUser) return;
+    if (!user) { return; } //TODO: Advertise the user to sign up
 
-    const response = await app.client.chat.postMessage({
+    const shipTs = message.ts;
+
+    // DM the user to let them know that their ship has been received
+    await app.client.chat.postMessage({
+        channel: message.user,
+        blocks: await Ship.init(shipTs)
+    });
+});
+
+// Test ship flow
+app.command("/testadmin", async ({ command, ack }) => {
+    if (Constants.VERIFIERS.includes(command.user_id)) { return; }
+
+    await ack();
+
+    enabled = !enabled;
+
+    await app.client.chat.postEphemeral({
         channel: Environment.SHIP_CHANNEL,
-        text: `:ship: ${text}!!!!`,
-        blocks: [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": `:ship: ${text}!!!!`
-                },
-                accessory: {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Complete Goal"
-                    },
-                    "action_id": Actions.GOAL_COMPLETE,
-                    "value": slackUser.user.id
-                }
+        user: command.user_id,
+        text: `Arcade is now ${enabled ? "enabled" : "disabled"}`
+    });
+});
+
+app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
+    const { id } = body.channel as any;
+    const { user, ts } = (body as any).message;
+    const shipTs = (body as any).actions[0].value;
+
+    await ack();
+
+    await app.client.chat.update({
+        channel: id,
+        ts,
+        blocks: await Ship.openSessionReview(user.id),
+        metadata: {
+            event_type: "shipTs",
+            event_payload: {
+                ts: shipTs
             }
-        ],
-        thread_ts: ts
-    });
-
-    if (!response) return;
-    
-    const meta: any = slackUser.user.metadata;
-
-    meta.shipPosts = meta.shipPosts ? meta.shipPosts : [];
-
-    meta.shipPosts.push({
-        postTs: ts,
-        responseTs: response.ts
-    });
-
-    await prisma.user.update({
-        where: {
-            id: slackUser.user.id
-        },
-        data: {
-            metadata: meta
         }
     });
 });
 
-app.action(Actions.GOAL_COMPLETE, async ({ ack, body, client }) => {
-    ack();
+app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
+    const { goalId, sessionTs } = JSON.parse((body as any).actions[0].selected_option.value);
+    const { id } = body.channel as any;
+    const { user, ts } = (body as any).message;
 
-    const slackId = (body as any).user.id;
-    const userId = JSON.parse((body as any).actions[0].value);
+    const shipTs = (body as any).message.metadata.event_payload.ts;
 
-    const user = await prisma.user.findUnique({
+    let session = await prisma.session.findUniqueOrThrow({
         where: {
-            id: userId
+            messageTs: sessionTs
+        },
+        include: {
+            goal: true
+        }
+    });
+
+    console.log(session);
+
+    if (!session.goal) { throw new Error(`No goal found for session ${sessionTs}`); }
+
+    if (session.goal.completed) {
+        // Something happened to the goal, so we need to refresh the view
+        ack();
+        await app.client.chat.update({
+            channel: id,
+            ts,
+            blocks: await Ship.openSessionReview(user.id),
+            metadata: {
+                event_type: "shipTs",
+                event_payload: {
+                    ts: shipTs
+                }
+            }
+        });
+        return;
+    }
+
+    // Update the session with the goal id
+    session = await prisma.session.update({
+        where: {
+            messageTs: sessionTs,
+            goal: {
+                completed: false
+            }
+        },
+        data: {
+            goal: {
+                connect: {
+                    id: goalId
+                }
+            }
+        },
+        include: {
+            goal: true
+        }
+    });
+
+    await app.client.chat.update({
+        channel: id,
+        ts,
+        blocks: await Ship.openSessionReview(user.id),
+        metadata: {
+            event_type: "shipTs",
+            event_payload: {
+                ts: shipTs
+            }
+        }
+    });
+
+    await updateController(session);
+    await updateTopLevel(session);
+
+    await ack();
+});
+
+app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body  }) => {
+    const { id } = body.channel as any;
+    const { user, ts } = (body as any).message;
+
+    const shipTs = (body as any).message.metadata.event_payload.ts;
+
+    await ack();
+
+    await app.client.chat.update({
+        channel: id,
+        ts,
+        blocks: await Ship.openGoalSelect(user.id),
+        metadata: {
+            event_type: "shipTs",
+            event_payload: {
+                ts: shipTs
+            }
+        }
+    });
+});
+
+const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{include: { slackUser: true }}>) => {
+    let airtableUser = await AirtableAPI.User.fetch(user.id);
+
+    if (!user.slackUser) { throw new Error(`No slack user found for ${user.id}`); }
+    
+    if (!airtableUser) { 
+        const slackInfo = await app.client.users.info({
+            user: user.slackUser.slackId
+        });
+        if (!slackInfo.user?.real_name) { throw new Error(`No user found for ${user.slackUser.slackId}`); }
+
+        airtableUser = await AirtableAPI.User.create({
+            "Name": slackInfo.user.real_name,
+            "Internal ID": user.id,
+            "Slack ID": user.slackUser.slackId,
+            "Banked Minutes": 0,
+            "Ships": [],
+            "Sessions": []
+        });
+    }
+    
+    return airtableUser;
+}
+
+app.action(Actions.CONFIRM_GOAL_SELECT, async ({ ack, body }) => {
+    const { id } = body.channel as any;
+    const { user, ts } = (body as any).message;
+
+    const shipTs = (body as any).message.metadata.event_payload.ts;
+
+    const values = (body as any).state.values;
+
+    if (!values || Object.keys(values).length === 0) {
+        await ack();
+
+        await app.client.chat.postEphemeral({
+            user: body.user.id,
+            channel: body.user.id,
+            text: "You need to select a goal to submit"
+        });
+
+        return;
+    }
+
+    await ack();
+
+    await app.client.chat.update({
+        channel: id,
+        ts,
+        blocks: await Ship.confirm(user.id),
+        metadata: {
+            event_type: "shipTs",
+            event_payload: {
+                ts: shipTs,
+                goal: values.goals.select.selected_option.value
+            }
+        }
+    });
+});
+
+app.action(Actions.SUBMIT, async ({ ack, body }) => {
+    const shipTs = (body as any).message.metadata.event_payload.ts;
+    const goalId = (body as any).message.metadata.event_payload.goal;
+
+    const shipUrl = await app.client.chat.getPermalink({
+        channel: Environment.SHIP_CHANNEL,
+        message_ts: shipTs
+    });
+
+    if (!shipUrl.permalink) { throw new Error(`No permalink found for ${shipTs}` ); }
+
+    await ack();
+
+    const user = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: body.user.id
+            }
         },
         include: {
             slackUser: true
         }
     });
 
-    if (!user) return;
-    if (!user.slackUser) return;
+    const sessions = await prisma.session.findMany({
+        where: {
+            goalId            
+        }
+    });
 
-    if (slackId !== user.slackUser.slackId) {
-        await client.chat.postEphemeral({
-            channel: slackId,
-            text: `You can't complete another user's goal!`,
-            user: slackId,
-            thread_ts: (body as any).message.ts
-        });
+    await prisma.bank.create({
+        data: {
+            id: uid(),
+            user: {
+                connect: {
+                    id: user.id
+                }
+            },
+            minutes: 0,
+            type: "ship",
+            sessions: {
+                connect: sessions.map(session => {
+                    return {
+                        messageTs: session.messageTs
+                    }
+                })
+            },
+            data: {
+                shipTs,
+                shipUrl: shipUrl.permalink
+            }
+        }
+    });
 
-        return;
-    }
+    const oldGoal = await prisma.goal.update({
+        where: {
+            id: goalId
+        },
+        data: {
+            completed: true
+        }
+    });
 
-    const responseTs = (body as any).message.ts;
+    // Create a new identical goal to replace the old one
+    await prisma.goal.create({
+        data: {
+            id: uid(),
+            name: oldGoal.name,
+            description: oldGoal.description,
+            completed: false,
+            user: {
+                connect: {
+                    id: user.id
+                }
+            },
+            totalMinutes: oldGoal.totalMinutes,
+            selected: oldGoal.selected,
+            createdAt: oldGoal.createdAt,
+        }
+    });
 
-    const meta: any = user.metadata;
-    if (!meta.shipPosts) return;
+    await prisma.goal.update({
+        where: {
+            id: oldGoal.id
+        },
+        data: {
+            selected: false
+        }
+    })
 
-    const shipPost = meta.shipPosts.find((post: any) => post.responseTs === responseTs);
+    // Update on Airtable
+    const { id } = await fetchOrCreateUser(user);
 
-    if (!shipPost) return;
+    await AirtableAPI.Ship.create({
+        "Ship URL": shipUrl.permalink, 
+        "User": [id],
+        "Minutes": 0,
+        "Created At": new Date().toISOString(),
+        "Status": "Unreviewed",
+        "Sessions": sessions.map(session => {
+            return (session.metadata as any).airtable.id;
+        })
+    });
 
-    await client.views.open({
-        trigger_id: (body as any).trigger_id,
-        view: await Ship.completeModal(userId)
+    await app.client.chat.update({
+        channel: Environment.SHIP_CHANNEL,
+        ts: shipTs,
+        blocks: await Ship.complete(),
     });
 });
-*/
+
+const registerSession = async (session: Session) => {
+    if (!enabled) { return; }
+
+    const user = await prisma.user.findFirstOrThrow({
+        where: {
+            id: session.userId
+        },
+        include: {
+            slackUser: true
+        }
+    });
+
+    const { id, fields } = await fetchOrCreateUser(user);
+
+    const permalink = await app.client.chat.getPermalink({
+        channel: Environment.MAIN_CHANNEL,
+        message_ts: session.messageTs
+    });
+
+    if (!permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}` ); }
+
+    // Create a new session
+    const { id: sid, fields: sfields } = await AirtableAPI.Session.create({
+        "Code URL": permalink.permalink,
+        "User": [id],
+        "Work": (session.metadata as any).work,
+        "Minutes": session.elapsed,
+        "Status": "Unreviewed",
+        "Created At": session.createdAt.toISOString(),
+    });
+
+    console.log(`Registered session ${session.messageTs} for ${id} in the Airtable`);
+
+    await prisma.session.update({
+        where: {
+            messageTs: session.messageTs
+        },
+        data: {
+            metadata: {
+                ...(session.metadata as any),
+                airtable: {
+                    id: sid
+                }
+            }
+        }
+    });
+};
+
+emitter.on('complete', async (session: Session) => {
+    await registerSession(session);
+});
+
+emitter.on('cancel', async (session: Session) => {
+    await registerSession(session);
+});

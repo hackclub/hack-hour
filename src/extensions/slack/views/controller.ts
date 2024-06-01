@@ -6,6 +6,7 @@ import { app } from "../../../lib/bolt.js";
 
 export class Controller {
     public static async panel(session: Session) {
+        /*
         // Pre-fetch the goal
         let curGoal = await prisma.goal.findFirst({
             where: {
@@ -36,17 +37,22 @@ export class Controller {
                 }
             });
         }
+        */
+        // hacky replacement, but fetch the goal from the session
+        if (!session.goalId) { throw new Error(`No goal found for session ${session.messageTs}`); }
+
+        const curGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: session.goalId
+            }
+        });
 
         // Pre-fetch the slack user
-        const slackUser = await prisma.slackUser.findUnique({
+        const slackUser = await prisma.slackUser.findUniqueOrThrow({
             where: {
                 userId: session.userId
             }
         });
-
-        if (!slackUser) {
-            throw new Error(`Could not find slack user for user ${session.userId}`);
-        }
 
         // Context Info
         const context = {
@@ -110,14 +116,14 @@ export class Controller {
             "action_id": Actions.OPEN_GOAL
         };
 
-        if (session.bankId) {
+        if (session.bankId || curGoal.completed) {
             return [
                 info,
                 {
                     "type": "divider"
                 },
                 context
-            ]            
+            ]
         } else if (session.paused) {
             return [
                 info,
@@ -128,11 +134,11 @@ export class Controller {
                     "type": "actions",
                     "elements": [
                         pause,
-                    ],                    
-                    "block_id": "panel"                
+                    ],
+                    "block_id": "panel"
                 },
                 context
-            ]        
+            ]
         } else if (session.cancelled || session.completed) {
             return [
                 info,
@@ -143,8 +149,8 @@ export class Controller {
                     "type": "actions",
                     "elements": [
                         openGoal
-                    ],                    
-                    "block_id": "panel"                
+                    ],
+                    "block_id": "panel"
                 },
                 context
             ]
@@ -187,7 +193,7 @@ export class Controller {
                         "action_id": Actions.OPEN_GOAL
                     }
                 ],
-                "block_id": "panel"                
+                "block_id": "panel"
             },
             context
         ]

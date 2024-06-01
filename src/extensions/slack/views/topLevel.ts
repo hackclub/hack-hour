@@ -8,7 +8,7 @@ export class TopLevel {
 
         // Prefetch data
 
-        const slackUser = await prisma.slackUser.findUnique({
+        const slackUser = await prisma.slackUser.findUniqueOrThrow({
             where: {
                 userId: session.userId
             }
@@ -53,11 +53,12 @@ export class TopLevel {
                 text: metadata.work
             }
         });
-        
+
         blocks.push({
             type: 'divider'
         });
 
+        /*
         let curGoal = await prisma.goal.findFirst({
             where: {
                 userId: session.userId,
@@ -87,6 +88,16 @@ export class TopLevel {
                 }
             });
         }
+        */
+        // hacky replacement, but fetch the goal from the session
+        if (!session.goalId) { throw new Error(`No goal found for session ${session.messageTs}`); }
+
+        const curGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: session.goalId
+            }
+        });
+
 
         blocks.push({
             type: "context",

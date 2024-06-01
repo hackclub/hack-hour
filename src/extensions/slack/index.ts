@@ -147,7 +147,7 @@ app.event("message", async ({ event }) => {
 */
 
 // Default command to start a session
-app.command(Commands.HACK, async ({ command, ack, respond }) => {
+app.command(Commands.HACK, async ({ command, ack }) => {
     const slackId = command.user_id;
 
     await ack();
@@ -500,6 +500,8 @@ emitter.on('init', async () => {
             buildDesc = 'Development';
         }
 
+        console.log(`Running Release ${releaseVersion}-${buildDesc}`);
+
         await app.client.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
             channel: process.env.LOG_CHANNEL || 'C0P5NE354',
@@ -530,6 +532,6 @@ emitter.on('error', async (error) => {
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
-        text: `<!subteam^${process.env.DEV_USERGROUP}> I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+        text: `${/*<!subteam^${process.env.DEV_USERGROUP}>*/`<@U04QD71QWS0>`} I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
     });
 });
