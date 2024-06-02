@@ -32,38 +32,51 @@ function extractFromPermalink(permalink: string) {
 
 app.message(async ({ message }) => {
     if (!enabled) { return; }
-    console.log("Message received")
-    console.log(message.channel)
-    console.log("SHIP->", Environment.SHIP_CHANNEL, message.channel === Environment.SHIP_CHANNEL)
-    console.log("SCRAP>", Environment.SCRAPBOOK_CHANNEL, message.channel === Environment.SCRAPBOOK_CHANNEL)
     if (
         !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
     ) { return };
-
-    console.log("In correct channel")
     if (!message.subtype || message.subtype !== 'file_share') { return }; // Needs to be a file share event
-    console.log("File share event confirmed")
     
     // Make sure the user is in the database
-    const user = await prisma.slackUser.findUnique({
+    const user = await prisma.user.findFirst({
         where: {
-            slackId: message.user
-        }
+            slackUser: {
+                slackId: message.user
+            }
+        },
     });
 
     if (!user) { return; } //TODO: Advertise the user to sign up
 
+    let metadata: any | null = user.metadata;
+
+    if (!metadata) { 
+        metadata = {
+            ships: []
+        }
+    } else if (!metadata.ships) {
+        metadata.ships = [];
+    }
+
     const shipTs = message.ts;
 
     // DM the user to let them know that their ship has been received
-    await app.client.chat.postMessage({
+    const result = await app.client.chat.postMessage({
         channel: message.user,
-        blocks: await Ship.init(shipTs),
-        metadata: {
-            event_type: "shipTs",
-            event_payload: {
-                ts: shipTs
-            }
+        blocks: await Ship.init(shipTs)
+    });
+
+    metadata.ships.push({
+        shipTs,
+        message: result.ts
+    });
+
+    await prisma.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
+            metadata
         }
     });
 });
@@ -107,8 +120,18 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
 
 app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
     const { id } = body.channel as any;
-    const { user, ts } = (body as any).message;
-    const shipTs = (body as any).message.metadata.event_payload.ts;
+    const { user } = body;
+    const { ts } = (body as any).message;
+
+    const dbUser = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: user.id
+            }
+        }
+    });
+
+    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
 
     await ack();
 
@@ -128,9 +151,18 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
 app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
     const { goalId, sessionTs } = JSON.parse((body as any).actions[0].selected_option.value);
     const { id } = body.channel as any;
-    const { user, ts } = (body as any).message;
+    const { user } = body;
+    const { ts } = (body as any).message;
 
-    const shipTs = (body as any).message.metadata.event_payload.ts;
+    const dbUser = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: user.id
+            }
+        }
+    });
+
+    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
 
     let session = await prisma.session.findUniqueOrThrow({
         where: {
@@ -230,9 +262,18 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
 
 app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body  }) => {
     const { id } = body.channel as any;
-    const { user, ts } = (body as any).message;
+    const { user } = body;
+    const { ts } = (body as any).message;
 
-    const shipTs = (body as any).message.metadata.event_payload.ts;
+    const dbUser = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: user.id
+            }
+        }
+    });
+
+    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
 
     await ack();
 
@@ -275,9 +316,18 @@ const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{include: { slackUs
 
 app.action(Actions.CONFIRM_GOAL_SELECT, async ({ ack, body }) => {
     const { id } = body.channel as any;
-    const { user, ts } = (body as any).message;
+    const { user } = body;
+    const { ts } = (body as any).message;
 
-    const shipTs = (body as any).message.metadata.event_payload.ts;
+    const dbUser = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: user.id
+            }
+        }
+    });
+
+    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
 
     const values = (body as any).state.values;
 
@@ -310,7 +360,21 @@ app.action(Actions.CONFIRM_GOAL_SELECT, async ({ ack, body }) => {
 });
 
 app.action(Actions.SUBMIT, async ({ ack, body }) => {
-    const shipTs = (body as any).message.metadata.event_payload.ts;
+    console.log((body as any));
+
+    const { user: slack } = body;
+    const { ts } = (body as any).message;
+
+    const dbUser = await prisma.user.findFirstOrThrow({
+        where: {
+            slackUser: {
+                slackId: slack.id
+            }
+        }
+    });
+
+    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
+
     const goalId = (body as any).message.metadata.event_payload.goal;
 
     const shipUrl = await app.client.chat.getPermalink({
@@ -415,6 +479,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         "Ship URL": shipUrl.permalink, 
         "User": [id],
         "Minutes": 0,
+        "Goal Name": oldGoal.name,
         "Created At": new Date().toISOString(),
         "Status": "Unreviewed",
         "Sessions": sessions.map(session => {

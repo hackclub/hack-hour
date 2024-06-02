@@ -25,6 +25,7 @@ type AirtableUser = {
 
 type AirtableShip = {
     "Ship URL": string,
+    "Goal Name": string,
     "Status": "Approved" | "Unreviewed" | "Rejected",
     "User": AirtableRecordID[],
     "Created At": string,
