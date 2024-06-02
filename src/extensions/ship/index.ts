@@ -360,8 +360,6 @@ app.action(Actions.CONFIRM_GOAL_SELECT, async ({ ack, body }) => {
 });
 
 app.action(Actions.SUBMIT, async ({ ack, body }) => {
-    console.log((body as any));
-
     const { user: slack } = body;
     const { ts } = (body as any).message;
 
@@ -377,12 +375,20 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
 
     const goalId = (body as any).message.metadata.event_payload.goal;
 
-    const shipUrl = await app.client.chat.getPermalink({
-        channel: Environment.SHIP_CHANNEL,
-        message_ts: shipTs
-    });
-
-    if (!shipUrl.permalink) { throw new Error(`No permalink found for ${shipTs}` ); }
+    let shipUrl: string | undefined;
+    try {
+        shipUrl = (await app.client.chat.getPermalink({
+            channel: Environment.SHIP_CHANNEL,
+            message_ts: shipTs
+        })).permalink;
+    } catch (e) {
+        shipUrl = (await app.client.chat.getPermalink({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            message_ts: shipTs
+        })).permalink;
+    }
+ 
+    if (!shipUrl) { throw new Error(`No permalink found for ${shipTs}` ); }
 
     await ack();
 
@@ -422,7 +428,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
             },
             data: {
                 shipTs,
-                shipUrl: shipUrl.permalink
+                shipUrl: shipUrl
             }
         }
     });
@@ -476,7 +482,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     const { id } = await fetchOrCreateUser(user);
 
     await AirtableAPI.Ship.create({
-        "Ship URL": shipUrl.permalink, 
+        "Ship URL": shipUrl, 
         "User": [id],
         "Minutes": 0,
         "Goal Name": oldGoal.name,
