@@ -14,13 +14,12 @@ import { Constants } from "./constants.js";
 let enabled = true;
 
 app.message(async ({ message }) => {
-    console.log(message);
-    console.log("----");
-    console.log(message.channel);
     if (!enabled) { return; }
+    console.log("Message received")
     if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== Environment.SCRAPBOOK_CHANNEL) return;
+    console.log("In correct channel")
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
-    console.log("-passed-")
+    console.log("File share event confirmed")
     
     // Make sure the user is in the database
     const user = await prisma.slackUser.findUnique({
