@@ -20,6 +20,7 @@ app.message(async ({ message }) => {
     if (!enabled) { return; }
     if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== Environment.SCRAPBOOK_CHANNEL) return;
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
+    console.log("-passed-")
     
     // Make sure the user is in the database
     const user = await prisma.slackUser.findUnique({
