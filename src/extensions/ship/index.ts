@@ -85,20 +85,9 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
 
     if (subCommand === "delete") {
         // Delete message from link
-        const { channel, ts } = extractFromPermalink(subArgs[0]);
-
-        if (!channel || !ts) {
-            await ack({
-                response_type: "ephemeral",
-                text: "Invalid permalink",
-            });
-            return;
-        }
-        await ack();
-
         await app.client.chat.delete({
-            channel,
-            ts: String(ts)
+            channel: subArgs[0],
+            ts: subArgs[1]
         });
 
         return;
