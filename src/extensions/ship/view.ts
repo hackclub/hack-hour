@@ -5,10 +5,10 @@ import { Environment } from "../../lib/constants.js";
 import { formatHour } from "../../lib/templates.js";
 
 export const Actions = {
-    OPEN_SESSION_REVIEW: 'openSessionReview',
-    UPDATE_SESSION_GOAL: 'updateSessionGoal',
-    OPEN_GOAL_SELECT: 'openGoalSelect',
-    CONFIRM_GOAL_SELECT: 'confirmGoalSelect',
+    OPEN_SESSION_REVIEW: 'open_session_review',
+    UPDATE_SESSION_GOAL: 'update_session_goal',
+    OPEN_GOAL_SELECT: 'open_goal_select',
+    CONFIRM_GOAL_SELECT: 'confirm_goal_select',
     SUBMIT: 'submit'
 }
 
