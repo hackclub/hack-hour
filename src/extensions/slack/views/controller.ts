@@ -242,7 +242,7 @@ export class Controller {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `<${permalink.permalink}|View Session>`
+                "text": `\`/cancel\` | \`/pause\` | \`/resume\` | \`/extend\` | \`/goal\` | <${permalink.permalink}|View Session>`
             }
         };
 
