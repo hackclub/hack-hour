@@ -76,9 +76,9 @@ export class Controller {
         };
 
         if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is cancelled.`
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
         } else if (session.cancelled) {
-            info.text.text = `You have cancelled your session.`
+            info.text.text = `You have ended your session early.`
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
@@ -178,7 +178,7 @@ export class Controller {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Cancel",
+                            "text": "End Early",
                             "emoji": true
                         },
                         "action_id": Actions.CANCEL
@@ -220,9 +220,9 @@ export class Controller {
         };
 
         if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is cancelled.`
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
         } else if (session.cancelled) {
-            info.text.text = `You have cancelled your session.`
+            info.text.text = `You have ended your session early.`
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {

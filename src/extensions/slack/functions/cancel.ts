@@ -46,7 +46,7 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             await app.client.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot cancel another user's session!`,
+                text: `You cannot end another user's session!`,
                 thread_ts: messageTs
             });                
 

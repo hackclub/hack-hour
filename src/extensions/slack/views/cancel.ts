@@ -9,12 +9,12 @@ export class Cancel {
             "callback_id": Callbacks.CANCEL,
             "title": {
                 "type": "plain_text",
-                "text": "Cancel Session",
+                "text": "End this Session Early",
                 "emoji": true
             },
             "submit": {
                 "type": "plain_text",
-                "text": "Cancel this session",
+                "text": "End this session",
                 "emoji": true
             },
             "close": {
@@ -27,7 +27,7 @@ export class Cancel {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Are you sure you want to cancel this session?"
+                        "text": "Are you sure you want to end this session early?"
                     }
                 }
             ],

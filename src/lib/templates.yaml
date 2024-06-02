@@ -21,9 +21,9 @@ complete:
     - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
 
 cancel:
-    - yikes! <@${slackId}> cancelled their hack hour!
-    - <@${slackId}> cancelled their hack hour early.
-    - oh no! <@${slackId}> cancelled their hour!
+    - <@${slackId}> ended their hack hour early!
+    - <@${slackId}> finished their hack hour early.
+    - it looks like <@${slackId}> is already done!
 #    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
 
 pause: 

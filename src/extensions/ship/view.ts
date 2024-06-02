@@ -23,7 +23,7 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Awesome job with that ship! Let's get your hours banked in!"
+                    "text": "Awesome job with that ship! Let's get your hours banked in! :yay:"
                 }
             },
             {
@@ -99,7 +99,7 @@ export class Ship {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "You have completed no sessions."
+                        "text": "You have completed no sessions! You need to complete a session before you can ship it for hack hour."
                     }
                 },
                 {
@@ -141,7 +141,7 @@ export class Ship {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Review Sessions",
+                    "text": "Review Sessions 📝",
                     "emoji": true
                 }
             },
@@ -149,7 +149,7 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "_Review your sessions and edit their respective goals._ You will be submitting your goal to bank your hack hours - note that this is subject to manual review."
+                    "text": "_Review your sessions and edit their respective goals._ You will be shipping a goal alongside your project - note that this is subject to manual review."
                 }
             },
             {
@@ -271,6 +271,9 @@ export class Ship {
             },
             orderBy: {
                 createdAt: "asc"
+            },
+            include: {
+                sessions: true
             }
         });
 
@@ -280,7 +283,7 @@ export class Ship {
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "No Goals to Complete",
+                        "text": "No Goals to Ship",
                         "emoji": true
                     }
                 },
@@ -288,7 +291,7 @@ export class Ship {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "You have no goals to complete."
+                        "text": "You have no goals to ship! You need to create a goal first before you can ship it. Go to one of your sessions and choose `Change Goal` to create a new goal."
                     }
                 },
                 {
@@ -316,7 +319,7 @@ export class Ship {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Submit a Goal",
+                    "text": "Ship a Goal 🚢",
                     "emoji": true
                 }
             },
@@ -324,7 +327,7 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Submit a goal to mark as complete."
+                    "text": "Select the goal (project) you are shipping. You will be submitting your goal - your goal is the work that culminates in your ship. Remember, this is subject to manual approval!"
                 }
             },
             {
@@ -338,7 +341,7 @@ export class Ship {
                         return {
                             "text": {
                                 "type": "plain_text",
-                                "text": goal.name,
+                                "text": `${goal.name}\n_${goal.sessions.length} sessions_ | _Total Hours: ${formatHour(goal.sessions.reduce((acc, session) => acc + session.elapsed, 0))}_`,
                                 "emoji": true
                             },
                             "value": goal.id
@@ -386,7 +389,7 @@ export class Ship {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Confirm Goal Completion",
+                    "text": "Confirm Goal Shipping 🚢",
                     "emoji": true
                 }
             },
@@ -394,7 +397,7 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Are you sure you want to complete this goal?"
+                    "text": "Are you sure you want to ship this goal?"
                 }
             },
             {
@@ -434,7 +437,7 @@ export class Ship {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Goal Completed",
+                    "text": "Goal Shipped!",
                     "emoji": true
                 }
             },
