@@ -3,7 +3,7 @@ import { Actions, Commands, Environment } from "../../lib/constants.js";
 import { prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
 
-import { t, t_fetch } from "../../lib/templates.js";
+import { t, t_fetch, t_format } from "../../lib/templates.js";
 import { reactOnContent } from "./lib/emoji.js";
 import { updateController, updateTopLevel, cancelSession, informUser, informUserBlocks } from "./lib/lib.js";
 
@@ -454,16 +454,18 @@ emitter.on('cancel', async (session: Session) => {
     await app.client.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t(`cancel`, {
-            slackId: slackUser.slackId
+        text: t_format('hey <@{slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+            slackId: slackUser.slackId,
+            minutes: session.elapsed
         }),
         blocks: [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t('cancel', {
-                        slackId: slackUser.slackId
+                    "text": t_format('hey <@{slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+                        slackId: slackUser.slackId,
+                        minutes: session.elapsed
                     })
                 },
                 "accessory": {

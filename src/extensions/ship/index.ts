@@ -344,7 +344,16 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         },
         data: {
             completed: true
+        },
+        include: {
+            sessions: true
         }
+    });
+
+    // Update the user's sessions
+    oldGoal.sessions.forEach(async session => {
+        updateController(session);
+        updateTopLevel(session);
     });
 
     // Create a new identical goal to replace the old one
@@ -372,7 +381,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         data: {
             selected: false
         }
-    })
+    });
 
     // Update on Airtable
     const { id } = await fetchOrCreateUser(user);
