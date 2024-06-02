@@ -454,7 +454,7 @@ emitter.on('cancel', async (session: Session) => {
     await app.client.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t_format('hey <@{slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+        text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
             slackId: slackUser.slackId,
             minutes: session.elapsed
         }),
@@ -463,7 +463,7 @@ emitter.on('cancel', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t_format('hey <@{slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+                    "text": t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
                         slackId: slackUser.slackId,
                         minutes: session.elapsed
                     })
