@@ -40,13 +40,18 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
             return;
         }
 
-        //const minutes = parseInt(body.text);
-        const minutes = 60;
+        let minutes = parseInt(body.text || '60');
+        // let minutes = 60;
 
         if (isNaN(minutes) || minutes <= 0) {
             informUser(slackId, `Invalid time!`, body.channel_id);
 
             return;
+        }
+
+        if (minutes > 60) {
+            informUser(slackId, `You can extend by 60 minutes maximum at a time!`, body.channel_id);
+            minutes = 60;
         }
 
         const updatedSession = await Session.extend(session, minutes);
