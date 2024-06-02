@@ -13,6 +13,23 @@ import { Constants } from "./constants.js";
 
 let enabled = true;
 
+function extractFromPermalink(permalink: string) {
+    // Slack permalink 
+    // <https://hackclub.slack.com/archives/C074J205DD0/p1716621537596569>
+
+    // Extract channel and ts
+    const channel = permalink.match(/archives\/(C\w+)\//)?.[1];
+    let ts = permalink.match(/p(\d+)/)?.[1];
+
+    if (!channel || !ts) {
+        throw new Error("Channel or ts is null");
+    }
+
+    ts = ts.slice(0, -6) + "." + ts.slice(-6);
+
+    return { channel, ts };
+}
+
 app.message(async ({ message }) => {
     if (!enabled) { return; }
     console.log("Message received")
@@ -66,8 +83,7 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
         // Delete message from link
         await ack();
 
-        const channel = command.text.split(" ")[1];
-        const ts = command.text.split(" ")[2];
+        const { channel, ts } = extractFromPermalink(command.text.split(" ")[1]);
 
         await app.client.chat.delete({
             channel,
