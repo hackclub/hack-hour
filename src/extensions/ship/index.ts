@@ -19,9 +19,12 @@ app.message(async ({ message }) => {
     console.log(message.channel)
     console.log("SHIP->", Environment.SHIP_CHANNEL, message.channel === Environment.SHIP_CHANNEL)
     console.log("SCRAP>", Environment.SCRAPBOOK_CHANNEL, message.channel === Environment.SCRAPBOOK_CHANNEL)
-    if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== Environment.SCRAPBOOK_CHANNEL) return;
+    if (
+        !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
+    ) { return };
+
     console.log("In correct channel")
-    if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
+    if (!message.subtype || message.subtype !== 'file_share') { return }; // Needs to be a file share event
     console.log("File share event confirmed")
     
     // Make sure the user is in the database
