@@ -16,6 +16,9 @@ let enabled = true;
 app.message(async ({ message }) => {
     if (!enabled) { return; }
     console.log("Message received")
+    console.log(message.channel)
+    console.log("SHIP->", Environment.SHIP_CHANNEL, message.channel === Environment.SHIP_CHANNEL)
+    console.log("SCRAP>", Environment.SCRAPBOOK_CHANNEL, message.channel === Environment.SCRAPBOOK_CHANNEL)
     if (message.channel !== Environment.SHIP_CHANNEL || message.channel !== Environment.SCRAPBOOK_CHANNEL) return;
     console.log("In correct channel")
     if (!message.subtype || message.subtype !== 'file_share') return; // Needs to be a file share event
