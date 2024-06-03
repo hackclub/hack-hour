@@ -340,7 +340,7 @@ export class Ship {
                     "options": goals.map(goal => {
                         return {
                             "text": {
-                                "type": "mrkdwn",
+                                "type": "plain_text",
                                 "text": `${goal.name}\n_${goal.sessions.length} sessions_ | _Total Hours: ${formatHour(goal.sessions.reduce((acc, session) => acc + session.elapsed, 0))}_`,
                                 "emoji": true
                             },
