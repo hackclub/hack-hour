@@ -319,7 +319,7 @@ export class Ship {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Ship a Goal 🚢",
+                    "text": "Ship a Goal 🚢 & Bank your Hours",
                     "emoji": true
                 }
             },
@@ -327,7 +327,7 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Select the goal (project) you are shipping. You will be submitting your goal - your goal is the work that culminates in your ship. Remember, this is subject to manual approval!"
+                    "text": "Select the goal you’re making a ship or scrapbook post for– you’ll be banking all sessions attached to that goal for review.\nYou can bank your hours as many times as you want!"
                 }
             },
             {
@@ -340,7 +340,7 @@ export class Ship {
                     "options": goals.map(goal => {
                         return {
                             "text": {
-                                "type": "plain_text",
+                                "type": "mrkdwn",
                                 "text": `${goal.name}\n_${goal.sessions.length} sessions_ | _Total Hours: ${formatHour(goal.sessions.reduce((acc, session) => acc + session.elapsed, 0))}_`,
                                 "emoji": true
                             },
