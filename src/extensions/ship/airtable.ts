@@ -29,17 +29,37 @@ type AirtableShipWrite = {
     "Status": "Powered Ship!" | "Unreviewed" | "Unpowered Ship" | "YSWS Ship",
     "User": AirtableRecordID[],
     "Created At": string,
-    "Sessions": AirtableRecordID[],
+    "Sessions": AirtableRecordID[], 
 //    "Minutes": number,
 };
 
-type AirtableSession = {
+type AirtableShipRead = {
+    "Ship URL": string,
+    "Goal Name": string,
+    "Status": "Powered Ship!" | "Unreviewed" | "Unpowered Ship" | "YSWS Ship",
+    "User": AirtableRecordID[],
+    "Created At": string,
+    "Sessions": AirtableRecordID[], 
+    "Minutes": number,
+};
+
+type AirtableSessionWrite = {
     "Code URL": string,
     "User": AirtableRecordID[],
-    "Work": "1",
+    "Work": string,
     "Minutes": number,
     "Status": "Approved" | "Unreviewed" | "Rejected",
     "Created At": string,
+};
+
+type AirtableSessionRead = {
+    "Code URL": string,
+    "User": AirtableRecordID[],
+    "Work": string,
+    "Minutes": number,
+    "Status": "Approved" | "Unreviewed" | "Rejected",
+    "Created At": string,
+    "Reason": string,
 };
 
 export const AirtableAPI = {
@@ -71,40 +91,38 @@ export const AirtableAPI = {
         }
     },
     Session: {
-        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableSession} | null> {
-            const records = await sessions.select({
-                filterByFormula: `{Internal ID} = "${id}"`
-            }).all();
+        async fetch(record: string): Promise<{id: AirtableRecordID, fields: AirtableSessionRead} | null> {
+            const records = await sessions.find(record);
 
-            if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableSession};
+            if (!records) { return null; }
+
+            return {id: records.id, fields: records.fields as AirtableSessionRead};
         },
 
-        async create(session: AirtableSession): Promise<{id: AirtableRecordID, fields: AirtableSession}> {
+        async create(session: AirtableSessionWrite): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite}> {
             const record = await sessions.create([{
                 "fields": session
             }]);
 
-            return {id: record[0].id, fields: record[0].fields as AirtableSession};
+            return {id: record[0].id, fields: record[0].fields as AirtableSessionWrite};
         },
 
-        async update(id: AirtableRecordID, session: Partial<AirtableSession>): Promise<{id: AirtableRecordID, fields: AirtableSession}> {
+        async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite}> {
             const records = await sessions.update([{
                 "id": id,
                 "fields": session
             }]);
 
-            return {id: records[0].id, fields: records[0].fields as AirtableSession};
+            return {id: records[0].id, fields: records[0].fields as AirtableSessionWrite};
         }
     },
     Ship: {
-        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableShipWrite} | null> {
-            const records = await ships.select({
-                filterByFormula: `{Internal ID} = "${id}"`
-            }).all();
+        async fetch(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableShipWrite} | null> {
+            const record = await ships.find(recordId);
 
-            if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableShipWrite};
+            if (!record) { return null; }
+
+            return {id: record.id, fields: record.fields as AirtableShipRead};
         },
 
         async create(ship: AirtableShipWrite): Promise<{id: AirtableRecordID, fields: AirtableShipWrite}> {

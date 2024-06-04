@@ -44,7 +44,7 @@ toplevel:
     - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"  
 
 init:
-    - "tick tock tick tock, it looks like <${repo}|I'm> on the clock! <#${main}>"
+    - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
     - "watching time is a daunting task. but <${repo}|I'm> up for the task! <#${main}>"
     - "new formula, same great taste! <#${main}>"
     - "every hour more power...<#${main}>"
