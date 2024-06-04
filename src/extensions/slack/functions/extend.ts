@@ -12,13 +12,18 @@ Time Extension
 app.action(Actions.EXTEND, async ({ ack, body }) => {
     await ack();
     // TODO
-    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
+//    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
+    informUser(body.user.id, `This command is disabled for now!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
 });
 
 app.command(Commands.EXTEND, async ({ ack, body }) => {
     try {
         // TODO: Stop current session & create a new session with exact same details + 60 minutes
         await ack();
+
+        // Disable extend for now
+        informUser(body.user_id, `This command is disabled for now!`, body.channel_id);
+        return;
         
         const slackId = body.user_id;
         
@@ -54,13 +59,14 @@ app.command(Commands.EXTEND, async ({ ack, body }) => {
             minutes = 60;
         }
 
+/*
         const updatedSession = await Session.extend(session, minutes);
 
         informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedSession.elapsed} out of ${updatedSession.time} minutes`, body.channel_id);
 
         // Update the session ts
         await updateController(updatedSession);
-        await updateTopLevel(updatedSession);
+        await updateTopLevel(updatedSession);*/
     } catch (error) {
         emitter.emit('error', error);
     }
