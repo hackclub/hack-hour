@@ -116,7 +116,7 @@ emitter.on('complete', async (session) => {
 });
 
 emitter.on('error', async (error) => {
-    console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}`);
+    console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}\n${error.stack}`);
 });
 
 emitter.on('init', async () => {

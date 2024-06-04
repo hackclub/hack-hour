@@ -561,6 +561,6 @@ emitter.on('error', async (error) => {
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
-        text: `${/*<!subteam^${process.env.DEV_USERGROUP}>*/`<@U04QD71QWS0>`} I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error!\`\n*Error:*\n\`\`\`${error.message}\`\`\``,
+        text: `${/*<!subteam^${process.env.DEV_USERGROUP}>*/`<@U04QD71QWS0>`} I summon thee for the following reason: \`Hack Hour${Environment.PROD ? '' : ' (DEV)'} had an error! ${error.message}\`\n*Trace:*\n\`\`\`${error.stack}\`\`\``,
     });
 });
