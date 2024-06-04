@@ -98,30 +98,30 @@ export const AirtableAPI = {
         }
     },
     Ship: {
-        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableShip} | null> {
+        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableShipWrite} | null> {
             const records = await ships.select({
                 filterByFormula: `{Internal ID} = "${id}"`
             }).all();
 
             if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableShip};
+            return {id: records[0].id, fields: records[0].fields as AirtableShipWrite};
         },
 
-        async create(ship: AirtableShip): Promise<{id: AirtableRecordID, fields: AirtableShip}> {
+        async create(ship: AirtableShipWrite): Promise<{id: AirtableRecordID, fields: AirtableShipWrite}> {
             const record = await ships.create([{
                 "fields": ship
             }]);
 
-            return {id: record[0].id, fields: record[0].fields as AirtableShip};
+            return {id: record[0].id, fields: record[0].fields as AirtableShipWrite};
         },
 
-        async update(id: AirtableRecordID, ship: Partial<AirtableShip>): Promise<{id: AirtableRecordID, fields: AirtableShip}> {
+        async update(id: AirtableRecordID, ship: Partial<AirtableShipWrite>): Promise<{id: AirtableRecordID, fields: AirtableShipWrite}> {
             const records = await ships.update([{
                 "id": id,
                 "fields": ship
             }]);
 
-            return {id: records[0].id, fields: records[0].fields as AirtableShip};
+            return {id: records[0].id, fields: records[0].fields as AirtableShipWrite};
         }
     }
 };
