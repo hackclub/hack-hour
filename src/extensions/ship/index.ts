@@ -623,7 +623,14 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
                     slackId: command.user_id
                 }
             },
-            completed: true
+            OR: [
+                {
+                    completed: true
+                },
+                {
+                    cancelled: true
+                }
+            ]
         },
         include: {
             goal: true
