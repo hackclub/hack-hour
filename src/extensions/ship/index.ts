@@ -642,9 +642,9 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         return;
     }
 
-    for (let session of sessions) {
-        const blocks: KnownBlock[] = [];
+    const blocks: KnownBlock[] = [];
 
+    for (let session of sessions) {
         if (!(session.metadata as any).airtable) {
             blocks.push({
                 "type": "section",
@@ -701,11 +701,18 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         }, {
             "type": "divider"
         });
-
-        await app.client.chat.postEphemeral({
-            user: command.user_id,
-            channel: command.channel_id,
-            blocks
-        });
     }
+
+    await app.client.views.open({
+        trigger_id: command.trigger_id,
+        view: {
+            type: "modal",
+            callback_id: "sessions",
+            title: {
+                type: "plain_text",
+                text: "Your Sessions"
+            },
+            blocks
+        }
+    });
 });
