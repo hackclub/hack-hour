@@ -10,6 +10,7 @@ import { AirtableAPI } from "./airtable.js";
 import { Prisma, Session } from "@prisma/client";
 
 import { Constants } from "./constants.js";
+import { KnownBlock } from "@slack/bolt";
 
 let enabled = true;
 
@@ -616,34 +617,40 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
     await ack();
 
     const sessions = await prisma.session.findMany({
+        where: {
+            user: {
+                slackUser: {
+                    slackId: command.user_id
+                }
+            },
+            completed: true
+        },
         include: {
             goal: true
         }
     });
 
+    const blocks: KnownBlock[] = [];
+
     for (let session of sessions) {
         if (!(session.metadata as any).airtable) {
-            await app.client.chat.postEphemeral({
-                user: command.user_id,
-                channel: command.channel_id,
-                blocks: [{
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${(await app.client.chat.getPermalink({
-                            channel: Environment.MAIN_CHANNEL,
-                            message_ts: session.messageTs
-                        })).permalink
-                            }|View Session>`
-                    }
-                }, {
-                    "type": "divider"
-                }]
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${(await app.client.chat.getPermalink({
+                        channel: Environment.MAIN_CHANNEL,
+                        message_ts: session.messageTs
+                    })).permalink
+                        }|View Session>`
+                }
+            }, {
+                "type": "divider"
             });
             continue;
         }
         if (!(session.metadata as any).airtable.status) {
-            session = await prisma.session.update({
+            blocks.push({
                 where: {
                     messageTs: session.messageTs
                 },
@@ -663,23 +670,32 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
             });
         }
 
-        await app.client.chat.postEphemeral({
-            user: command.user_id,
-            channel: command.channel_id,
-            blocks: [{
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*${(session.metadata as any).airtable.status}${(session.metadata as any).airtable.reason ? `:* ${(session.metadata as any).airtable.reason}` : "*"
-                        }\n<${(await app.client.chat.getPermalink({
-                            channel: Environment.MAIN_CHANNEL,
-                            message_ts: session.messageTs
-                        })).permalink
-                        }|View Session>`
-                }
-            }, {
-                "type": "divider"
-            }]
+        blocks.push({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*${(session.metadata as any).airtable.status}${(session.metadata as any).airtable.reason ? `:* ${(session.metadata as any).airtable.reason}` : "*"
+                    }\n<${(await app.client.chat.getPermalink({
+                        channel: Environment.MAIN_CHANNEL,
+                        message_ts: session.messageTs
+                    })).permalink
+                    }|View Session>`
+            }
+        }, {
+            "type": "divider"
+        });
+
+        await app.client.views.open({
+            trigger_id: command.trigger_id,
+            view: {
+                "type": "modal",
+                "callback_id": "session",
+                "title": {
+                    "type": "plain_text",
+                    "text": "View Session"
+                },
+                "blocks": blocks
+            }
         });
     }
 });
