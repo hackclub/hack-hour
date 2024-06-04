@@ -460,7 +460,28 @@ export class Ship {
 
         let blocks: KnownBlock[] = [];
 
-        for (const session of sessions) {
+        for (let session of sessions) {
+            if (!(session.metadata as any).airtable.status) {
+                session = await prisma.session.update({
+                    where: {
+                        messageTs: session.messageTs
+                    },
+                    data: {
+                        metadata: {
+                            ...(session.metadata as any),
+                            airtable: {
+                                ...(session.metadata as any).airtable,
+                                status: "Manual/Status Unavailable",
+                                reason: null
+                            }
+                        }
+                    },
+                    include: {
+                        goal: true
+                    }
+                });
+            }
+             
             blocks.push({
                 "type": "section",
                 "text": {
