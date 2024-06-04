@@ -116,6 +116,15 @@ emitter.on('complete', async (session) => {
 });
 
 emitter.on('error', async (error) => {
+    if (!error) {
+        error = {};
+    }
+    if (!error.message) {
+        return;
+    }
+    if (!error.stack) {
+        return;
+    }
     console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}\n${error.stack}`);
 });
 

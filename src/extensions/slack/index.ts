@@ -558,6 +558,9 @@ emitter.on('init', async () => {
 });
 
 emitter.on('error', async (error) => {
+    if (!error) {
+        error = {};
+    }
     if (!error.message) {
         error.message = 'No error message available - I blame bolt';
     }
