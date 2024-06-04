@@ -1,4 +1,4 @@
-import { KnownBlock } from "@slack/bolt";
+import { KnownBlock, ModalView } from "@slack/bolt";
 import { prisma } from "../../lib/prisma.js";
 import { app } from "../../lib/bolt.js";
 import { Environment } from "../../lib/constants.js";
@@ -449,5 +449,55 @@ export class Ship {
                 }
             }
         ]
+    }
+
+    public static async sessionReview(): Promise<ModalView> {
+        const sessions = await prisma.session.findMany({
+            include: {
+                goal: true        
+            }
+        });
+
+        let blocks: KnownBlock[] = [];
+
+        for (const session of sessions) {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*${(session.metadata as any).airtable.status}${
+                        (session.metadata as any).airtable.reason ? `:* ${(session.metadata as any).airtable.reason}` : "*"
+                    }\n<${
+                        (await app.client.chat.getPermalink({
+                            channel: Environment.MAIN_CHANNEL,
+                            message_ts: session.messageTs
+                        })).permalink
+                    }|View Session>`
+                }
+            });
+            blocks.push({
+                "type": "divider"
+            });
+        }
+
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "View Sessions",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Submit",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": blocks
+        }
     }
 }

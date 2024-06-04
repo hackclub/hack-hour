@@ -1,4 +1,6 @@
 import bolt from '@slack/bolt'; 
+import bodyParser from 'body-parser';
+
 import { Environment } from './constants.js';
 import { emitter } from './emitter.js';
 
@@ -66,6 +68,8 @@ export const app = new bolt.App({
     },*/    
     receiver: expressReceiver,
 });
+
+express.use(bodyParser.json());
 
 app.error(async (error) => {
     emitter.emit('error', error.original);

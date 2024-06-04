@@ -1,8 +1,8 @@
 import { emitter } from "../../lib/emitter.js";
-import { app } from "../../lib/bolt.js";
+import { app, express } from "../../lib/bolt.js";
 import { prisma, uid } from "../../lib/prisma.js";
 
-import { Environment } from "../../lib/constants.js";
+import { Commands, Environment } from "../../lib/constants.js";
 import { Actions, Ship } from "./view.js";
 import { updateController, updateTopLevel } from "../slack/lib/lib.js";
 
@@ -545,7 +545,9 @@ const registerSession = async (session: Session) => {
             metadata: {
                 ...(session.metadata as any),
                 airtable: {
-                    id: sid
+                    id: sid,
+                    status: "Unreviewed",
+                    reason: ""
                 }
             }
         }
@@ -558,4 +560,63 @@ emitter.on('complete', async (session: Session) => {
 
 emitter.on('cancel', async (session: Session) => {
     await registerSession(session);
+});
+
+express.post('/airtable/session', async (req, res) => {
+    try {
+        const { record } = req.body;
+        
+        const airtableSession = await AirtableAPI.Session.fetch(record);
+        if (!airtableSession) {
+            throw new Error(`No session found for ${record}`);
+        }
+        
+        console.log(`Received session ${record} from Airtable`);
+
+        const session = await prisma.session.findFirstOrThrow({
+            where: {
+                metadata: {
+                    path: ["airtable", "id"],
+                    equals: record
+                }
+            }
+        });
+
+        await prisma.session.update({
+            where: {
+                messageTs: session.messageTs
+            },
+            data: {
+                metadata: {
+                    ...(session.metadata as any),
+                    airtable: {
+                        ...(session.metadata as any).airtable,
+                        status: airtableSession.fields["Status"],
+                        reason: airtableSession.fields["Reason"]
+                    }
+                }
+            }
+        });
+
+        await app.client.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            text: `Your session has been ${airtableSession.fields["Status"].toLowerCase()}${airtableSession.fields["Reason"] ? ` for ${airtableSession.fields["Reason"]}` : ""}!`,
+            thread_ts: session.messageTs
+        });
+
+        console.log(`Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
+
+        res.sendStatus(200);
+    } catch (error) {
+        emitter.emit('error', error);
+    }
+});
+
+app.command(Commands.SESSIONS, async ({ command, ack }) => {
+    await ack();
+
+    await app.client.views.open({
+        trigger_id: command.trigger_id,
+        view: await Ship.sessionReview()
+    });
 });

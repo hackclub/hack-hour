@@ -1,0 +1,17 @@
+{
+    "session": {
+        "work": 1,
+        "slack": {
+            "template": "string"
+        },
+        "airtable": {
+            "id": "string",
+            "status": "string"
+        }
+    },
+    "user": {
+        "ships": {
+            "shipTs": "messageTs"
+        }
+    }
+}
