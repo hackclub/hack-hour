@@ -643,8 +643,6 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
     }
 
     for (let session of sessions) {
-        emitter.emit('error', new Error(`Swanky way to show that I'm looking through ${session.messageTs}`));
-
         const blocks: KnownBlock[] = [];
 
         if (!(session.metadata as any).airtable) {
