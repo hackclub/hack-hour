@@ -650,7 +650,7 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
             continue;
         }
         if (!(session.metadata as any).airtable.status) {
-            blocks.push({
+            session = await prisma.session.update({
                 where: {
                     messageTs: session.messageTs
                 },
