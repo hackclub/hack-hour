@@ -120,7 +120,7 @@ export class Ship {
                     ]
                 }
             ]
-        }        
+        }
 
         const goals = await prisma.goal.findMany({
             where: {
@@ -189,7 +189,7 @@ export class Ship {
                                     "text": session.goal.name,
                                     "emoji": true
                                 },
-                                "value": JSON.stringify({ 
+                                "value": JSON.stringify({
                                     goalId: session.goal.id,
                                     sessionTs: session.messageTs
                                 })
@@ -201,7 +201,7 @@ export class Ship {
                                         "text": goal.name,
                                         "emoji": true
                                     },
-                                    "value": JSON.stringify({ 
+                                    "value": JSON.stringify({
                                         goalId: goal.id,
                                         sessionTs: session.messageTs
                                     })
@@ -209,7 +209,7 @@ export class Ship {
                             }),
                             "action_id": Actions.UPDATE_SESSION_GOAL,
                         }
-                    ]                    
+                    ]
                 },
                 {
                     "type": "context",
@@ -334,7 +334,7 @@ export class Ship {
                 "type": "divider"
             },
             {
-                "type": "input",                
+                "type": "input",
                 "element": {
                     "type": "radio_buttons",
                     "options": goals.map(goal => {
@@ -449,94 +449,5 @@ export class Ship {
                 }
             }
         ]
-    }
-
-    public static async sessionReview(): Promise<ModalView> {
-        const sessions = await prisma.session.findMany({
-            include: {
-                goal: true        
-            }
-        });
-
-        let blocks: KnownBlock[] = [];
-
-        for (let session of sessions) {
-            if (!(session.metadata as any).airtable) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${
-                            (await app.client.chat.getPermalink({
-                                channel: Environment.MAIN_CHANNEL,
-                                message_ts: session.messageTs
-                            })).permalink
-                        }|View Session>`
-                    }
-                });
-                blocks.push({
-                    "type": "divider"
-                });
-                continue;
-            }
-            if (!(session.metadata as any).airtable.status) {
-                session = await prisma.session.update({
-                    where: {
-                        messageTs: session.messageTs
-                    },
-                    data: {
-                        metadata: {
-                            ...(session.metadata as any),
-                            airtable: {
-                                ...(session.metadata as any).airtable,
-                                status: "Manual/Status Unavailable",
-                                reason: null
-                            }
-                        }
-                    },
-                    include: {
-                        goal: true
-                    }
-                });
-            }
-             
-            blocks.push({
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*${(session.metadata as any).airtable.status}${
-                        (session.metadata as any).airtable.reason ? `:* ${(session.metadata as any).airtable.reason}` : "*"
-                    }\n<${
-                        (await app.client.chat.getPermalink({
-                            channel: Environment.MAIN_CHANNEL,
-                            message_ts: session.messageTs
-                        })).permalink
-                    }|View Session>`
-                }
-            });
-            blocks.push({
-                "type": "divider"
-            });
-        }
-
-        return {
-            "type": "modal",
-            "title": {
-                "type": "plain_text",
-                "text": "View Sessions",
-                "emoji": true
-            },
-            "submit": {
-                "type": "plain_text",
-                "text": "Submit",
-                "emoji": true
-            },
-            "close": {
-                "type": "plain_text",
-                "text": "Cancel",
-                "emoji": true
-            },
-            "blocks": blocks
-        }
     }
 }

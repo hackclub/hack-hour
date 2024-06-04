@@ -36,7 +36,7 @@ app.message(async ({ message }) => {
         !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
     ) { return };
     if (!message.subtype || message.subtype !== 'file_share') { return }; // Needs to be a file share event
-    
+
     // Make sure the user is in the database
     const user = await prisma.user.findFirst({
         where: {
@@ -50,7 +50,7 @@ app.message(async ({ message }) => {
 
     let metadata: any | null = user.metadata;
 
-    if (!metadata) { 
+    if (!metadata) {
         metadata = {
             ships: []
         }
@@ -83,7 +83,7 @@ app.message(async ({ message }) => {
 
 // Test ship flow
 app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack }) => {
-    if (!Constants.VERIFIERS.includes(command.user_id)) { 
+    if (!Constants.VERIFIERS.includes(command.user_id)) {
         ack({
             response_type: "ephemeral",
             text: "O.o"
@@ -174,7 +174,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
                 {
                     cancelled: true
                 }
-            ]            
+            ]
         },
         include: {
             goal: true
@@ -199,7 +199,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
         });
         return;
     }
-    
+
     await prisma.goal.update({
         where: {
             id: session.goal.id
@@ -229,7 +229,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
         include: {
             goal: true
         }
-    });   
+    });
 
     await prisma.goal.update({
         where: {
@@ -260,7 +260,7 @@ app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
     await ack();
 });
 
-app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body  }) => {
+app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
     const { id } = body.channel as any;
     const { user } = body;
     const { ts } = (body as any).message;
@@ -290,12 +290,12 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body  }) => {
     });
 });
 
-const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{include: { slackUser: true }}>) => {
+const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{ include: { slackUser: true } }>) => {
     let airtableUser = await AirtableAPI.User.fetch(user.id);
 
     if (!user.slackUser) { throw new Error(`No slack user found for ${user.id}`); }
-    
-    if (!airtableUser) { 
+
+    if (!airtableUser) {
         const slackInfo = await app.client.users.info({
             user: user.slackUser.slackId
         });
@@ -310,7 +310,7 @@ const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{include: { slackUs
             "Sessions": []
         });
     }
-    
+
     return airtableUser;
 }
 
@@ -387,8 +387,8 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
             message_ts: shipTs
         })).permalink;
     }
- 
-    if (!shipUrl) { throw new Error(`No permalink found for ${shipTs}` ); }
+
+    if (!shipUrl) { throw new Error(`No permalink found for ${shipTs}`); }
 
     await ack();
 
@@ -405,7 +405,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
 
     const sessions = await prisma.session.findMany({
         where: {
-            goalId            
+            goalId
         }
     });
 
@@ -482,7 +482,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     const { id } = await fetchOrCreateUser(user);
 
     await AirtableAPI.Ship.create({
-        "Ship URL": shipUrl, 
+        "Ship URL": shipUrl,
         "User": [id],
         "Goal Name": oldGoal.name,
         "Created At": new Date().toISOString(),
@@ -523,7 +523,7 @@ const registerSession = async (session: Session) => {
         message_ts: session.messageTs
     });
 
-    if (!permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}` ); }
+    if (!permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
 
     // Create a new session
     const { id: sid, fields: sfields } = await AirtableAPI.Session.create({
@@ -565,12 +565,12 @@ emitter.on('cancel', async (session: Session) => {
 express.post('/airtable/session', async (req, res) => {
     try {
         const { record } = req.body;
-        
+
         const airtableSession = await AirtableAPI.Session.fetch(record);
         if (!airtableSession) {
             throw new Error(`No session found for ${record}`);
         }
-        
+
         console.log(`Received session ${record} from Airtable`);
 
         const session = await prisma.session.findFirstOrThrow({
@@ -615,8 +615,71 @@ express.post('/airtable/session', async (req, res) => {
 app.command(Commands.SESSIONS, async ({ command, ack }) => {
     await ack();
 
-    await app.client.views.open({
-        trigger_id: command.trigger_id,
-        view: await Ship.sessionReview()
+    const sessions = await prisma.session.findMany({
+        include: {
+            goal: true
+        }
     });
+
+    for (let session of sessions) {
+        if (!(session.metadata as any).airtable) {
+            await app.client.chat.postEphemeral({
+                user: command.user_id,
+                channel: command.channel_id,
+                blocks: [{
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${(await app.client.chat.getPermalink({
+                            channel: Environment.MAIN_CHANNEL,
+                            message_ts: session.messageTs
+                        })).permalink
+                            }|View Session>`
+                    }
+                }, {
+                    "type": "divider"
+                }]
+            });
+            continue;
+        }
+        if (!(session.metadata as any).airtable.status) {
+            session = await prisma.session.update({
+                where: {
+                    messageTs: session.messageTs
+                },
+                data: {
+                    metadata: {
+                        ...(session.metadata as any),
+                        airtable: {
+                            ...(session.metadata as any).airtable,
+                            status: "Manual/Status Unavailable",
+                            reason: null
+                        }
+                    }
+                },
+                include: {
+                    goal: true
+                }
+            });
+        }
+
+        await app.client.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            blocks: [{
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*${(session.metadata as any).airtable.status}${(session.metadata as any).airtable.reason ? `:* ${(session.metadata as any).airtable.reason}` : "*"
+                        }\n<${(await app.client.chat.getPermalink({
+                            channel: Environment.MAIN_CHANNEL,
+                            message_ts: session.messageTs
+                        })).permalink
+                        }|View Session>`
+                }
+            }, {
+                "type": "divider"
+            }]
+        });
+    }
 });
