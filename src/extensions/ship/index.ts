@@ -616,6 +616,8 @@ express.post('/airtable/session', async (req, res) => {
 app.command(Commands.SESSIONS, async ({ command, ack }) => {
     await ack();
 
+    throw new Error("This command is disabled");
+
     const sessions = await prisma.session.findMany({
         where: {
             user: {
