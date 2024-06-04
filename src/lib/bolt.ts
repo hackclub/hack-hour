@@ -68,10 +68,5 @@ export const app = new bolt.App({
 });
 
 app.error(async (error) => {
-    emitter.emit('error', {
-        code: error.code,
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-    });
+    emitter.emit('error', error.original);
 });
