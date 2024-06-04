@@ -616,8 +616,6 @@ express.post('/airtable/session', async (req, res) => {
 app.command(Commands.SESSIONS, async ({ command, ack }) => {
     await ack();
 
-    throw new Error("This command is disabled");
-
     const sessions = await prisma.session.findMany({
         where: {
             user: {
@@ -632,7 +630,13 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         }
     });
 
+    if (sessions.length === 0) {
+        throw new Error("No sessions found"); //TODO: not do this
+    }
+
     for (let session of sessions) {
+        emitter.emit('error', new Error(`Swanky way to show that I'm looking through ${session.messageTs}`));
+
         const blocks: KnownBlock[] = [];
 
         if (!(session.metadata as any).airtable) {
