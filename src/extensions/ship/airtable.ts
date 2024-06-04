@@ -23,14 +23,14 @@ type AirtableUser = {
     "Sessions": AirtableRecordID[]
 };
 
-type AirtableShip = {
+type AirtableShipWrite = {
     "Ship URL": string,
     "Goal Name": string,
     "Status": "Powered Ship!" | "Unreviewed" | "Unpowered Ship" | "YSWS Ship",
     "User": AirtableRecordID[],
     "Created At": string,
     "Sessions": AirtableRecordID[],
-    "Minutes": number,
+//    "Minutes": number,
 };
 
 type AirtableSession = {

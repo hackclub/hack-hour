@@ -484,7 +484,6 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     await AirtableAPI.Ship.create({
         "Ship URL": shipUrl, 
         "User": [id],
-        "Minutes": 0,
         "Goal Name": oldGoal.name,
         "Created At": new Date().toISOString(),
         "Status": "Unreviewed",
