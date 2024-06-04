@@ -461,6 +461,23 @@ export class Ship {
         let blocks: KnownBlock[] = [];
 
         for (let session of sessions) {
+            if (!(session.metadata as any).airtable) {
+                blocks.push({
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${
+                            (await app.client.chat.getPermalink({
+                                channel: Environment.MAIN_CHANNEL,
+                                message_ts: session.messageTs
+                            })).permalink
+                        }|View Session>`
+                    }
+                });
+                blocks.push({
+                    "type": "divider"
+                });
+            }
             if (!(session.metadata as any).airtable.status) {
                 session = await prisma.session.update({
                     where: {
