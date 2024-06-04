@@ -4,7 +4,7 @@ import { prisma, uid } from "../../lib/prisma.js";
 
 import { Commands, Environment } from "../../lib/constants.js";
 import { Actions, Ship } from "./view.js";
-import { updateController, updateTopLevel } from "../slack/lib/lib.js";
+import { informUser, updateController, updateTopLevel } from "../slack/lib/lib.js";
 
 import { AirtableAPI } from "./airtable.js";
 import { Prisma, Session } from "@prisma/client";
@@ -638,7 +638,8 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
     });
 
     if (sessions.length === 0) {
-        throw new Error("No sessions found"); //TODO: not do this
+        informUser(command.user_id, "No sessions found", command.channel_id);
+        return;
     }
 
     for (let session of sessions) {
