@@ -672,6 +672,7 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
             try {
                 airtableSession = await AirtableAPI.Session.fetch((session.metadata as any).airtable.id);
             } catch (error) {
+                console.error(`Error fetching session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
                 airtableSession = null;
             }
 
