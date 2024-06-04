@@ -668,29 +668,25 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         } else if (!(session.metadata as any).airtable.status || (session.metadata as any).airtable.status === "Manual/Status Unavailable") {
             // Fetch the status from Airtable
             console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
-            let airtableSession: any | null = null;
+            let airtableSession: any = null;
             try {
                 airtableSession = await AirtableAPI.Session.fetch((session.metadata as any).airtable.id);
             } catch (error) {
-                console.error(`Error fetching session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
-                airtableSession = null;
+                airtableSession = {
+                    fields: {
+                        "Status": "Error",
+                        "Reason": "Error fetching status from Airtable - please send a message in <#C06U5U9ADGD>"
+                    }
+                };
             }
 
             if (!airtableSession) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*Not submitted*: Please send a message in <#C06U5U9ADGD>\n<${(await app.client.chat.getPermalink({
-                            channel: Environment.MAIN_CHANNEL,
-                            message_ts: session.messageTs
-                        })).permalink
-                            }|View Session>`
+                airtableSession = {
+                    fields: {
+                        "Status": "Error",
+                        "Reason": "Error fetching status from Airtable - please send a message in <#C06U5U9ADGD>"
                     }
-                }, {
-                    "type": "divider"
-                });
-                continue;
+                };
             }
 
             session = await prisma.session.update({
