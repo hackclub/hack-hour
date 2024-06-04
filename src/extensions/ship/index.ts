@@ -645,7 +645,7 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
     const blocks: KnownBlock[] = [];
 
     for (let session of sessions) {
-        if (!(session.metadata as any).airtable) {
+        if (!(session.metadata as any).airtable || !(session.metadata as any).airtable.id) {
             blocks.push({
                 "type": "section",
                 "text": {
@@ -665,9 +665,9 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
                 blocks
             });
             continue;
-        }
-        if (!(session.metadata as any).airtable.status || (session.metadata as any).airtable.status === "Manual/Status Unavailable") {
+        } else if (!(session.metadata as any).airtable.status || (session.metadata as any).airtable.status === "Manual/Status Unavailable") {
             // Fetch the status from Airtable
+            console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
             const airtableSession = await AirtableAPI.Session.fetch((session.metadata as any).airtable.id);
 
             if (!airtableSession) {
