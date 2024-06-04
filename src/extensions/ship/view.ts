@@ -477,6 +477,7 @@ export class Ship {
                 blocks.push({
                     "type": "divider"
                 });
+                continue;
             }
             if (!(session.metadata as any).airtable.status) {
                 session = await prisma.session.update({
