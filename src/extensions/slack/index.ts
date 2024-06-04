@@ -558,6 +558,12 @@ emitter.on('init', async () => {
 });
 
 emitter.on('error', async (error) => {
+    if (!error.message) {
+        error.message = 'No error message available - I blame bolt';
+    }
+    if (!error.stack) {
+        error.stack = 'No stack trace available...bolt moment for sure';
+    }
     await app.client.chat.postMessage({
         token: process.env.SLACK_BOT_TOKEN,
         channel: process.env.LOG_CHANNEL || 'C0P5NE354',
