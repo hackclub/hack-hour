@@ -668,7 +668,12 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         } else if (!(session.metadata as any).airtable.status || (session.metadata as any).airtable.status === "Manual/Status Unavailable") {
             // Fetch the status from Airtable
             console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
-            const airtableSession = await AirtableAPI.Session.fetch((session.metadata as any).airtable.id);
+            let airtableSession: any | null = null;
+            try {
+                airtableSession = await AirtableAPI.Session.fetch((session.metadata as any).airtable.id);
+            } catch (error) {
+                airtableSession = null;
+            }
 
             if (!airtableSession) {
                 blocks.push({
