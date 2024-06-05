@@ -48,6 +48,11 @@ export async function slashCommand(command: string, commandHandler: (event: any)
     app.command(command, async ({ command: event, ack, respond }) => {
         await ack()
 
+        await app.client.chat.postMessage({
+            channel: "C06TYNZ3DK8", // hack hour internals channel
+            text: `Command received from <@${event.user_id}>: ${command} ${event.text}`
+        })
+
         try {
             respond({
                 blocks: [
