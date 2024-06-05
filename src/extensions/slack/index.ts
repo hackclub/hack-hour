@@ -571,3 +571,18 @@ emitter.on('error', async (error) => {
         emitter.emit('error', error);
     }
 });
+
+emitter.on('debug', async (message) => {
+    try {
+        if (!message) {
+            throw new Error('No message provided!');
+        }
+        await app.client.chat.postMessage({
+            token: process.env.SLACK_BOT_TOKEN,
+            channel: process.env.LOG_CHANNEL || 'C0P5NE354',
+            text: `<!subteam^${process.env.DEV_USERGROUP}> Debug: ${message}`,
+        });
+    } catch (error) {
+        emitter.emit('error', error);
+    }
+});

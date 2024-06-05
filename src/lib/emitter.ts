@@ -8,6 +8,7 @@ import { Server } from "http";
 type EventMap = {
     init: (server: Server) => void,
     error: (error: any) => void,
+    debug: (message: string) => void,
 
     setFlag: (flag: string, value: any) => void,
 
