@@ -46,10 +46,6 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         }
 
         await ack();
-
-        emitter.emit('debug', `Opening goal modal for ${body.user.id}`);
-        emitter.emit('debug', `Using trigger_id: ${trigger_id}`)
-        emitter.emit('debug', `Modal preview: ${JSON.stringify(await Goals.main(session.messageTs), null, 4)}`);
  
         await client.views.open({
             trigger_id: trigger_id,
@@ -57,7 +53,6 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         });
     } catch (error) {
         emitter.emit('error', error);
-        emitter.emit('error', new Error(`Additional tracing information - ${body.user.id}\n${JSON.stringify(body)}`));
     }
 });
 
