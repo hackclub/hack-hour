@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma.js";
 import { app } from "../../lib/bolt.js";
 import { Environment } from "../../lib/constants.js";
 import { formatHour } from "../../lib/templates.js";
+import { AirtableAPI } from "./airtable.js";
 
 export const Actions = {
     OPEN_SESSION_REVIEW: 'open_session_review',
@@ -45,6 +46,56 @@ export class Ship {
                 ]
             }
         ]
+    }
+
+    public static async shop(slackId: string, airtableUser: string): Promise<KnownBlock[]> {
+        const itemsForSale = await AirtableAPI.Item.all()
+
+        const blocks: KnownBlock[] = []
+        blocks.push(
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "No Sessions Found",
+                    "emoji": true
+                }
+            },
+        )
+        blocks.push(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "You have completed no sessions! You need to complete a session before you can ship it for hack hour."
+                }
+            },
+        )
+
+        itemsForSale.forEach(item => {
+            const orderUrl = item.fields['Order Form URL'] + `?user=${airtableUser}`;
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `${item.fields['Name']} ${item.fields['Name Small Text']}`
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `Order for ${item.fields['Hours']}`,
+                        "emoji": true
+                    },
+                    // "value": "click_me_123",
+                    "url": orderUrl,
+                    // "action_id": "button-action"
+                }
+            })
+        })
+
+        return blocks;
     }
 
     public static async openSessionReview(slackId: string, shipTs: string): Promise<KnownBlock[]> {

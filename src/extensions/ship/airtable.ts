@@ -11,6 +11,7 @@ const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("V2: Users");
 const ships = base("V2: Ships");
 const sessions = base("V2: Sessions");
+const items = base("V2: Items");
 
 type AirtableRecordID = string;
 
@@ -140,6 +141,15 @@ export const AirtableAPI = {
             }]);
 
             return {id: records[0].id, fields: records[0].fields as AirtableShipWrite};
+        }
+    },
+    Item: {
+        async all(): Promise<{id: AirtableRecordID, fields: any}[]> {
+            const records = await items.select({
+                filterByFormula: `{Enabled for Shop} = TRUE()`
+            }).all()
+
+            return records.map(record => ({id: record.id, fields: record.fields}));
         }
     }
 };
