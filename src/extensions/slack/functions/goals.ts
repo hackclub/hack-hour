@@ -228,6 +228,27 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             return;
         }
 
+        // Check if the max number of goals has been reached
+        const goals = await prisma.goal.findMany({
+            where: {
+                userId: user.id,
+                completed: false
+            }
+        });
+
+        if (goals.length > 9) {
+            // User should not have been able to get here
+
+            await ack({
+                response_action: 'errors',
+                errors: {
+                    goal_name: 'You have reached the maximum number of goals'
+                }
+            });
+            
+            return;
+        }
+
         await ack();
 
         const newGoal = await prisma.goal.create({
