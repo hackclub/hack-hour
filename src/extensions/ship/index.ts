@@ -103,8 +103,6 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
             channel: subArgs[0],
             ts: subArgs[1]
         });
-
-        return;
     } else if (subCommand === "trigger") {
         // Trigger the ship flow
 
@@ -151,7 +149,12 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
                 metadata
             }
         });
-        return;
+
+        // Let the admin know that the ship has been triggered
+        await app.client.chat.postMessage({
+            channel: command.channel_id,
+            text: `Ship triggered for <@${slackId}> for ship https://hackclub.slack.com/archives/${Environment.SHIP_CHANNEL}/p${shipTs.replace(".", "")}!!`
+        });
     } else {
         enabled = !enabled;
 
