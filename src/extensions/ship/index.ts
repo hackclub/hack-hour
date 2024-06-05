@@ -532,13 +532,27 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     // Update on Airtable
     const { id } = await fetchOrCreateUser(user);
 
+    const completedSessions = await prisma.session.findMany({
+        where: {
+            goalId: oldGoal.id,
+            OR: [
+                {
+                    completed: true
+                },
+                {
+                    cancelled: true
+                }
+            ]
+        }
+    });
+
     await AirtableAPI.Ship.create({
         "Ship URL": shipUrl,
         "User": [id],
         "Goal Name": oldGoal.name,
         "Created At": new Date().toISOString(),
         "Status": "Unreviewed",
-        "Sessions": sessions.map(session => {
+        "Sessions": completedSessions.map(session => {
             return (session.metadata as any).airtable.id;
         })
     });
