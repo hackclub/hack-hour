@@ -49,7 +49,7 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
 
         emitter.emit('debug', `Opening goal modal for ${body.user.id}`);
         emitter.emit('debug', `Using trigger_id: ${trigger_id}`)
-        emitter.emit('debug', `Modal preview: ${JSON.stringify(await Goals.main(session.messageTs))}`);
+        emitter.emit('debug', `Modal preview: ${JSON.stringify(await Goals.main(session.messageTs), null, 4)}`);
  
         await client.views.open({
             trigger_id: trigger_id,
