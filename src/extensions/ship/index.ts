@@ -105,18 +105,64 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
         });
 
         return;
+    } else if (subCommand === "trigger") {
+        // Trigger the ship flow
+
+        const slackId = subArgs[0];
+        const shipTs = subArgs[1];
+
+        // Make sure the user is in the database
+        const user = await prisma.user.findFirst({
+            where: {
+                slackUser: {
+                    slackId: slackId
+                }
+            },
+        });
+
+        if (!user) { return; } //TODO: Advertise the user to sign up
+
+        let metadata: any | null = user.metadata;
+
+        if (!metadata) {
+            metadata = {
+                ships: []
+            }
+        } else if (!metadata.ships) {
+            metadata.ships = [];
+        }
+
+        // DM the user to let them know that their ship has been received
+        const result = await app.client.chat.postMessage({
+            channel: slackId,
+            blocks: await Ship.init(shipTs)
+        });
+
+        metadata.ships.push({
+            shipTs,
+            message: result.ts
+        });
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                metadata
+            }
+        });
+        return;
+    } else {
+        enabled = !enabled;
+
+        await app.client.chat.postEphemeral({
+            channel: command.channel_id,
+            user: command.user_id,
+            text: `Arcade is now ${enabled ? "enabled" : "disabled"}`
+        });
     }
 
     await ack();
-
-    enabled = !enabled;
-
-    await app.client.chat.postEphemeral({
-        channel: command.channel_id,
-        user: command.user_id,
-        text: `Arcade is now ${enabled ? "enabled" : "disabled"}`
-    });
-
 });
 
 app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {

@@ -1,7 +1,8 @@
 import { app } from "../../../lib/bolt.js";
-import { Commands, Callbacks, Actions } from "../../../lib/constants.js";
+import { Commands, Callbacks, Actions, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { prisma } from "../../../lib/prisma.js";
+import { informUser } from "../lib/lib.js";
 import { Stats } from "../views/stats.js";
 
 app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
@@ -19,7 +20,8 @@ app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
         });
 
         if (!user) {
-            throw new Error(`User ${slackId} not found.`);
+            informUser(slackId, `Run \`${Commands.HACK}\`!`, Environment.MAIN_CHANNEL, (body as any).message.ts);
+            return;
         }
 
         await app.client.views.open({
@@ -31,9 +33,9 @@ app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     }
 });
 
-app.command(Commands.STATS, async ({ ack, body, client }) => {
+app.command(Commands.STATS, async ({ ack, command, client }) => {
     try {
-        const slackId = body.user_id;
+        const slackId = command.user_id;
 
         await ack();
 
@@ -46,11 +48,12 @@ app.command(Commands.STATS, async ({ ack, body, client }) => {
         });
 
         if (!user) {
-            throw new Error(`User ${slackId} not found.`);
+            informUser(slackId, `Run \`${Commands.HACK}\`!`, command.channel_id);
+            return;
         }
 
         await client.views.open({
-            trigger_id: body.trigger_id,
+            trigger_id: command.trigger_id,
             view: await Stats.stats(user.id),            
         });
     } catch (error) {

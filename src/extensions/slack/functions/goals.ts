@@ -53,6 +53,7 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         });
     } catch (error) {
         emitter.emit('error', error);
+        emitter.emit('error', new Error(`Additional tracing information - ${body.user.id}\n${JSON.stringify(body)}`));
     }
 });
 
