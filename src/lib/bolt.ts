@@ -72,5 +72,9 @@ export const app = new bolt.App({
 express.use(bodyParser.json());
 
 app.error(async (error) => {
-    emitter.emit('error', error.original);
+    if (!error.original) {
+        emitter.emit('error', error);
+    } else {
+        emitter.emit('error', error.original);
+    }
 });
