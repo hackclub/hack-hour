@@ -56,7 +56,7 @@ export async function slashCommand(command: string, commandHandler: (event: any)
                     elements: [
                         {
                         type: "mrkdwn",
-                        text: `${command} ${text}`,
+                        text: `${command} ${event.text}`,
                         },
                     ],
                     },
