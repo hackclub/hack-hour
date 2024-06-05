@@ -44,6 +44,31 @@ export async function updateTopLevel(session: Session) {
     });
 }
 
+export async function slashCommand(command: string, commandHandler: (event: any) => void) {
+    app.command(command, async ({ command: event, ack, respond }) => {
+        await ack()
+
+        try {
+            respond({
+                blocks: [
+                    {
+                    type: "context",
+                    elements: [
+                        {
+                        type: "mrkdwn",
+                        text: `${command} ${text}`,
+                        },
+                    ],
+                    },
+                ]
+            })
+            commandHandler(event)
+        } catch(error) {
+            emitter.emit('error', error)
+        }
+    })
+}
+
 export async function fetchSlackId(userId: string) {
     const slackUser = await prisma.slackUser.findFirst({
         where: {
