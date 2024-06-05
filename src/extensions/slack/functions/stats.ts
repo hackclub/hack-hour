@@ -33,11 +33,10 @@ app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     }
 });
 
-slashCommand(Commands.STATS, async (event) => {
-    const client = event.client;
-    const slackId = event.user_id;
-    const channelId = event.channel_id;
-    const triggerId = event.trigger_id;
+slashCommand(Commands.STATS, async ({ ack, body, client }) => {
+    const slackId = body.user_id;
+    const channelId = body.channel_id;
+    const triggerId = body.trigger_id;
 
     const user = await prisma.user.findFirst({
         where: {

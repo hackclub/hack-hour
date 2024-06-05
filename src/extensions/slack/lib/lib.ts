@@ -8,6 +8,8 @@ import { t } from "../../../lib/templates.js";
 import { Controller } from "../views/controller.js";
 import { TopLevel } from "../views/topLevel.js";
 import { emitter } from "../../../lib/emitter.js";
+import { AllMiddlewareArgs, Middleware, SlackCommandMiddlewareArgs } from "@slack/bolt";
+import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
 export type Session = Prisma.SessionGetPayload<{}>;
 
@@ -43,10 +45,12 @@ export async function updateTopLevel(session: Session) {
         text: `${(session.metadata as any).work}` // TODO: Replace with accessibility friendly text
     });
 }
+            
+export async function slashCommand(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
+    app.command(command, async (payload) => {
+        const { command: event, ack, respond } = payload;
 
-export async function slashCommand(command: string, commandHandler: (event: any) => void) {
-    app.command(command, async ({ command: event, ack, respond }) => {
-        await ack()
+        await ack();
 
         try {
             respond({
@@ -62,7 +66,7 @@ export async function slashCommand(command: string, commandHandler: (event: any)
                     },
                 ]
             })
-            commandHandler(event)
+            commandHandler(payload);
         } catch(error) {
             emitter.emit('error', error)
         }
