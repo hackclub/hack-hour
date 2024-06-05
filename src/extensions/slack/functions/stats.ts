@@ -2,7 +2,7 @@ import { app } from "../../../lib/bolt.js";
 import { Commands, Callbacks, Actions, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { prisma } from "../../../lib/prisma.js";
-import { informUser } from "../lib/lib.js";
+import { informUser, slashCommand } from "../lib/lib.js";
 import { Stats } from "../views/stats.js";
 
 app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
@@ -33,33 +33,57 @@ app.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     }
 });
 
-app.command(Commands.STATS, async ({ ack, command, client }) => {
-    try {
-        const slackId = command.user_id;
+slashCommand(Commands.STATS, async (event) => {
+    const client = event.client;
+    const slackId = event.user_id;
+    const channelId = event.channel_id;
+    const triggerId = event.trigger_id;
 
-        await ack();
-
-        const user = await prisma.user.findFirst({
-            where: {
-                slackUser: {
-                    slackId
-                }
+    const user = await prisma.user.findFirst({
+        where: {
+            slackUser: {
+                slackId
             }
-        });
-
-        if (!user) {
-            informUser(slackId, `Run \`${Commands.HACK}\`!`, command.channel_id);
-            return;
         }
+    });
 
-        await client.views.open({
-            trigger_id: command.trigger_id,
-            view: await Stats.stats(user.id),            
-        });
-    } catch (error) {
-        emitter.emit("error", error);
+    if (!user) {
+        informUser(slackId, `Run \`${Commands.HACK}\`!`, channelId);
+        return;
     }
-});
+
+    await client.views.open({
+        trigger_id: triggerId,
+        view: await Stats.stats(user.id),            
+    });
+})
+// app.command(Commands.STATS, async ({ ack, command, client }) => {
+//     try {
+//         const slackId = command.user_id;
+
+//         await ack();
+
+//         const user = await prisma.user.findFirst({
+//             where: {
+//                 slackUser: {
+//                     slackId
+//                 }
+//             }
+//         });
+
+//         if (!user) {
+//             informUser(slackId, `Run \`${Commands.HACK}\`!`, command.channel_id);
+//             return;
+//         }
+
+//         await client.views.open({
+//             trigger_id: command.trigger_id,
+//             view: await Stats.stats(user.id),            
+//         });
+//     } catch (error) {
+//         emitter.emit("error", error);
+//     }
+// });
 
 app.view(Callbacks.STATS, async ({ ack }) => {
     try {
