@@ -151,7 +151,8 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
         });
 
         // Let the admin know that the ship has been triggered
-        await app.client.chat.postMessage({
+        await app.client.chat.postEphemeral({
+            user: command.user_id,
             channel: command.channel_id,
             text: `Ship triggered for <@${slackId}> for ship https://hackclub.slack.com/archives/${Environment.SHIP_CHANNEL}/p${shipTs.replace(".", "")}!!`
         });

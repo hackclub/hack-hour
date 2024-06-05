@@ -122,7 +122,7 @@ export class Goals {
                     "initial_option": selectedGoal ? {
                         "text": {
                             "type": "plain_text",
-                            "text": selectedGoal.name.substring(0, 70),
+                            "text": selectedGoal.name.substring(0, 30),
                             "emoji": true
                         },
                         "value": selectedGoal.id
@@ -131,7 +131,7 @@ export class Goals {
                         return {
                             "text": {
                                 "type": "plain_text",
-                                "text": goal.name.substring(0, 70),
+                                "text": goal.name.substring(0, 30),
                                 "emoji": true
                             },
                             "value": goal.id

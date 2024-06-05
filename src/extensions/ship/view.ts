@@ -186,7 +186,7 @@ export class Ship {
                             "initial_option": {
                                 "text": {
                                     "type": "plain_text",
-                                    "text": session.goal.name,
+                                    "text": session.goal.name.substring(0, 30),
                                     "emoji": true
                                 },
                                 "value": JSON.stringify({
@@ -198,7 +198,7 @@ export class Ship {
                                 return {
                                     "text": {
                                         "type": "plain_text",
-                                        "text": goal.name,
+                                        "text": goal.name.substring(0, 30),
                                         "emoji": true
                                     },
                                     "value": JSON.stringify({
