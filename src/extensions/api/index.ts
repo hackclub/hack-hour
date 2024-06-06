@@ -10,6 +10,36 @@ express.get('/', async (req, res) => {
     await res.send('Hello World!');
 });
 
+express.get('/api/clock/:slackId', async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+    });
+
+    if (!slackUser) {
+        return res.status(404).send('User not found');
+    }
+
+    const result = await prisma.session.findFirst({
+        where: {
+            userId: slackUser.userId,
+            completed: false,
+            cancelled: false,
+            paused: false,
+        },
+    });
+
+    if (result) {
+        const startTime = result.createdAt.getTime();
+        const duration = result.time * 60 * 1000; // convert from minutes to milliseconds
+        return res.status(200).send((startTime + duration).toString());
+    } else {
+        return res.status(200).send((-1).toString());
+    }
+});
+
 async function syncEvent(event: Event, session: Session, client: WebSocket) {
     const token = (client as any).meta.token;
 
