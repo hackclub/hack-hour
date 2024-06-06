@@ -7,7 +7,7 @@ import { Ship } from "./view.js";
 
 slashCommand(Commands.SHOP, async ({ body, client }) => {
     const slackId = body.user_id;
-    const channelId = body.channel_id;
+    // const channelId = body.channel_id;
     const triggerId = body.trigger_id;
 
     const user = await prisma.user.findFirst({

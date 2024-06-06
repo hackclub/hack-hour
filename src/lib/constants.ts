@@ -103,6 +103,7 @@ export const Callbacks = {
   DELETE_GOAL: 'callback_deletegoal',
 
   STATS: 'stats',
+  SHOP: 'shop',
 
   CANCEL: 'cancel',
 };

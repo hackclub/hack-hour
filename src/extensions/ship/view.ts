@@ -48,16 +48,16 @@ export class Ship {
         ]
     }
 
-    public static async shop(slackId: string, airtableUser: string): Promise<KnownBlock[]> {
+    public static async shopPreview(slackId: string): Promise<KnownBlock[]> {
         const itemsForSale = await AirtableAPI.Item.all()
-
         const blocks: KnownBlock[] = []
+
         blocks.push(
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "No Sessions Found",
+                    "text": "The Arcade Shop",
                     "emoji": true
                 }
             },
@@ -67,7 +67,53 @@ export class Ship {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "You have completed no sessions! You need to complete a session before you can ship it for hack hour."
+                    "text": "You'll need to start some sessions to get access to the shop! Get started by running `/hack` or check out the shop inventory at hack.club/arcade."
+                }
+            },
+        )
+
+        return {
+            "type": "modal",
+            "callback_id": Callbacks.STATS,
+            "title": {
+                "type": "plain_text",
+                "text": "My Stats",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Done",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": blocks
+        }
+    }
+
+    public static async shop(slackId: string, airtableUser: string): Promise<KnownBlock[]> {
+        const itemsForSale = await AirtableAPI.Item.all()
+
+        const blocks: KnownBlock[] = []
+        blocks.push(
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "The Arcade Shop",
+                    "emoji": true
+                }
+            },
+        )
+        blocks.push(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "More projects means more points! More points means more tools! More tools means more projects! The cycle continues..."
                 }
             },
         )
@@ -95,7 +141,26 @@ export class Ship {
             })
         })
 
-        return blocks;
+        return {
+            "type": "modal",
+            // "callback_id": Callbacks.SHOP,
+            "title": {
+                "type": "plain_text",
+                "text": "Arcade Shop!",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Done",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": blocks
+        }
     }
 
     public static async openSessionReview(slackId: string, shipTs: string): Promise<KnownBlock[]> {
