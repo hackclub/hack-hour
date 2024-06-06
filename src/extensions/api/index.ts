@@ -34,7 +34,10 @@ express.get('/api/clock/:slackId', async (req, res) => {
     if (result) {
         const startTime = result.createdAt.getTime();
         const duration = result.time * 60 * 1000; // convert from minutes to milliseconds
-        return res.status(200).send((startTime + duration).toString());
+        const currTime = new Date().getTime();
+        const elapsedTime = currTime-startTime;
+        const leftTime = duration-elapsedTime;
+        return res.status(200).send(leftTime.toString());
     } else {
         return res.status(200).send((-1).toString());
     }
