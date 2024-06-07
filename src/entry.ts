@@ -5,8 +5,6 @@ import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
 import { app } from './lib/bolt.js'
 
-import '../scripts/banksToAirtable.js';
-
 import './core.js';
 
 // Programmatically import index.ts from each extension in the extensions folder
@@ -35,3 +33,5 @@ try {
     
     process.exit(1);        
 }
+
+import '../scripts/banksToAirtable.js';
