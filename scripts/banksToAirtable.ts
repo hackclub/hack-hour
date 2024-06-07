@@ -55,11 +55,6 @@ if (process.env.UPD_SCRPT) {
         const shipTs = (bank.data as any).shipTs;
         const shipUrl = (bank.data as any).shipUrl;
 
-        if (bank.data.record) {
-            console.log(`Skipping bank ${bank.id}`);
-            continue;
-        }
-
         // Check if the message exists
         bank = await prisma.bank.update({
             where: {
