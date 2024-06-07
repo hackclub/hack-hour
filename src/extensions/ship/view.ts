@@ -121,7 +121,7 @@ export class Ship {
                 }
             ]
         }
-
+        
         const goals = await prisma.goal.findMany({
             where: {
                 user: {

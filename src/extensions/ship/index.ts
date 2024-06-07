@@ -468,7 +468,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         }
     });
 
-    await prisma.bank.create({
+    const bank = await prisma.bank.create({
         data: {
             id: uid(),
             user: {
@@ -487,7 +487,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
             },
             data: {
                 shipTs,
-                shipUrl: shipUrl
+                shipUrl
             }
         }
     });
@@ -540,7 +540,8 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     // Update on Airtable
     const { id } = await fetchOrCreateUser(user);
 
-    await AirtableAPI.Ship.create({
+    // It crashed here...
+    const { id: bid } = await AirtableAPI.Banks.create({
         "Ship URL": shipUrl,
         "User": [id],
         "Goal Name": oldGoal.name,
@@ -548,7 +549,22 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         "Status": "Unreviewed",
         "Sessions": sessions.map(session => {
             return (session.metadata as any).airtable.id;
-        })
+        }),
+        "Ship ID": bank.id,
+        "Error": "false"
+    });
+
+    // Update the bank with the airtable ID
+    await prisma.bank.update({
+        where: {
+            id: bank.id
+        },
+        data: {
+            data: {
+                ...(bank.data as object),
+                record: bid
+            }
+        }
     });
 
     if (!body.channel?.id) {
@@ -576,6 +592,8 @@ const registerSession = async (session: Session) => {
     });
 
     const { id, fields } = await fetchOrCreateUser(user);
+
+    console.log(`Fetched or created user ${id}`);
 
     const permalink = await app.client.chat.getPermalink({
         channel: Environment.MAIN_CHANNEL,

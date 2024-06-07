@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 // A typed wrapper over airtable API
 import Airtable from "airtable";
 
@@ -11,6 +13,7 @@ const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("V2: Users");
 const ships = base("V2: Ships");
 const sessions = base("V2: Sessions");
+const banks = base("V2: Banks");
 
 type AirtableRecordID = string;
 
@@ -60,13 +63,47 @@ type AirtableSessionRead = {
     "Status": "Approved" | "Unreviewed" | "Rejected",
     "Created At": string,
     "Reason": string,
+    "V2: Ships": AirtableRecordID[],
 };
+
+type AirtableBankWrite = {
+    "Ship URL": string,
+    "Goal Name": string,
+    "Status": "Powered Ship!" | "Unreviewed" | "Unpowered Ship" | "YSWS Ship",
+    "User": AirtableRecordID[],
+    "Created At": string,
+    "Sessions": AirtableRecordID[], 
+    "Ship ID": string,
+    "Error": string,
+//    "Minutes": number,
+};
+
+type AirtableBankRead = {
+    "Ship URL": string,
+    "Goal Name": string,
+    "Status": "Powered Ship!" | "Unreviewed" | "Unpowered Ship" | "YSWS Ship",
+    "User": AirtableRecordID[],
+    "Created At": string,
+    "Sessions": AirtableRecordID[], 
+    "Minutes": number,
+    "Ship ID": string,
+};
+
 
 export const AirtableAPI = {
     User: {
         async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableUser} | null> {
             const records = await users.select({
                 filterByFormula: `{Internal ID} = "${id}"`
+            }).all();
+
+            if (records.length === 0) { return null; }
+            return {id: records[0].id, fields: records[0].fields as AirtableUser};
+        },
+
+        async search(internalId: string): Promise<{id: AirtableRecordID, fields: AirtableUser} | null> {
+            const records = await users.select({
+                filterByFormula: `{Internal ID} = "${internalId}"`
             }).all();
 
             if (records.length === 0) { return null; }
@@ -114,6 +151,12 @@ export const AirtableAPI = {
             }]);
 
             return {id: records[0].id, fields: records[0].fields as AirtableSessionWrite};
+        },
+        
+        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableSessionRead}[]> {
+            const records = await sessions.select().all();
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableSessionRead}));
         }
     },
     Ship: {
@@ -123,6 +166,16 @@ export const AirtableAPI = {
             if (!record) { return null; }
 
             return {id: record.id, fields: record.fields as AirtableShipRead};
+        },
+
+        async search(shipUrl: string): Promise<{id: AirtableRecordID, fields: AirtableShipRead} | null> {
+            const records = await ships.select({
+                filterByFormula: `{Ship URL} = "${shipUrl}"`
+            }).all();
+
+            if (records.length === 0) { return null; }
+
+            return {id: records[0].id, fields: records[0].fields as AirtableShipRead};
         },
 
         async create(ship: AirtableShipWrite): Promise<{id: AirtableRecordID, fields: AirtableShipWrite}> {
@@ -141,5 +194,41 @@ export const AirtableAPI = {
 
             return {id: records[0].id, fields: records[0].fields as AirtableShipWrite};
         }
-    }
+    },
+    Banks: {
+        async fetch(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableBankRead} | null> {
+            const record = await banks.find(recordId);
+
+            if (!record) { return null; }
+
+            return {id: record.id, fields: record.fields as AirtableBankRead};
+        },
+
+        async search(shipUrl: string): Promise<{id: AirtableRecordID, fields: AirtableBankRead} | null> {
+            const records = await banks.select({
+                filterByFormula: `{Ship URL} = "${shipUrl}"`
+            }).all();
+
+            if (records.length === 0) { return null; }
+
+            return {id: records[0].id, fields: records[0].fields as AirtableBankRead};
+        },
+
+        async create(ship: AirtableBankWrite): Promise<{id: AirtableRecordID, fields: AirtableBankWrite}> {
+            const record = await banks.create([{
+                "fields": ship
+            }]);
+
+            return {id: record[0].id, fields: record[0].fields as AirtableBankWrite};
+        },
+
+        async update(id: AirtableRecordID, ship: Partial<AirtableBankWrite>): Promise<{id: AirtableRecordID, fields: AirtableBankWrite}> {
+            const records = await banks.update([{
+                "id": id,
+                "fields": ship
+            }]);
+
+            return {id: records[0].id, fields: records[0].fields as AirtableBankWrite};
+        }
+    },
 };
