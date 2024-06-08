@@ -336,6 +336,8 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
 
     await ack();
 
+    emitter.emit('debug', `Opening goal select for ${user.id}\n\`\`\`${JSON.stringify(await Ship.openGoalSelect(user.id), null, 4)}\`\`\``);
+
     await app.client.chat.update({
         channel: id,
         ts,
