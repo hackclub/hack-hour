@@ -793,16 +793,11 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         });
     }
 
-    await app.client.views.open({
-        trigger_id: command.trigger_id,
-        view: {
-            type: "modal",
-            callback_id: "sessions",
-            title: {
-                type: "plain_text",
-                text: "Your Sessions"
-            },
-            blocks
-        }
-    });
+    for (const block of blocks) {
+        await app.client.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            blocks: [block]
+        });
+    }
 });
