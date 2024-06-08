@@ -586,7 +586,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         blocks: await Ship.complete(),
     });
 });
-
+/*
 const registerSession = async (session: Session) => {
     if (!enabled) { return; }
 
@@ -646,6 +646,7 @@ emitter.on('complete', async (session: Session) => {
 emitter.on('cancel', async (session: Session) => {
     await registerSession(session);
 });
+*/
 
 express.post('/airtable/session', async (req, res) => {
     try {
