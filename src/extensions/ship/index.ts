@@ -587,6 +587,66 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     });
 });
 
+const registerSession = async (session: Session) => {
+    if (!enabled) { return; }
+
+    const user = await prisma.user.findFirstOrThrow({
+        where: {
+            id: session.userId
+        },
+        include: {
+            slackUser: true
+        }
+    });
+
+    const { id, fields } = await fetchOrCreateUser(user);
+
+    console.log(`Fetched or created user ${id}`);
+
+    const permalink = await app.client.chat.getPermalink({
+        channel: Environment.MAIN_CHANNEL,
+        message_ts: session.messageTs
+    });
+
+    if (!permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
+
+    // Create a new session
+    const { id: sid, fields: sfields } = await AirtableAPI.Session.create({
+        "Code URL": permalink.permalink,
+        "User": [id],
+        "Work": (session.metadata as any).work,
+        "Minutes": session.elapsed,
+        "Status": "Unreviewed",
+        "Created At": session.createdAt.toISOString(),
+    });
+
+    console.log(`Registered session ${session.messageTs} for ${id} in the Airtable`);
+
+    await prisma.session.update({
+        where: {
+            messageTs: session.messageTs
+        },
+        data: {
+            metadata: {
+                ...(session.metadata as any),
+                airtable: {
+                    id: sid,
+                    status: "Unreviewed",
+                    reason: ""
+                }
+            }
+        }
+    });
+};
+
+emitter.on('complete', async (session: Session) => {
+    await registerSession(session);
+});
+
+emitter.on('cancel', async (session: Session) => {
+    await registerSession(session);
+});
+
 express.post('/airtable/session', async (req, res) => {
     try {
         const { record } = req.body;
@@ -733,11 +793,16 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
         });
     }
 
-    for (const block of blocks) {
-        await app.client.chat.postEphemeral({
-            user: command.user_id,
-            channel: command.channel_id,
-            blocks: [block]
-        });
-    }
+    await app.client.views.open({
+        trigger_id: command.trigger_id,
+        view: {
+            type: "modal",
+            callback_id: "sessions",
+            title: {
+                type: "plain_text",
+                text: "Your Sessions"
+            },
+            blocks
+        }
+    });
 });
