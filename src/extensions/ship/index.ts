@@ -188,7 +188,7 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
         await ack();
 
         const blocks = await Ship.openSessionReview(user.id, shipTs);
-        emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(blocks)}`)
+        emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(blocks, null, 4)}`)
 
         await app.client.chat.update({
             channel: id,
@@ -203,7 +203,7 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
         });
     } catch (error) {
         emitter.emit('error', error);
-        emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(body)}`)
+        emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(body, null, 4)}`)
     }
 });
 
