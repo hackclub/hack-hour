@@ -747,8 +747,9 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
             }, {
                 "type": "divider"
             });
-        }
 
+            continue;
+        }
 
         console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
 
