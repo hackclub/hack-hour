@@ -170,33 +170,41 @@ app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack })
 });
 
 app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
-    const { id } = body.channel as any;
-    const { user } = body;
-    const { ts } = (body as any).message;
+    try {
+        const { id } = body.channel as any;
+        const { user } = body;
+        const { ts } = (body as any).message;
 
-    const dbUser = await prisma.user.findFirstOrThrow({
-        where: {
-            slackUser: {
-                slackId: user.id
+        const dbUser = await prisma.user.findFirstOrThrow({
+            where: {
+                slackUser: {
+                    slackId: user.id
+                }
             }
-        }
-    });
+        });
 
-    const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
+        const shipTs = (dbUser.metadata as any).ships.find((ship: any) => ship.message === ts)?.shipTs;
 
-    await ack();
+        await ack();
 
-    await app.client.chat.update({
-        channel: id,
-        ts,
-        blocks: await Ship.openSessionReview(user.id, shipTs),
-        metadata: {
-            event_type: "shipTs",
-            event_payload: {
-                ts: shipTs
+        const blocks = await Ship.openSessionReview(user.id, shipTs);
+        emitter.emit('debug', `DEBUGAHH\n${blocks}`)
+
+        await app.client.chat.update({
+            channel: id,
+            ts,
+            blocks,
+            metadata: {
+                event_type: "shipTs",
+                event_payload: {
+                    ts: shipTs
+                }
             }
-        }
-    });
+        });
+    } catch (error) {
+        emitter.emit('error', error);
+        emitter.emit('debug', `DEBUGAHH\n${body}`)
+    }
 });
 
 app.action(Actions.UPDATE_SESSION_GOAL, async ({ ack, body }) => {
