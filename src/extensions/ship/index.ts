@@ -31,6 +31,7 @@ function extractFromPermalink(permalink: string) {
     return { channel, ts };
 }
 
+/*
 app.message(async ({ message }) => {
     if (!enabled) { return; }
     if (
@@ -81,6 +82,7 @@ app.message(async ({ message }) => {
         }
     });
 });
+*/
 
 // Test ship flow
 app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack }) => {
