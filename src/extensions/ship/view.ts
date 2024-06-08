@@ -257,7 +257,7 @@ export class Ship {
     }
 
     public static async openGoalSelect(slackId: string): Promise<KnownBlock[]> {
-        const goals = await prisma.goal.findMany({
+        const goals = (await prisma.goal.findMany({
             where: {
                 user: {
                     slackUser: {
@@ -275,7 +275,7 @@ export class Ship {
             include: {
                 sessions: true
             }
-        });
+        })).splice(0, 10);
 
         if (goals.length === 0) {
             return [
