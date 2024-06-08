@@ -733,11 +733,24 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
 
     for (let session of sessions) {
         // Fetch the status from Airtable
-        console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
-
-        if (!(session.metadata as any).airtable) {
-            continue;
+        if (!(session.metadata as any).airtable || !(session.metadata as any).airtable.id) {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*There was an error. Please send a message in #arcade-hour-bts. Reason: Missing airtable association.*\n<${(await app.client.chat.getPermalink({
+                            channel: Environment.MAIN_CHANNEL,
+                            message_ts: session.messageTs
+                        })).permalink
+                        }|View Session>`
+                }
+            }, {
+                "type": "divider"
+            });
         }
+
+
+        console.log(`Fetching status for session ${session.messageTs} from Airtable - ${(session.metadata as any).airtable.id}`);
 
         let airtableSession: any = null;
 
