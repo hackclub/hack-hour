@@ -550,6 +550,17 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     // Update on Airtable
     const { id } = await fetchOrCreateUser(user);
 
+    let sessionIds = sessions.map(session => {
+        if (!session.metadata || !session.metadata.airtable || !session.metadata.airtable.id) {
+            emitter.emit('error', new Error(`No airtable ID found for ${session.messageTs}`));
+            emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(session.metadata, null, 4)}`)
+            return "";
+        }
+        return (session.metadata as any).airtable.id;
+    });
+
+    sessionIds = sessionIds.filter(id => id !== "");
+
     // It crashed here...
     const { id: bid } = await AirtableAPI.Banks.create({
         "Ship URL": shipUrl,
@@ -557,14 +568,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         "Goal Name": oldGoal.name,
         "Created At": new Date().toISOString(),
         "Status": "Unreviewed",
-        "Sessions": sessions.map(session => {
-            if (!session.metadata || !session.metadata.airtable || !session.metadata.airtable.id) {
-                emitter.emit('error', new Error(`No airtable ID found for ${session.messageTs}`));
-                emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(session.metadata, null, 4)}`)
-                return "";
-            }
-            return (session.metadata as any).airtable.id;
-        }),
+        "Sessions": sessionIds,
         "Ship ID": bank.id,
         "Error": "false"
     });
