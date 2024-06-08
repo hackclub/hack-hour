@@ -558,6 +558,11 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         "Created At": new Date().toISOString(),
         "Status": "Unreviewed",
         "Sessions": sessions.map(session => {
+            if (!session.metadata || !session.metadata.airtable || !session.metadata.airtable.id) {
+                emitter.emit('error', new Error(`No airtable ID found for ${session.messageTs}`));
+                emitter.emit('debug', `DEBUGAHH\n${JSON.stringify(session.metadata, null, 4)}`)
+                return "";
+            }
             return (session.metadata as any).airtable.id;
         }),
         "Ship ID": bank.id,
