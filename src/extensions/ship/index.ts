@@ -191,6 +191,8 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
 
         const blocks = await Ship.openSessionReview(user.id, shipTs);
 
+        emitter.emit('debug', `Opening session review for ${user.id}\n\`\`\`${JSON.stringify(blocks, null, 4)}\`\`\``);
+
         await app.client.chat.update({
             channel: id,
             ts,
