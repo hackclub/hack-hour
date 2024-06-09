@@ -41,6 +41,16 @@ export class Ship {
                         },
                         "value": shipTs,
                         "action_id": Actions.OPEN_SESSION_REVIEW
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Skip to Goal Selection",
+                            "emoji": true
+                        },
+                        "style": "primary",
+                        "action_id": Actions.OPEN_GOAL_SELECT
                     }
                 ]
             }

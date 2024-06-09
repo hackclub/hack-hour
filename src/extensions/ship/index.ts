@@ -193,17 +193,34 @@ app.action(Actions.OPEN_SESSION_REVIEW, async ({ ack, body }) => {
 
         emitter.emit('debug', `Opening session review for ${user.id}\n\`\`\`${JSON.stringify(blocks, null, 4)}\`\`\``);
 
-        await app.client.chat.update({
-            channel: id,
-            ts,
-            blocks,
-            metadata: {
-                event_type: "shipTs",
-                event_payload: {
-                    ts: shipTs
+        try {
+            await app.client.chat.update({
+                channel: id,
+                ts,
+                blocks,
+                metadata: {
+                    event_type: "shipTs",
+                    event_payload: {
+                        ts: shipTs
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            emitter.emit('error', error);
+
+            // Just reload the view
+            await app.client.chat.update({
+                channel: id,
+                ts,
+                blocks: await Ship.init(shipTs),
+                metadata: {
+                    event_type: "shipTs",
+                    event_payload: {
+                        ts: shipTs
+                    }
+                }
+            });
+        }
     } catch (error) {
         emitter.emit('error', error);
     }
