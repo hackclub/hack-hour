@@ -12,7 +12,7 @@ import { Prisma, Session } from "@prisma/client";
 import { Constants } from "./constants.js";
 import { KnownBlock } from "@slack/bolt";
 
-let enabled = true;
+let enabled = false;
 
 function extractFromPermalink(permalink: string) {
     // Slack permalink 
@@ -31,7 +31,7 @@ function extractFromPermalink(permalink: string) {
     return { channel, ts };
 }
 
-/*
+
 app.message(async ({ message }) => {
     if (!enabled) { return; }
     if (
@@ -82,7 +82,7 @@ app.message(async ({ message }) => {
         }
     });
 });
-*/
+
 
 // Test ship flow
 app.command(Environment.PROD ? "/admin" : "/testadmin", async ({ command, ack }) => {
@@ -616,7 +616,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
         blocks: await Ship.complete(),
     });
 });
-/*
+
 const registerSession = async (session: Session) => {
     if (!enabled) { return; }
 
@@ -676,7 +676,6 @@ emitter.on('complete', async (session: Session) => {
 emitter.on('cancel', async (session: Session) => {
     await registerSession(session);
 });
-*/
 
 express.post('/airtable/session', async (req, res) => {
     try {
