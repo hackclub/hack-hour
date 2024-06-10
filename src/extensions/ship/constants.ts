@@ -13,4 +13,4 @@ if (!members) {
 export const Constants = {
     VERIFIER_CHANNEL: 'C06TYNZ3DK8',
     VERIFIERS: members.members as string[],
-}
+} 

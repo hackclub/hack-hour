@@ -85,7 +85,7 @@ type AirtableBankRead = {
     "User": AirtableRecordID[],
     "Created At": string,
     "Sessions": AirtableRecordID[], 
-    "Minutes": number,
+    "Approved Minutes": number,
     "Ship ID": string,
 };
 
@@ -94,21 +94,22 @@ export const AirtableAPI = {
     User: {
         async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableUser} | null> {
             const records = await users.select({
-                filterByFormula: `{Internal ID} = "${id}"`
+                filterByFormula: `{Slack ID} = "${id}"`
             }).all();
 
             if (records.length === 0) { return null; }
             return {id: records[0].id, fields: records[0].fields as AirtableUser};
         },
 
+        /*
         async search(internalId: string): Promise<{id: AirtableRecordID, fields: AirtableUser} | null> {
             const records = await users.select({
-                filterByFormula: `{Internal ID} = "${internalId}"`
+                filterByFormula: `{Slack ID} = "${internalId}"`
             }).all();
 
             if (records.length === 0) { return null; }
             return {id: records[0].id, fields: records[0].fields as AirtableUser};
-        },
+        },*/
 
         async create(user: AirtableUser): Promise<{id: AirtableRecordID, fields: AirtableUser}> {
             const record = await users.create([{
@@ -125,6 +126,12 @@ export const AirtableAPI = {
             }]);
 
             return {id: records[0].id, fields: records[0].fields as AirtableUser};
+        },
+
+        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableUser}[]> {
+            const records = await users.select().all();
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableUser}));
         }
     },
     Session: {
@@ -229,6 +236,12 @@ export const AirtableAPI = {
             }]);
 
             return {id: records[0].id, fields: records[0].fields as AirtableBankWrite};
+        },
+
+        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableBankRead}[]> {
+            const records = await banks.select().all();
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableBankRead}));
         }
     },
 };

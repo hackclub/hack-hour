@@ -371,7 +371,7 @@ app.action(Actions.OPEN_GOAL_SELECT, async ({ ack, body }) => {
 });
 
 const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{ include: { slackUser: true } }>) => {
-    let airtableUser = await AirtableAPI.User.fetch(user.id);
+    let airtableUser = await AirtableAPI.User.fetch(user.slackUser!.slackId);
 
     if (!user.slackUser) { throw new Error(`No slack user found for ${user.id}`); }
 
