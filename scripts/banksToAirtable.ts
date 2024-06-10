@@ -31,32 +31,6 @@ const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{ include: { slackU
 
     return airtableUser;
 }
-const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{ include: { slackUser: true } }>) => {
-    let airtableUser = await AirtableAPI.User.fetch(user.id);
-
-    if (!user.slackUser) { throw new Error(`No slack user found for ${user.id}`); }
-
-    if (!airtableUser) {
-        const slackInfo = await app.client.users.info({
-            user: user.slackUser.slackId
-        });
-        if (!slackInfo.user?.real_name) { throw new Error(`No user found for ${user.slackUser.slackId}`); }
-
-        console.log(`Creating bank ${user.id}`);
-
-        airtableUser = await AirtableAPI.User.create({
-            "Name": slackInfo.user.real_name,
-            "Internal ID": user.id,
-            "Slack ID": user.slackUser.slackId,
-            "Banked Minutes": 0,
-            "Ships": [],
-            "Sessions": []
-        });
-    }
-
-    return airtableUser;
-}
-
 
 if (process.env.UPD_SCRPT) {
     const banks = await prisma.bank.findMany({
