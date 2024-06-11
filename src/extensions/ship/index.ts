@@ -12,7 +12,7 @@ import { Prisma, Session } from "@prisma/client";
 import { Constants } from "./constants.js";
 import { KnownBlock } from "@slack/bolt";
 
-let enabled = false;
+let enabled = true;
 
 function extractFromPermalink(permalink: string) {
     // Slack permalink 
@@ -37,7 +37,6 @@ app.message(async ({ message }) => {
     if (
         !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
     ) { return };
-    if (!message.subtype || message.subtype !== 'file_share') { return }; // Needs to be a file share event
 
     // Make sure the user is in the database
     const user = await prisma.user.findFirst({
