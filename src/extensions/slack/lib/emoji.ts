@@ -1,4 +1,4 @@
-import { app, Slack } from "../../../lib/bolt.js";
+import { app } from "../../../lib/bolt.js";
 
 const emojis = {
     yay: "yay",
@@ -256,7 +256,7 @@ export async function reactOnContent(data: {
             if (
                 data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
             ) {
-                await Slack.reactions.add({
+                await app.client.reactions.add({
                     channel: data.channel,
                     timestamp: data.ts,
                     name: emojis[keyword]
