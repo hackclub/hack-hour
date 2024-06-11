@@ -115,17 +115,3 @@ export async function informUserBlocks(slackId: string, blocks: any[], channel: 
     }
     
 }
-
-// Todo: Move to core standard lib
-export async function cancelSession(slackId: string, session: Session) {
-    const updatedSession = await prisma.session.update({
-        where: {
-            messageTs: session.messageTs
-        },
-        data: {
-            cancelled: true
-        }
-    });
-
-    emitter.emit('cancel', updatedSession);
-}

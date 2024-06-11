@@ -98,6 +98,20 @@ model Bank {
   // { "shipLink": "URL", "goalId": "###" }
 }
 
+// // Transaction - watch for verified banked hours & also purchase redemptions
+// model Transaction {
+//   id          String  @id
+
+//   user        User    @relation(fields: [userId], references: [id])
+//   userId      String
+
+//   type        String // "bank"/"redeem"
+
+//   amount      Int
+//   createdAt   DateTime @default(now())
+
+// }
+
 // flow:
 //- user has a hack hour (minute: 1)
 //- hack hour finished, go to bank their points in #ship (bot DMs after)
