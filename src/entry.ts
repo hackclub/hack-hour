@@ -33,5 +33,3 @@ try {
     
     process.exit(1);        
 }
-
-import '../scripts/banksToAirtable.js';

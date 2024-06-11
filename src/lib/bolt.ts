@@ -1,4 +1,4 @@
-import bolt from '@slack/bolt'; 
+import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt'; 
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -104,6 +104,41 @@ export const Slack = {
         })
     },
 
+    async view(callbackId: string | RegExp, ...listeners: Middleware<SlackViewMiddlewareArgs<SlackViewAction>, StringIndexed>[]) {
+        app.view(callbackId, async (payload) => {
+            const { ack, body, view } = payload;
+    
+            await ack();
+    
+            try {
+                await app.client.chat.postMessage({
+                    channel: Environment.INTERNAL_CHANNEL,
+                    blocks: [
+                        {
+                            type: "context",
+                            elements: [
+                                {
+                                type: "mrkdwn",
+                                text: `${callbackId} ${view.callback_id}`,
+                                },
+                            ],
+                        },
+                    ]
+                })
+
+                listeners.forEach((listener) => listener(payload));
+            } catch(error) {
+                emitter.emit('error', error);
+
+                await app.client.chat.postEphemeral({
+                    channel: body.user.id,
+                    user: body.user.id,
+                    text: `An error occurred while processing your view!`
+                });
+            }
+        })
+    },
+
     chat: {
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             try {
@@ -117,7 +152,7 @@ export const Slack = {
             }
         },
 
-        async postEpemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
+        async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             try {
                 await app.client.chat.postMessage({
                     ...options,
@@ -134,6 +169,41 @@ export const Slack = {
                     });
                 }
             }
+        },
+
+        async update(options: Parameters<typeof app.client.chat.update>[0]) {
+            try {
+                if (!options) { throw new Error('No options provided!') }
+                await app.client.chat.postMessage({
+                    text: `Updating message ${options.channel} ${options.ts}`,
+                    channel: Environment.INTERNAL_CHANNEL
+                });
+                return await app.client.chat.update(options);
+            } catch (error) {
+                emitter.emit('error', error);
+            }
+        }
+    },
+
+    reactions: {
+        async add(options: Parameters<typeof app.client.reactions.add>[0]) {
+            try {
+                if (!options) { throw new Error('No options provided!') }
+                await app.client.chat.postMessage({
+                    text: `Adding reaction to message ${options.channel} ${options.timestamp}`,
+                    channel: Environment.INTERNAL_CHANNEL
+                });
+                return await app.client.reactions.add(options);
+            } catch (error) {
+                emitter.emit('error', error);
+            }
+        }
+    },
+
+    helper: {
+        async ensureChannels() {
+            // TODO
+            return;            
         }
     }
 }
