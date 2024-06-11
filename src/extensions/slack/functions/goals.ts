@@ -1,4 +1,4 @@
-import { app } from "../../../lib/bolt.js";
+import { Slack } from "../../../lib/bolt.js";
 import { prisma, uid } from "../../../lib/prisma.js";
 
 import { Goals } from "../views/goals.js";
@@ -6,7 +6,7 @@ import { Actions, Callbacks } from "../../../lib/constants.js";
 import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
 
-app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id;
@@ -56,7 +56,7 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     try {
         const goalId = (body as any).actions[0].selected_option.value;
         const sessionTs = (body as any).view.private_metadata
@@ -146,11 +146,11 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-app.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
+Slack.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
     await ack();
 });
 
-app.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
     try {
         await ack();
 
@@ -166,7 +166,7 @@ app.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
     try {
         const slackId = body.user.id;
 
@@ -286,7 +286,7 @@ app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
     }
 });
 
-app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
     try {
 
         const sessionTs = (body as any).view.private_metadata;
@@ -333,7 +333,7 @@ app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
     try {
         const sessionTs = body.view.private_metadata;
 

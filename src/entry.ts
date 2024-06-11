@@ -5,7 +5,7 @@ import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
 import { app } from './lib/bolt.js'
 
-import './core.js';
+import './clock.js';
 
 // Programmatically import index.ts from each extension in the extensions folder
 const extensions = await fs.promises.readdir('./src/extensions');
