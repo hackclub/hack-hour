@@ -12,7 +12,7 @@ import { Prisma, Session } from "@prisma/client";
 import { Constants } from "./constants.js";
 import { KnownBlock } from "@slack/bolt";
 
-let enabled = false;
+let enabled = true;
 
 function extractFromPermalink(permalink: string) {
     // Slack permalink 
