@@ -12,7 +12,7 @@ import { Prisma, Session } from "@prisma/client";
 import { Constants } from "./constants.js";
 import { KnownBlock } from "@slack/bolt";
 
-let enabled = true;
+let enabled = false;
 
 function extractFromPermalink(permalink: string) {
     // Slack permalink 
@@ -31,56 +31,55 @@ function extractFromPermalink(permalink: string) {
     return { channel, ts };
 }
 
+// app.message(async ({ message }) => {
+//     if (!enabled) { return; }
+//     if (
+//         !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
+//     ) { return };
+//
+//     // Make sure the user is in the database
+//     const user = await prisma.user.findFirst({
+//         where: {
+//             slackUser: {
+//                 slackId: message.user
+//             }
+//         },
+//     });
+//
+//     if (!user) { return; } //TODO: Advertise the user to sign up
+//
+//     let metadata: any | null = user.metadata;
+//
+//     if (!metadata) {
+//         metadata = {
+//             ships: []
+//         }
+//     } else if (!metadata.ships) {
+//         metadata.ships = [];
+//     }
 
-app.message(async ({ message }) => {
-    if (!enabled) { return; }
-    if (
-        !(message.channel === Environment.SHIP_CHANNEL || message.channel === Environment.SCRAPBOOK_CHANNEL)
-    ) { return };
+//     const shipTs = message.ts;
 
-    // Make sure the user is in the database
-    const user = await prisma.user.findFirst({
-        where: {
-            slackUser: {
-                slackId: message.user
-            }
-        },
-    });
+//     // DM the user to let them know that their ship has been received
+//     const result = await app.client.chat.postMessage({
+//         channel: message.user,
+//         blocks: await Ship.init(shipTs)
+//     });
 
-    if (!user) { return; } //TODO: Advertise the user to sign up
+//     metadata.ships.push({
+//         shipTs,
+//         message: result.ts
+//     });
 
-    let metadata: any | null = user.metadata;
-
-    if (!metadata) {
-        metadata = {
-            ships: []
-        }
-    } else if (!metadata.ships) {
-        metadata.ships = [];
-    }
-
-    const shipTs = message.ts;
-
-    // DM the user to let them know that their ship has been received
-    const result = await app.client.chat.postMessage({
-        channel: message.user,
-        blocks: await Ship.init(shipTs)
-    });
-
-    metadata.ships.push({
-        shipTs,
-        message: result.ts
-    });
-
-    await prisma.user.update({
-        where: {
-            id: user.id
-        },
-        data: {
-            metadata
-        }
-    });
-});
+//     await prisma.user.update({
+//         where: {
+//             id: user.id
+//         },
+//         data: {
+//             metadata
+//         }
+//     });
+// });
 
 
 // Test ship flow
@@ -668,13 +667,13 @@ const registerSession = async (session: Session) => {
     });
 };
 
-emitter.on('complete', async (session: Session) => {
-    await registerSession(session);
-});
+// emitter.on('complete', async (session: Session) => {
+//     await registerSession(session);
+// });
 
-emitter.on('cancel', async (session: Session) => {
-    await registerSession(session);
-});
+// emitter.on('cancel', async (session: Session) => {
+//     await registerSession(session);
+// });
 
 express.post('/airtable/session', async (req, res) => {
     try {
