@@ -155,6 +155,13 @@ app.event("message", async ({ event }) => {
         const session = await prisma.session.findFirstOrThrow({
             where: {
                 messageTs: thread_ts
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: true
+                    }
+                }
             }
         });
 
@@ -175,7 +182,23 @@ app.event("message", async ({ event }) => {
                 return;
             }
 
-            if (airtableSession.fields["Status"] === "Rejected") {
+            if (!airtableSession.fields["Activity"]) {
+                await app.client.chat.postEphemeral({
+                    channel: Environment.MAIN_CHANNEL,
+                    user: session.user.slackUser!.slackId,
+                    text: `This session has been marked for re-review! Make sure to provide evidence for your work, including any code or media.`,
+                });
+            }
+
+            if (!airtableSession.fields["Evidenced"]) {
+                await app.client.chat.postEphemeral({
+                    channel: Environment.MAIN_CHANNEL,
+                    user: session.user.slackUser!.slackId,
+                    text: `This session has been marked for re-review! Thanks for providing evidence for your work!`,
+                });
+            }
+
+            if (airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") {
                 const user = await prisma.user.findUniqueOrThrow({
                     where: {
                         id: session.userId
