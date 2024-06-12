@@ -6,6 +6,7 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
 import { Environment } from './constants.js';
 import { emitter } from './emitter.js';
+import { assert } from 'console';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -146,7 +147,7 @@ export const Slack = {
                     ...options,
                     channel: Environment.INTERNAL_CHANNEL
                 });
-                return await app.client.chat.postMessage(options);
+                return assert(await app.client.chat.postMessage(options));
             } catch (error) {
                 emitter.emit('error', error);
             }
@@ -158,7 +159,7 @@ export const Slack = {
                     ...options,
                     channel: Environment.INTERNAL_CHANNEL
                 });                
-                return await app.client.chat.postEphemeral(options);
+                return assert(await app.client.chat.postEphemeral(options));
             } catch (error: any) {
                 emitter.emit('error', error);
                 if (options) {
@@ -178,7 +179,7 @@ export const Slack = {
                     text: `Updating message ${options.channel} ${options.ts}`,
                     channel: Environment.INTERNAL_CHANNEL
                 });
-                return await app.client.chat.update(options);
+                return assert(await app.client.chat.update(options));
             } catch (error) {
                 emitter.emit('error', error);
             }

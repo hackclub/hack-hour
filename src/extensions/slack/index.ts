@@ -5,7 +5,7 @@ import { emitter } from "../../lib/emitter.js";
 
 import { t, t_fetch, t_format } from "../../lib/templates.js";
 import { reactOnContent } from "./lib/emoji.js";
-import { updateController, updateTopLevel, cancelSession, informUser, informUserBlocks } from "./lib/lib.js";
+import { updateController, updateTopLevel, informUser, informUserBlocks } from "./lib/lib.js";
 
 import { Session } from "@prisma/client";
 
@@ -15,6 +15,7 @@ import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js"
 import { Controller } from "./views/controller.js";
+import { assert } from "console";
 
 /*
 Session Creation
@@ -146,75 +147,44 @@ app.event("message", async ({ event }) => {
 */
 
 // Default command to start a session
-app.command(Commands.HACK, async ({ command, ack }) => {
+type CommandHandler = Parameters<Parameters<typeof Slack.command>[1]>[0];
+
+const hack = async ({ command, ack }: CommandHandler) => {
     const slackId = command.user_id;
 
     await ack();
 
-    let slackUser = await prisma.slackUser.findUnique(
+    let slackUser = await prisma.slackUser.upsert(
         {
             where: {
+                slackId
+            },
+            create: {
                 slackId,
-            }
-        }
-    );
-
-    if (!slackUser) {
-        const slackUserData = await app.client.users.info({
-            user: slackId
-        });
-
-        if (!slackUserData.user) {
-            throw new Error(`Could not find user ${slackId}!`)
-        } else if (!slackUserData.user.tz_offset) {
-            throw new Error(`Could not retrieve timezone of ${slackId}`)
-        }
-
-        // Add the slack user to the usergroup, if it's not already there
-        const usergroup = await app.client.usergroups.users.list({
-            usergroup: Environment.PING_USERGROUP
-        });
-
-        if (!usergroup.users) {
-            throw new Error(`Could not retrieve users of usergroup ${Environment.PING_USERGROUP}`)
-        }
-
-        if (!usergroup.users.includes(slackId)) {
-            await app.client.usergroups.users.update({
-                usergroup: Environment.PING_USERGROUP,
-                users: [...usergroup.users, slackId].join(',')
-            });
-        }        
-
-        slackUser = await prisma.slackUser.create(
-            {
-                data: {
-                    slackId,
-                    user: {
-                        create: {
-                            id: uid(),
-                            lifetimeMinutes: 0,
-                            apiKey: uid(),
-                            goals: {
-                                create: {
-                                    id: uid(),
-
-                                    name: "No Goal",
-                                    description: "A default goal for users who have not set one.",
-
-                                    totalMinutes: 0,
-                                    createdAt: new Date(),
-
-                                    selected: true
+                user: {
+                    create: {
+                        id: uid(),
+                        lifetimeMinutes: 0,
+                        apiKey: uid(),
+                        goals: {
+                            create: {
+                                id: uid(),
+                                name: "No Goal",
+                                default: true,                              
+                                metadata: {
+                                    // TODO
                                 }
                             }
+                        },
+                        metadata: {
+                            ships: {}
                         }
-                    },
-                    tz_offset: slackUserData.user.tz_offset
-                }
-            }
-        );
-    }
+                    }
+                },
+            },
+            update: {},
+        }
+    );
 
     const existingSession = await prisma.session.findFirst({
         where: {
@@ -224,19 +194,14 @@ app.command(Commands.HACK, async ({ command, ack }) => {
         }
     });
 
-    if (!command.text || command.text.length == 0) {
-        if (existingSession) {
-            await informUserBlocks(slackId, await Controller.quick(existingSession), command.channel_id);
-        } else {
-            await informUser(slackId, "Please provide a description of what you're working on.", command.channel_id);
-        }
-
+    if (existingSession) {
+        await informUser(slackId, "You already have an active session. Please cancel it before starting a new one.", command.channel_id);
         return;
     }
 
+    if (!command.text || command.text.length == 0) {
+        await informUser(slackId, "Please provide a description of what you're working on.", command.channel_id);
 
-    if (existingSession) {
-        await informUser(slackId, "You already have an active session. Please cancel it before starting a new one.", command.channel_id);
         return;
     }
 
@@ -244,10 +209,6 @@ app.command(Commands.HACK, async ({ command, ack }) => {
         channel: Environment.MAIN_CHANNEL,
         text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
     });
-
-    if (!topLevel || !topLevel.ts) {
-        throw new Error(`Failed to create a message for ${slackId}`)
-    }
 
     const user = await prisma.user.findUnique(
         {
@@ -315,7 +276,10 @@ app.command(Commands.HACK, async ({ command, ack }) => {
         channel: Environment.MAIN_CHANNEL,
         ts: topLevel.ts
     });
-});
+};
+
+Slack.command(Commands.HACK, hack);
+//Slack.command(Commands.HOUR, hack);
 
 /*
 Minute tracker

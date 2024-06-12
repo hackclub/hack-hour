@@ -1,12 +1,4 @@
-// Environment Variables - typescript doesn't typecheck process.env
-// Throw if not defined
-function assertEnv(envVar: string): string { 
-  if (!process.env[envVar]) { 
-    throw new Error(`Environment variable ${envVar} is not defined.`); 
-  } else {
-    return process.env[envVar] as string;
-  }
-}
+import { assertEnv } from "./assert.js";
 
 export const Environment = {
   // Server/Slack App
@@ -91,6 +83,8 @@ export const Actions = {
   DELETE_GOAL: 'deletegoal',
 
   VIEW_STATS: 'viewstats',
+
+  ATTACH_REPO: 'attachrepo',
 };
 
 export const Callbacks = {

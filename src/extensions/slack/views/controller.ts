@@ -191,6 +191,15 @@ export class Controller {
                             "emoji": true
                         },
                         "action_id": Actions.OPEN_GOAL
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Attach GitHub repository",
+                            "emoji": true
+                        },
+                        "action_id": Actions.ATTACH_REPO
                     }
                 ],
                 "block_id": "panel"
