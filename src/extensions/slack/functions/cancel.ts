@@ -6,7 +6,7 @@ import { Environment, Actions, Commands, Callbacks } from "../../../lib/constant
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { fetchSlackId, informUser, updateTopLevel } from "../lib/lib.js";
+import { fetchSlackId, informUser } from "../lib/lib.js";
 import { Cancel } from "../views/cancel.js";
 
 import { Session } from "../../../lib/corelib.js";
@@ -15,8 +15,6 @@ import { Slack } from "../../../lib/bolt.js";
 Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
         const thread_ts = (body as any).message.thread_ts;
-
-        await ack();
 
         await app.client.views.open({
             trigger_id: (body as any).trigger_id,
@@ -29,8 +27,6 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
 
 Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
         const messageTs = view.private_metadata;
 
@@ -62,8 +58,6 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
                 
 Slack.command(Commands.CANCEL, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({

@@ -15,8 +15,6 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
     try {
         const slackId = body.user.id;
 
-        await ack();
-
         const session = await prisma.session.findFirst({
             where: {
                 messageTs: (body as any).message.thread_ts,
@@ -62,8 +60,6 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
     try {
         const slackId = body.user.id;
 
-        await ack();
-
         const session = await prisma.session.findFirst({
             where: {
                 messageTs: (body as any).message.thread_ts,
@@ -108,8 +104,6 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
 // Can toggle
 Slack.command(Commands.PAUSE, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({
@@ -144,8 +138,6 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
 // Can only start
 Slack.command(Commands.START, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({

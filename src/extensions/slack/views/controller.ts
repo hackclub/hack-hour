@@ -6,40 +6,7 @@ import { app } from "../../../lib/bolt.js";
 
 export class Controller {
     public static async panel(session: Session) {
-        /*
-        // Pre-fetch the goal
-        let curGoal = await prisma.goal.findFirst({
-            where: {
-                userId: session.userId,
-                selected: true
-            }
-        });
-
-        if (!curGoal) {
-            // Set the first goal as the selected goal
-            const goals = await prisma.goal.findMany({
-                where: {
-                    userId: session.userId
-                }
-            });
-            curGoal = goals[0];
-
-            if (goals.length == 0) {
-                throw new Error(`No goals found for user ${session.userId}`);
-            }
-
-            await prisma.goal.update({
-                where: {
-                    id: curGoal.id
-                },
-                data: {
-                    selected: true
-                }
-            });
-        }
-        */
-        // hacky replacement, but fetch the goal from the session
-        if (!session.goalId) { throw new Error(`No goal found for session ${session.messageTs}`); }
+        if (!session.goalId) { throw new Error(`No goal found for session ${session.id}`); }
 
         const curGoal = await prisma.goal.findUniqueOrThrow({
             where: {
@@ -60,7 +27,7 @@ export class Controller {
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.totalMinutes)} hours`
+                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.minutes)} hours`
                 }
             ]
         };
@@ -93,7 +60,7 @@ export class Controller {
                 "text": "",
                 "emoji": true
             },
-            "value": session.messageTs,
+            "value": session.id,
             "action_id": ""
         };
 
@@ -112,11 +79,11 @@ export class Controller {
                 "text": "Change Goal",
                 "emoji": true
             },
-            "value": session.messageTs,
+            "value": session.id,
             "action_id": Actions.OPEN_GOAL
         };
 
-        if (session.bankId || curGoal.completed) {
+        if (curGoal.completed) {
             return [
                 info,
                 {

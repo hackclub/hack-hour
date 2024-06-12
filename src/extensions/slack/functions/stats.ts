@@ -9,8 +9,6 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     try {
         const slackId = body.user.id;
 
-        await ack();
-
         const user = await prisma.user.findFirst({
             where: {
                 slackUser: {
@@ -55,39 +53,4 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
         trigger_id: triggerId,
         view: await Stats.stats(user.id),            
     });
-})
-// app.command(Commands.STATS, async ({ ack, command, client }) => {
-//     try {
-//         const slackId = command.user_id;
-
-//         await ack();
-
-//         const user = await prisma.user.findFirst({
-//             where: {
-//                 slackUser: {
-//                     slackId
-//                 }
-//             }
-//         });
-
-//         if (!user) {
-//             informUser(slackId, `Run \`${Commands.HACK}\`!`, command.channel_id);
-//             return;
-//         }
-
-//         await client.views.open({
-//             trigger_id: command.trigger_id,
-//             view: await Stats.stats(user.id),            
-//         });
-//     } catch (error) {
-//         emitter.emit("error", error);
-//     }
-// });
-
-app.view(Callbacks.STATS, async ({ ack }) => {
-    try {
-        await ack();
-    } catch (error) {
-        emitter.emit("error", error);
-    }
 });

@@ -4,7 +4,7 @@ import { prisma } from "../../../lib/prisma.js"
 import { formatHour } from "../../../lib/templates.js";
 
 export class Goals {
-    public static async main(sessionTs: string): Promise<View> {
+    public static async main(sessionId: string): Promise<View> {
         const modal: View = {
             "type": "modal",
             "submit": {
@@ -24,7 +24,7 @@ export class Goals {
             },
             blocks: [] as Block[],
             callback_id: Callbacks.MAIN_GOAL,
-            "private_metadata": sessionTs
+            "private_metadata": sessionId
         }
 
         const blocks = [
@@ -87,7 +87,7 @@ export class Goals {
 
         const session = await prisma.session.findUnique({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             },
             include: {
                 user: {
@@ -178,7 +178,7 @@ export class Goals {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `You've spent *${formatHour(selectedGoal.totalMinutes)}* hours working on _${selectedGoal.name}_.`
+                    "text": `You've spent *${formatHour(selectedGoal.minutes)}* hours working on _${selectedGoal.name}_.`
                 }
             } as any);
         }
@@ -229,11 +229,11 @@ export class Goals {
         }
     }
 
-    public static async delete(sessionTs: string): Promise<View> {
+    public static async delete(sessionId: string): Promise<View> {
         // Are you sure you want to delete this goal?
         const session = await prisma.session.findUniqueOrThrow({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             },
             include: {
                 goal: true
@@ -267,7 +267,7 @@ export class Goals {
                     }
                 }
             ],
-            "private_metadata": sessionTs
+            "private_metadata": sessionId
         }
     }
 } 

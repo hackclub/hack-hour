@@ -97,4 +97,6 @@ export const Callbacks = {
   STATS: 'stats',
 
   CANCEL: 'cancel',
+
+  ATTACH_REPO: 'attachrepo',
 };

@@ -6,7 +6,7 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
 import { Environment } from './constants.js';
 import { emitter } from './emitter.js';
-import { assert } from 'console';
+import { assertVal } from './assert.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -107,9 +107,7 @@ export const Slack = {
 
     async view(callbackId: string | RegExp, ...listeners: Middleware<SlackViewMiddlewareArgs<SlackViewAction>, StringIndexed>[]) {
         app.view(callbackId, async (payload) => {
-            const { ack, body, view } = payload;
-    
-            await ack();
+            const { body, view } = payload;
     
             try {
                 await app.client.chat.postMessage({
@@ -147,7 +145,7 @@ export const Slack = {
                     ...options,
                     channel: Environment.INTERNAL_CHANNEL
                 });
-                return assert(await app.client.chat.postMessage(options));
+                return assertVal(await app.client.chat.postMessage(options));
             } catch (error) {
                 emitter.emit('error', error);
             }
@@ -155,11 +153,11 @@ export const Slack = {
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             try {
-                await app.client.chat.postMessage({
-                    ...options,
-                    channel: Environment.INTERNAL_CHANNEL
-                });                
-                return assert(await app.client.chat.postEphemeral(options));
+                // await app.client.chat.postMessage({
+                //     ...options,
+                //     channel: Environment.INTERNAL_CHANNEL
+                // });                
+                return assertVal(await app.client.chat.postEphemeral(options));
             } catch (error: any) {
                 emitter.emit('error', error);
                 if (options) {
@@ -174,12 +172,11 @@ export const Slack = {
 
         async update(options: Parameters<typeof app.client.chat.update>[0]) {
             try {
-                if (!options) { throw new Error('No options provided!') }
-                await app.client.chat.postMessage({
-                    text: `Updating message ${options.channel} ${options.ts}`,
-                    channel: Environment.INTERNAL_CHANNEL
-                });
-                return assert(await app.client.chat.update(options));
+                // await app.client.chat.postMessage({
+                //     text: `Updating message ${options.channel} ${options.ts}`,
+                //     channel: Environment.INTERNAL_CHANNEL
+                // });
+                return assertVal(await app.client.chat.update(options));
             } catch (error) {
                 emitter.emit('error', error);
             }
@@ -189,12 +186,11 @@ export const Slack = {
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
             try {
-                if (!options) { throw new Error('No options provided!') }
-                await app.client.chat.postMessage({
-                    text: `Adding reaction to message ${options.channel} ${options.timestamp}`,
-                    channel: Environment.INTERNAL_CHANNEL
-                });
-                return await app.client.reactions.add(options);
+                // await app.client.chat.postMessage({
+                //     text: `Adding reaction to message ${options.channel} ${options.timestamp}`,
+                //     channel: Environment.INTERNAL_CHANNEL
+                // });
+                return assertVal(await app.client.reactions.add(options));
             } catch (error) {
                 emitter.emit('error', error);
             }

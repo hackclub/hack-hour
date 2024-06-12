@@ -1,4 +1,4 @@
-export function assert<T>(value: T): NonNullable<T> {
+export function assertVal<T>(value: T): NonNullable<T> {
     if (value === null || value === undefined) {
         throw `Value is null or undefined.`;
     }

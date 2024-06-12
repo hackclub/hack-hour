@@ -1,0 +1,120 @@
+{
+    "display_information": {
+        "name": "Hack Hour Dev",
+        "description": "An hour a day keeps the doctor away (Mk. 3 Dev)",
+        "background_color": "#2a3670"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Hack Hour Dev",
+            "always_online": false
+        },
+        "slash_commands": [
+            {
+                "command": "/testhack",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Start a New Session",
+                "should_escape": false
+            },
+            {
+                "command": "/testcancel",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Cancel Current Session",
+                "should_escape": false
+            },
+            {
+                "command": "/testpause",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Pause your current hour",
+                "should_escape": false
+            },
+            {
+                "command": "/teststart",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Continue the hour",
+                "should_escape": false
+            },
+            {
+                "command": "/testextend",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Extends the hour",
+                "should_escape": false
+            },
+            {
+                "command": "/teststats",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "View your stats",
+                "should_escape": false
+            },
+            {
+                "command": "/testsessions",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "???",
+                "should_escape": false
+            },
+            {
+                "command": "/testadmin",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "???",
+                "should_escape": false
+            },
+            {
+                "command": "/testshop",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Opens the shop!",
+                "should_escape": false
+            },
+            {
+                "command": "/testremind",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Opens the shop!",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "scopes": {
+            "user": [
+                "chat:write"
+            ],
+            "bot": [
+                "channels:history",
+                "channels:join",
+                "channels:write.topic",
+                "chat:write",
+                "chat:write.customize",
+                "chat:write.public",
+                "commands",
+                "files:read",
+                "groups:history",
+                "groups:read",
+                "groups:write.topic",
+                "links.embed:write",
+                "links:read",
+                "links:write",
+                "reactions:read",
+                "reactions:write",
+                "usergroups:read",
+                "usergroups:write",
+                "users:read",
+                "remote_files:share"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "request_url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+            "bot_events": [
+                "message.channels",
+                "reaction_added"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://optimum-stork-daily.ngrok-free.app/slack/events"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

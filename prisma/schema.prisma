@@ -7,116 +7,123 @@ generator json {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // the user... duh
 model User {
-  id               String  @id
+  id String @id
 
-  lifetimeMinutes  Int
+  lifetimeMinutes Int
 
-  apiKey           String  @unique
+  apiKey String @unique
 
-  slackUser        SlackUser?
-  sessions         Session[]
-  goals            Goal[]
+  slackUser SlackUser?
+  sessions  Session[]
+  goals     Goal[]
 
   /// [UserMetadata]
-  metadata         Json
+  metadata Json
 
-  log      Log[]
+  log          Log[]
   transactions Transaction[]
 }
 
 // slack data of the user
 model SlackUser {
-  slackId          String  @id
-  user             User    @relation(fields: [userId], references: [id])
-  userId           String  @unique
+  slackId String @id
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @unique
 }
 
 // tracks the user's hour (/hack)
-model Session { // Hack Hour
-  user       User  @relation(fields: [userId], references: [id])
-  userId     String
+model Session {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  id         String  @id
+  id String @id
 
-  messageTs  String  
-  controlTs  String  
+  messageTs String
+  controlTs String
 
-  createdAt  DateTime @default(now())
-  time       Int
-  elapsed    Int
+  createdAt         DateTime @default(now())
+  time              Int
+  elapsed           Int
   elapsedSincePause Int
 
-  completed  Boolean
-  cancelled  Boolean
-  paused     Boolean
+  completed Boolean
+  cancelled Boolean
+  paused    Boolean
 
-  goal       Goal? @relation(fields: [goalId], references: [id])
-  goalId     String?
+  goal   Goal   @relation(fields: [goalId], references: [id])
+  goalId String
 
-  logs       Log[]
+  evidence Boolean @default(false)
+  logs     Log[]
+
+  transaction Transaction? 
 
   /// [SessionMetadata]
-  metadata   Json
+  metadata Json
 }
 
 // Categorizes the user's sessions (group)
-model Goal { // Group
-  id          String  @id
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String
+model Goal {
+  id     String @id
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  name        String 
+  name        String
   description String @default("")
 
-  minutes     Int @default(0)
-  createdAt   DateTime @default(now())
+  minutes   Int      @default(0)
+  createdAt DateTime @default(now())
 
-  default    Boolean @default(false)
+  default Boolean @default(false)
 
-  completed   Boolean @default(false)
+  completed Boolean @default(false)
 
-  sessions    Session[]
+  sessions Session[]
 
-  metadata    Json
+  metadata Json
 }
 
 // Ship posts & etc. - anything that counts as a banked hour
-model Log { 
-  id          String  @id
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String
+model Log {
+  id     String @id
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  minutes     Int
+  approved Boolean @default(false)
 
-  approved    Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  sessions    Session[]
+  sessions Session[]
 
   /// [LogData]
-  data    Json
+  data Json
 }
 
 // Transaction - watch for verified banked hours & also purchase redemptions
 model Transaction {
-  id          String  @id
+  id String @id
 
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  type        String // "bank"/"redeem"
+  type String // "bank"/"redeem"
 
-  amount      Int
-  approved    Boolean
+  amount   Int
+  approved Boolean @default(false)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  session Session? @relation(fields: [sessionId], references: [id])
+  sessionId String? @unique
+
+  /// [TransactionMetadata]
+  data Json
 }

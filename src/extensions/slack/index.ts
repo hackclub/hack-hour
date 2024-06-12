@@ -14,8 +14,7 @@ import "./functions/cancel.js";
 import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js"
-import { Controller } from "./views/controller.js";
-import { assert } from "console";
+import { assertVal } from "../../lib/assert.js";
 
 /*
 Session Creation
@@ -152,8 +151,6 @@ type CommandHandler = Parameters<Parameters<typeof Slack.command>[1]>[0];
 const hack = async ({ command, ack }: CommandHandler) => {
     const slackId = command.user_id;
 
-    await ack();
-
     let slackUser = await prisma.slackUser.upsert(
         {
             where: {
@@ -177,24 +174,29 @@ const hack = async ({ command, ack }: CommandHandler) => {
                             }
                         },
                         metadata: {
+                            airtable: undefined,
                             ships: {}
                         }
                     }
                 },
             },
             update: {},
+            include: {
+                user: {
+                    select: {
+                        sessions: {
+                            where: {
+                                completed: false,
+                                cancelled: false
+                            }
+                        }
+                    }
+                }
+            }
         }
     );
 
-    const existingSession = await prisma.session.findFirst({
-        where: {
-            userId: slackUser.userId,
-            completed: false,
-            cancelled: false
-        }
-    });
-
-    if (existingSession) {
+    if (slackUser.user.sessions.length > 0) {
         await informUser(slackId, "You already have an active session. Please cancel it before starting a new one.", command.channel_id);
         return;
     }
@@ -210,29 +212,10 @@ const hack = async ({ command, ack }: CommandHandler) => {
         text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
     });
 
-    const user = await prisma.user.findUnique(
-        {
-            where: {
-                id: slackUser.userId
-            },
-            include: {
-                goals: {
-                    where: {
-                        name: "No Goal"
-                    }
-                }
-            }
-        }
-    );
-
-    if (!user) {
-        throw new Error(`User ${slackUser.userId} not found!`)
-    }
-
     // Create a controller message in the thread
     const controller = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
-        thread_ts: topLevel.ts,
+        thread_ts: topLevel!.ts,
         text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
     })
 
@@ -242,8 +225,15 @@ const hack = async ({ command, ack }: CommandHandler) => {
 
     const session = await prisma.session.create({
         data: {
-            userId: user.id,
-            messageTs: topLevel.ts,
+            id: uid(),
+
+            user: {
+                connect: {
+                    id: slackUser.userId
+                }
+            },
+
+            messageTs: assertVal(topLevel!.ts),
             controlTs: controller.ts,
 
             time: 60,
@@ -256,13 +246,22 @@ const hack = async ({ command, ack }: CommandHandler) => {
             elapsedSincePause: 0,
 
             metadata: {
+                work: command.text,
                 slack: {
                     template: t_fetch('toplevel'),
                 },
-                work: command.text
             },
 
-            goalId: user.goals[0].id
+            goal: {
+                connect: {
+                    id: (await prisma.goal.findFirstOrThrow({
+                        where: {
+                            default: true,
+                            userId: slackUser.userId
+                        }
+                    })).id
+                }
+            }
         }
     });
 
@@ -274,7 +273,7 @@ const hack = async ({ command, ack }: CommandHandler) => {
     await reactOnContent({
         content: command.text,
         channel: Environment.MAIN_CHANNEL,
-        ts: topLevel.ts
+        ts: assertVal(topLevel!.ts)
     });
 };
 
@@ -309,7 +308,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
             console.log(`❌ Session ${session.messageTs} does not exist`);
 
             // Remove the session
-            await prisma.session.delete({
+            await prisma.session.deleteMany({
                 where: {
                     messageTs: session.messageTs
                 }
@@ -392,7 +391,7 @@ emitter.on('complete', async (session: Session) => {
             id: session.goalId as string
         },
         data: {
-            totalMinutes: {
+            minutes: {
                 increment: session.elapsed
             }
         }
@@ -400,6 +399,23 @@ emitter.on('complete', async (session: Session) => {
 
     await updateController(session);
     await updateTopLevel(session);
+
+    const replies = await app.client.conversations.replies({
+        channel: Environment.MAIN_CHANNEL,
+        ts: session.messageTs
+    });
+
+    const userReplies = replies.messages?.filter(m => m.user == slackUser.slackId);
+    if (userReplies && userReplies.length > 0) {
+        await prisma.session.update({
+            where: {
+                id: session.id
+            },
+            data: {
+               evidence: true
+            }
+        });
+    }
 });
 
 emitter.on('cancel', async (session: Session) => {
@@ -449,7 +465,7 @@ emitter.on('cancel', async (session: Session) => {
             id: session.goalId as string
         },
         data: {
-            totalMinutes: {
+            minutes: {
                 increment: session.elapsed
             }
         }

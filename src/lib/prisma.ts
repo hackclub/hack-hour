@@ -5,16 +5,19 @@ declare global {
     namespace PrismaJson {
         type SessionMetadata = {
             work: string,
-            slack?: {
+            slack: {
                 "template": string
             },
             airtable?: {
                 id: string,
-                status: string
+                status: string,
+                reason: string
             },
-			git?: string
         }
         type UserMetadata = {
+            airtable?: {
+                id: string
+            },
             ships: {
                 [shipTs: string]: string
             }

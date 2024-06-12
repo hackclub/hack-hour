@@ -32,7 +32,7 @@ export class Stats {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*${goal.name}*: ${formatHour(goal.totalMinutes)} hours spent\n_(${goal.totalMinutes} minutes${goal.completed ? " - Completed)" : ")"}_`
+                    "text": `*${goal.name}*: ${formatHour(goal.minutes)} hours spent\n_(${goal.minutes} minutes${goal.completed ? " - Completed)" : ")"}_`
                 }
             }
         });
