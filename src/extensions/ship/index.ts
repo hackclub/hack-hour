@@ -879,14 +879,14 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Approved Total: ${Math.floor(airtableUser.fields["Approved"]/60)} minutes`
+                        "text": `Approved Total: ${Math.floor(airtableUser.fields["Approved"]/60)} hours`
                     }
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Approved Remaining: ${Math.floor(airtableUser.fields["Total balance (minutes)"]/60)}`
+                        "text": `Approved Remaining: ${Math.floor(airtableUser.fields["Total balance (minutes)"]/60)} hours`
                     }
                 },
                 {
@@ -896,7 +896,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "<https://google.com|Open The Shop>"
+                        "text": `<https://hackclub.com/arcade/?user=${airtableUser.id}|Open The Shop>`
                     }
                 }
             ]
