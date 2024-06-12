@@ -1,6 +1,6 @@
 import { app, express } from "../../../lib/bolt.js";
 import { AirtableAPI } from "../lib/airtable.js";
-import { prisma, uid } from "../../../lib/prisma.js";
+import { prisma } from "../../../lib/prisma.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { log } from "../lib/log.js";
@@ -15,6 +15,11 @@ express.post('/airtable/session/update', async (req, res) => {
             throw new Error(`No session found for ${record}`);
         }
 
+        const permalink = (await app.client.chat.getPermalink({
+            channel: Environment.MAIN_CHANNEL,
+            message_ts: airtableSession.fields["Message TS"]
+        })).permalink;
+
         console.log(`Received session ${record} from Airtable`);
 
         const session = await prisma.session.findFirstOrThrow({
@@ -26,40 +31,43 @@ express.post('/airtable/session/update', async (req, res) => {
             }
         });
 
-        if (session.metadata.airtable?.status !== airtableSession.fields["Status"]) {
-            if (airtableSession.fields["Status"] === "Rejected") {
-                // Update this as an unapproved transaction
-                await prisma.transaction.update({
-                    where: {
-                        sessionId: session.id
-                    },
-                    data: {
-                        approved: false
-                    }
-                });
-            } else if (airtableSession.fields["Status"] === "Approved") {
-                // Update this as an approved transaction
-                await prisma.transaction.update({
-                    where: {
-                        sessionId: session.id
-                    },
-                    data: {
-                        approved: true
-                    }
-                });
-            }   
-        }     
+        // if (session.metadata.airtable?.status !== airtableSession.fields["Status"]) {
+        //     if (airtableSession.fields["Status"] === "Rejected") {
+        //         // Update this as an unapproved transaction
+        //         await prisma.transaction.update({
+        //             where: {
+        //                 sessionId: session.id
+        //             },
+        //             data: {
+        //                 approved: false
+        //             }
+        //         });
+        //         log(`Transaction for <session|${permalink}> rejected`);
+        //     } else if (airtableSession.fields["Status"] === "Approved" && airtableSession.fields["Scrapbook"].length > 0) {
+        //         // Update this as an approved transaction
+        //         await prisma.transaction.update({
+        //             where: {
+        //                 sessionId: session.id
+        //             },
+        //             data: {
+        //                 approved: true
+        //             }
+        //         });
+        //         log(`Transaction for <session|${permalink}> approved`);
+        //     }   
+        // }     
 
-        if (session.elapsed !== airtableSession.fields["Approved Minutes"]) {
-            await prisma.transaction.update({
-                where: {
-                    sessionId: session.id
-                },
-                data: {
-                    amount: airtableSession.fields["Approved Minutes"]
-                }
-            });
-        }
+        // if (session.elapsed !== airtableSession.fields["Approved Minutes"]) {
+        //     await prisma.transaction.update({
+        //         where: {
+        //             sessionId: session.id
+        //         },
+        //         data: {
+        //             amount: airtableSession.fields["Approved Minutes"]
+        //         }
+        //     });
+        //     log(`Transaction for <session|${permalink}> updated to ${airtableSession.fields["Approved Minutes"]} minutes`);
+        // }
 
         session.metadata.airtable = {
             id: record,
@@ -84,7 +92,5 @@ express.post('/airtable/session/update', async (req, res) => {
         emitter.emit('error', error);
     }
 });
-
-
 
 //express.post('/airtable/fullfillment'

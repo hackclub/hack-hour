@@ -118,27 +118,27 @@ const registerSession = async (session: Session) => {
             }
         });
 
-        await prisma.transaction.create({
-            data: {
-                id: uid(),
-                type: "session",
-                amount: session.elapsed,
+        // await prisma.transaction.create({
+        //     data: {
+        //         id: uid(),
+        //         type: "session",
+        //         amount: session.elapsed,
                 
-                user: {
-                    connect: {
-                        id: user.id
-                    }
-                },
+        //         user: {
+        //             connect: {
+        //                 id: user.id
+        //             }
+        //         },
 
-                session: {
-                    connect: {
-                        id: session.id
-                    }
-                },
+        //         session: {
+        //             connect: {
+        //                 id: session.id
+        //             }
+        //         },
 
-                data: {}
-            }
-        });
+        //         data: {}
+        //     }
+        // });
     } catch (error) {
         emitter.emit('error', error);
     }
@@ -146,3 +146,61 @@ const registerSession = async (session: Session) => {
 
 emitter.on('cancel', registerSession);
 emitter.on('complete', registerSession);
+
+app.event("message", async ({ event }) => {
+    const thread_ts = (event as any).thread_ts;
+
+    // Update the airtable to Re-review if any activity is detected
+    if (thread_ts) {
+        const session = await prisma.session.findFirstOrThrow({
+            where: {
+                messageTs: thread_ts
+            }
+        });
+
+        if (!session.metadata.airtable) { throw new Error(`Session ${session.id} is missing an Airtable ID`); }
+
+        if (session) {
+            const airtableSession = await AirtableAPI.Session.find(session.metadata.airtable.id);
+
+            if (!airtableSession) {
+                const permalink = (await app.client.chat.getPermalink({
+                    channel: Environment.MAIN_CHANNEL,
+                    message_ts: session.messageTs
+                })).permalink;
+
+                console.log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
+                log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
+
+                return;
+            }
+
+            if (airtableSession.fields["Status"] === "Rejected") {
+                // Check if the user posted anything in the thread
+                const evidence = await app.client.conversations.replies({
+                    channel: Environment.MAIN_CHANNEL,
+                    ts: session.messageTs
+                });
+
+                if (!evidence.messages) { throw new Error(`No evidence found for ${session.messageTs}`); }
+
+                const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
+
+                // Borrowed from david's code, thanks david!
+                const urlsExist = evidence.messages.find(message => getUrls(message.text ? message.text : "").size > 0)
+                const imagesExist = evidence.messages.find(message => message.files ? message.files.length > 0 : false)
+
+                const evidenced = urlsExist !== undefined || imagesExist !== undefined;
+
+                await AirtableAPI.Session.update(session.metadata.airtable.id, {
+                    "Status": "Requested Re-review",
+                    "Activity": activity,
+                    "Evidenced": evidenced
+                });
+
+                console.log(`Session ${session.id} updated to Re-review`);
+                log(`Session ${session.id} updated to Re-review`);
+            }
+        }
+    }
+});
