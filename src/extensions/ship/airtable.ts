@@ -25,7 +25,8 @@ type AirtableUserRead = {
     "Ships": AirtableRecordID[],
     "Sessions": AirtableRecordID[],
     "Total balance (minutes)": number,
-    "Approved": number,    
+    "Approved": number, 
+    "Minutes spent (incl. pending)": number   
 };
 
 type AirtableUserWrite = {

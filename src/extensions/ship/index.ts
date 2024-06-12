@@ -855,6 +855,39 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     await ack();
 
+    const blocks = [];
+
+    const remaining = Math.floor((airtableUser.fields["Approved"] - airtableUser.fields["Minutes spent (incl. pending)"])/60);
+
+    blocks.push({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": `Available to spend: ${remaining} :zap:`
+        }
+    });
+
+    if (Math.floor(airtableUser.fields["Minutes spent (incl. pending)"]/60) !== 0) {
+        blocks.push({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `Total banked hours: ${Math.floor(airtableUser.fields["Approved"]/60)} :zap:`
+            }
+        });
+    }
+
+    blocks.push({
+        "type": "divider"
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": `<https://hackclub.com/arcade/?user=${command.user_id}|Open The Shop>`
+        }
+    });
+    
     app.client.views.open({
         "trigger_id": command.trigger_id,
         "view": {
@@ -864,42 +897,12 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
                 "text": "The Shop",
                 "emoji": true
             },
-            "submit": {
-                "type": "plain_text",
-                "text": "Submit",
-                "emoji": true
-            },
             "close": {
                 "type": "plain_text",
-                "text": "Cancel",
+                "text": "Close",
                 "emoji": true
             },
-            "blocks": [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `Approved Total: ${Math.floor(airtableUser.fields["Approved"]/60)} hours`
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `Approved Remaining: ${Math.floor(airtableUser.fields["Total balance (minutes)"]/60)} hours`
-                    }
-                },
-                {
-                    "type": "divider"
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `<https://hackclub.com/arcade/?user=${airtableUser.id}|Open The Shop>`
-                    }
-                }
-            ]
+            "blocks": blocks
         }
     })
 });
