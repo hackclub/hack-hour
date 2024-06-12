@@ -17,7 +17,19 @@ const banks = base("V2: Banks");
 
 type AirtableRecordID = string;
 
-type AirtableUser = {
+type AirtableUserRead = {
+    "Name": string,
+    "Internal ID": string,
+    "Slack ID": string,
+    "Banked Minutes": number,
+    "Ships": AirtableRecordID[],
+    "Sessions": AirtableRecordID[],
+    "Total balance (minutes)": number,
+    "Approved": number, 
+    "Minutes spent (incl. pending)": number   
+};
+
+type AirtableUserWrite = {
     "Name": string,
     "Internal ID": string,
     "Slack ID": string,
@@ -25,6 +37,7 @@ type AirtableUser = {
     "Ships": AirtableRecordID[],
     "Sessions": AirtableRecordID[]
 };
+
 
 type AirtableShipWrite = {
     "Ship URL": string,
@@ -92,13 +105,13 @@ type AirtableBankRead = {
 
 export const AirtableAPI = {
     User: {
-        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableUser} | null> {
+        async fetch(id: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
             const records = await users.select({
                 filterByFormula: `{Slack ID} = "${id}"`
             }).all();
 
             if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableUser};
+            return {id: records[0].id, fields: records[0].fields as AirtableUserRead};
         },
 
         /*
@@ -111,27 +124,27 @@ export const AirtableAPI = {
             return {id: records[0].id, fields: records[0].fields as AirtableUser};
         },*/
 
-        async create(user: AirtableUser): Promise<{id: AirtableRecordID, fields: AirtableUser}> {
+        async create(user: AirtableUserWrite): Promise<{id: AirtableRecordID, fields: AirtableUserWrite}> {
             const record = await users.create([{
                 "fields": user
             }]);
 
-            return {id: record[0].id, fields: record[0].fields as AirtableUser};
+            return {id: record[0].id, fields: record[0].fields as AirtableUserWrite};
         },
 
-        async update(id: AirtableRecordID, user: Partial<AirtableUser>): Promise<{id: AirtableRecordID, fields: AirtableUser}> {
+        async update(id: AirtableRecordID, user: Partial<AirtableUserWrite>): Promise<{id: AirtableRecordID, fields: AirtableUserWrite}> {
             const records = await users.update([{
                 "id": id,
                 "fields": user
             }]);
 
-            return {id: records[0].id, fields: records[0].fields as AirtableUser};
+            return {id: records[0].id, fields: records[0].fields as AirtableUserWrite};
         },
 
-        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableUser}[]> {
+        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableUserRead}[]> {
             const records = await users.select().all();
 
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableUser}));
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableUserRead}));
         }
     },
     Session: {

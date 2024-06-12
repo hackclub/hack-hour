@@ -55,6 +55,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/hack',
   STATS: '/mystats',
   SESSIONS: '/sessions',
+  SHOP: '/shop'
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -70,6 +71,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/testhack',
   STATS: '/teststats',
   SESSIONS: '/testsessions',
+  SHOP: '/testshop'
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',
