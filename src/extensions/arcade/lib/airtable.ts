@@ -45,6 +45,8 @@ type AirtableSessionWrite = {
     "Evidenced": boolean,
     "Activity": boolean,
     "Reason"?: string,
+    "Approved Minutes": number,
+    "Scrapbook": [AirtableRecordID],
 };
 
 type AirtableSessionRead = {
@@ -61,7 +63,7 @@ type AirtableSessionRead = {
     "Activity": boolean,
     "Reason": string,
     "Approved Minutes": number,
-    "Scrapbook": [AirtableRecordID?],
+    "Scrapbook": [AirtableRecordID],
 };
 
 type AirtableScrapbookWrite = {
