@@ -176,6 +176,15 @@ app.event("message", async ({ event }) => {
             }
 
             if (airtableSession.fields["Status"] === "Rejected") {
+                const user = await prisma.user.findUniqueOrThrow({
+                    where: {
+                        id: session.userId
+                    },
+                    include: {
+                        slackUser: true
+                    }
+                });
+
                 // Check if the user posted anything in the thread
                 const evidence = await app.client.conversations.replies({
                     channel: Environment.MAIN_CHANNEL,
