@@ -141,10 +141,10 @@ export const Slack = {
     chat: {
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             try {
-                await app.client.chat.postMessage({
-                    ...options,
-                    channel: Environment.INTERNAL_CHANNEL
-                });
+                // await app.client.chat.postMessage({
+                //     ...options,
+                //     channel: Environment.INTERNAL_CHANNEL
+                // });
                 return assertVal(await app.client.chat.postMessage(options));
             } catch (error) {
                 emitter.emit('error', error);

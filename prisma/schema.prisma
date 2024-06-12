@@ -29,6 +29,7 @@ model User {
 
   log          Log[]
   transactions Transaction[]
+  scrapbooks   Scrapbook[]
 }
 
 // slack data of the user
@@ -64,6 +65,9 @@ model Session {
   logs     Log[]
 
   transaction Transaction? 
+
+  scrapbook Scrapbook? @relation(fields: [scrapbookTs], references: [ts])
+  scrapbookTs String?
 
   /// [SessionMetadata]
   metadata Json
@@ -126,4 +130,14 @@ model Transaction {
 
   /// [TransactionMetadata]
   data Json
+}
+
+// A grouping of sessions associated with a scrapbook post
+model Scrapbook {
+  ts String @id
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  sessions Session[]
 }

@@ -14,7 +14,7 @@ if (!process.env.AIRTABLE_BASE) { throw new Error("No Airtable base provided"); 
 const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("Users");
 // const ships = base("V2: Ships");
-const sessions = base("V2: Sessions");
+const sessions = base("Sessions");
 // const banks = base("V2: Banks");
 
 type AirtableRecordID = string;
@@ -54,25 +54,34 @@ type AirtableUserRead = {
 // };
 
 type AirtableSessionWrite = {
+    "Session ID": string,
+    "Message TS": string,
+    "Control TS": string,
     "Code URL": string,
-    "User": AirtableRecordID[],
+    "User": [AirtableRecordID],
     "Work": string,
     "Minutes": number,
-    "Status": "Approved" | "Unreviewed" | "Rejected",
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review",
     "Created At": string,
     "Evidenced": boolean,
+    "Activity": boolean,
     "Reason"?: string,
 };
 
 type AirtableSessionRead = {
+    "Session ID": string,
+    "Message TS": string,
+    "Control TS": string,
     "Code URL": string,
-    "User": AirtableRecordID[],
+    "User": [AirtableRecordID],
     "Work": string,
     "Minutes": number,
-    "Status": "Approved" | "Unreviewed" | "Rejected",
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review",
     "Created At": string,
+    "Evidenced": boolean,
+    "Activity": boolean,
     "Reason": string,
-    "V2: Ships": AirtableRecordID[],
+    "Approved Minutes": number,
 };
 
 // type AirtableBankWrite = {
@@ -134,14 +143,14 @@ export const AirtableAPI = {
             return {id: records[0].id, fields: records[0].fields as AirtableUserWrite};
         },
 
-        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableUserRead}[]> {
+        async findAll(): Promise<{id: AirtableRecordID, fields: AirtableUserRead}[]> {
             const records = await users.select().all();
 
             return records.map(record => ({id: record.id, fields: record.fields as AirtableUserRead}));
         }
     },
     Session: {
-        async fetch(record: string): Promise<{id: AirtableRecordID, fields: AirtableSessionRead} | null> {
+        async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableSessionRead} | null> {
             const records = await sessions.find(record);
 
             if (!records) { return null; }
@@ -166,14 +175,14 @@ export const AirtableAPI = {
             return {id: records[0].id, fields: records[0].fields as AirtableSessionWrite};
         },
         
-        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableSessionRead}[]> {
+        async findAll(): Promise<{id: AirtableRecordID, fields: AirtableSessionRead}[]> {
             const records = await sessions.select().all();
 
             return records.map(record => ({id: record.id, fields: record.fields as AirtableSessionRead}));
         }
     },
     // Ship: {
-    //     async fetch(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableShipWrite} | null> {
+    //     async find(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableShipWrite} | null> {
     //         const record = await ships.find(recordId);
 
     //         if (!record) { return null; }
@@ -209,7 +218,7 @@ export const AirtableAPI = {
     //     }
     // },
     // Banks: {
-    //     async fetch(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableBankRead} | null> {
+    //     async find(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableBankRead} | null> {
     //         const record = await banks.find(recordId);
 
     //         if (!record) { return null; }
@@ -244,7 +253,7 @@ export const AirtableAPI = {
     //         return {id: records[0].id, fields: records[0].fields as AirtableBankWrite};
     //     },
 
-    //     async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableBankRead}[]> {
+    //     async findAll(): Promise<{id: AirtableRecordID, fields: AirtableBankRead}[]> {
     //         const records = await banks.select().all();
 
     //         return records.map(record => ({id: record.id, fields: record.fields as AirtableBankRead}));

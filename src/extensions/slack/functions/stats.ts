@@ -54,3 +54,5 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
         view: await Stats.stats(user.id),            
     });
 });
+
+Slack.view(Actions.VIEW_STATS, async ({ ack, body }) => {});
