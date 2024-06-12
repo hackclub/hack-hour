@@ -386,7 +386,7 @@ const fetchOrCreateUser = async (user: Prisma.UserGetPayload<{ include: { slackU
             "Banked Minutes": 0,
             "Ships": [],
             "Sessions": []
-        });
+        }) as any;
     }
 
     return airtableUser;
@@ -565,7 +565,7 @@ app.action(Actions.SUBMIT, async ({ ack, body }) => {
     });
 
     // Update on Airtable
-    const { id } = await fetchOrCreateUser(user);
+    const { id } = (await fetchOrCreateUser(user))!;
 
     let sessionIds = sessions.map(session => {
         if (!session.metadata || !session.metadata.airtable || !session.metadata.airtable.id) {
@@ -627,7 +627,7 @@ const registerSession = async (session: Session) => {
         }
     });
 
-    const { id, fields } = await fetchOrCreateUser(user);
+    const { id, fields } = (await fetchOrCreateUser(user))!;
 
     console.log(`Fetched or created user ${id}`);
 
@@ -764,9 +764,9 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
                 "text": {
                     "type": "mrkdwn",
                     "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*There was an error. Please send a message in #arcade-hour-bts. Reason: Missing airtable association.*\n<${(await app.client.chat.getPermalink({
-                            channel: Environment.MAIN_CHANNEL,
-                            message_ts: session.messageTs
-                        })).permalink
+                        channel: Environment.MAIN_CHANNEL,
+                        message_ts: session.messageTs
+                    })).permalink
                         }|View Session>`
                 }
             }, {
@@ -799,7 +799,7 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
                 }
             };
         }
-
+ 
         session = await prisma.session.update({
             where: {
                 messageTs: session.messageTs
@@ -842,4 +842,64 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
             blocks: [block]
         });
     }
+});
+
+app.command(Commands.SHOP, async ({ command, ack }) => {
+    const airtableUser = await AirtableAPI.User.fetch(command.user_id);
+
+    if (!airtableUser) {
+        await ack();
+        informUser(command.user_id, "Error", command.channel_id);
+        return;
+    }
+
+    await ack();
+
+    app.client.views.open({
+        "trigger_id": command.trigger_id,
+        "view": {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "The Shop",
+                "emoji": true
+            },
+            "submit": {
+                "type": "plain_text",
+                "text": "Submit",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Approved Total: ${Math.floor(airtableUser.fields["Approved"]/60)} minutes`
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Approved Remaining: ${Math.floor(airtableUser.fields["Total balance (minutes)"]/60)}`
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "<https://google.com|Open The Shop>"
+                    }
+                }
+            ]
+        }
+    })
 });
