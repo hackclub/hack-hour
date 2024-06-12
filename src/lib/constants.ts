@@ -85,6 +85,8 @@ export const Actions = {
   VIEW_STATS: 'viewstats',
 
   ATTACH_REPO: 'attachrepo',
+
+  CHOOSE_SESSIONS: 'choosesessions',
 };
 
 export const Callbacks = {
@@ -99,4 +101,6 @@ export const Callbacks = {
   CANCEL: 'cancel',
 
   ATTACH_REPO: 'attachrepo',
+
+  CHOOSE_SESSIONS: 'choosesessions',
 };
