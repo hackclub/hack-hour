@@ -2,7 +2,7 @@ import { express } from "../../../lib/bolt.js";
 import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../lib/airtable.js";
 import { app } from "../../../lib/bolt.js";
-import { chooseSessionsButton } from "../view.js";
+import { ChooseSessions } from "../view.js";
 
 // {
 //     messageText: 'another test',
@@ -30,9 +30,9 @@ express.post("/scrapbook/post", async (req, res) => {
       },
     },
     select: {
-        id: true,
-        metadata: true,
-    }
+      id: true,
+      metadata: true,
+    },
   });
 
   if (!(user.metadata as any).airtable) {
@@ -49,6 +49,6 @@ express.post("/scrapbook/post", async (req, res) => {
   await app.client.chat.postMessage({
     channel: slackId,
     text: "Select which sessions should be linked to your scrapbook post.",
-    blocks: chooseSessionsButton(user.id, id),
+    blocks: ChooseSessions.chooseSessionsButton(user.id, id),
   });
 });
