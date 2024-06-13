@@ -763,7 +763,7 @@ app.command(Commands.SESSIONS, async ({ command, ack }) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*There was an error. Please send a message in #arcade-hour-bts. Reason: Missing airtable association.*\n<${(await app.client.chat.getPermalink({
+                    "text": `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}*\n${(session.metadata as any).work}\n_Goal:_ ${session.goal?.name}\n*There was an error. Please submit this in hack.club/0tpfnc!*\n<${(await app.client.chat.getPermalink({
                         channel: Environment.MAIN_CHANNEL,
                         message_ts: session.messageTs
                     })).permalink
