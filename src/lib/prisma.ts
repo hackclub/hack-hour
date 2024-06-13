@@ -12,7 +12,8 @@ declare global {
                 id: string,
                 status: string,
                 reason: string
-            }
+            },
+            onboarding: boolean
         }
         type UserMetadata = {
             airtable?: {
@@ -24,6 +25,10 @@ declare global {
         }
         type LogData = {
             // TODO
+        }
+        type ScrapbookMetadata = {
+            record: string,
+            attachments: string[]
         }
     }
 }

@@ -184,6 +184,7 @@ const hack = async ({ command, ack }: CommandHandler) => {
             include: {
                 user: {
                     select: {
+                        metadata: true,
                         sessions: {
                             where: {
                                 completed: false,
@@ -249,7 +250,8 @@ const hack = async ({ command, ack }: CommandHandler) => {
                 work: command.text,
                 slack: {
                     template: t_fetch('toplevel'),
-                }
+                },
+                onboarding: slackUser.user.metadata.airtable ? false : true
             },
 
             goal: {
@@ -321,10 +323,11 @@ emitter.on('sessionUpdate', async (session: Session) => {
             await updateController(session);
 
             return;
-        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0) {
+        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.onboarding) {
             // Send a reminder every 15 minutes
             await Slack.chat.postMessage({
                 thread_ts: session.messageTs,
+                user: slackUser.slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: t(`update`, {
                     slackId: slackUser.slackId,

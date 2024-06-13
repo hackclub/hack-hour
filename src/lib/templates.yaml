@@ -58,5 +58,20 @@ init:
 welcome:
     - "welcome to hack hour, <@${slackId}>! :wave:"
 
+onboarding_init:
+    - "check out all this <https://hackclub.com/arcade/#shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
+
+onboarding_update:
+    - nice work <@${slackId}>! `${minutes}` min down- nice work! let’s keep going. make sure to post a screenshot of your progress or a commit link.
+
+onboarding_complete:
+    - great work <@${slackId}>! you've got a hack hour! this hour is still unreviewed, but keep on hacking to get more hours! 
+
 onboarding_evidence_reminder:
-    - hey <@${slackID}>! make sure to put your evidence in the thread! :D
+    - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
+
+activity_detect:
+    - remember that you need to provide a git commit or a photo!
+
+evidence_detect:
+    - thanks for documenting your journey!!! :D

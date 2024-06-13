@@ -33,6 +33,8 @@ export const Constants = {
 //  MIN_MS: 1 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
+  PROMOTION_THRESH: 3 * 60, // 3 hours
+
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
 
   AUTO_CANCEL: 60
@@ -47,6 +49,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/hack',
   STATS: '/mystats',
   SESSIONS: '/sessions',
+  SHOP: '/shop',
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -62,6 +65,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/testhack',
   STATS: '/teststats',
   SESSIONS: '/testsessions',
+  SHOP: '/testshop',
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',

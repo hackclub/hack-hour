@@ -1,8 +1,11 @@
 import { express } from "../../../lib/bolt.js";
-import { prisma } from "../../../lib/prisma.js";
+import { prisma, uid } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../lib/airtable.js";
 import { app } from "../../../lib/bolt.js";
-import { ChooseSessions } from "../view.js";
+import { ChooseSessions } from "../slack/view.js";
+import { log } from "../lib/log.js";
+import { Environment } from "../../../lib/constants.js";
+import { emitter } from "../../../lib/emitter.js";
 
 // {
 //     messageText: 'another test',
@@ -16,39 +19,172 @@ import { ChooseSessions } from "../view.js";
 // }
 
 express.post("/scrapbook/post", async (req, res) => {
-  // 1. Send a DM to the user so they can select which sessions go to their scrapbook post
-  // 2. Add an entry to the airtable to represent the scrapbook post
-  // 3. Mark sessions associated with the scrapbook post (& are approved) as "banked"
-  // 4. Send a confirmation message to the user
+    // 1. Send a DM to the user so they can select which sessions go to their scrapbook post
+    // 2. Add an entry to the airtable to represent the scrapbook post
+    // 3. Mark sessions associated with the scrapbook post (& are approved) as "banked"
+    // 4. Send a confirmation message to the user
 
-  const slackId = req.body.slackId;
+    console.log(`Recieved request from scrapbook:\n\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\`\nThanks scrappy!`);
+    log(`Recieved request from scrapbook:\n\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\`\nThanks scrappy!`);
 
-  const user = await prisma.user.findFirstOrThrow({
-    where: {
-      slackUser: {
-        slackId,
-      },
-    },
-    select: {
-      id: true,
-      metadata: true,
-    },
-  });
+    const slackId: string = req.body.user.slackID;
+    const postTime: string = req.body.postTime;
+    const attachments: string[] = req.body.attachments;
+    const channel: string = req.body.channel;
 
-  if (!(user.metadata as any).airtable) {
-    throw new Error(`Airtable user not found for ${user.id}`);
-  }
+    const scrapbookUrl = await app.client.chat.getPermalink({
+        channel,
+        message_ts: postTime,
+    });
 
-  const { id } = await AirtableAPI.Scrapbook.create({
-    "Ship TS": req.body.postTime,
-    User: [(user.metadata as any).airtable?.id],
-    Sessions: [],
-    Attachments: req.body.attachments.map((url: string) => ({ url })),
-  });
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                slackUser: {
+                    slackId,
+                },
+            },
+            select: {
+                id: true,
+                metadata: true,
+            },
+        });
 
-  await app.client.chat.postMessage({
-    channel: slackId,
-    text: "Select which sessions should be linked to your scrapbook post.",
-    blocks: ChooseSessions.chooseSessionsButton(user.id, id),
-  });
+        // If they aren't a user, just skip
+        if (!user) {
+            return;
+        }
+
+        if (!(user.metadata as any).airtable) {
+            throw new Error(`Airtable user not found for ${user.id}`);
+        }
+
+        const { id } = await AirtableAPI.Scrapbook.create({
+            "Scrapbook TS": req.body.postTime,
+            "Scrapbook URL": scrapbookUrl.permalink!,
+            User: [(user.metadata as any).airtable?.id],
+            Sessions: [],
+            Attachments: req.body.attachments.map((url: string) => ({ url })),
+            Text: req.body.messageText
+        });
+
+        const flowMsg = await app.client.chat.postMessage({
+            channel: slackId,
+            text: "Initializing... :spin-loading:",
+        });
+
+        if (!flowMsg.ts) {
+            await app.client.chat.postMessage({
+                channel: slackId,
+                text: "Something went wrong!\n`Error: Unable to send a message to the user.`",
+            });
+            throw new Error("No ts found for flow message");
+        }
+
+        const scrapbook = await prisma.scrapbook.create({
+            data: {
+                internalId: uid(),
+                ts: postTime,
+
+                flowTs: flowMsg.ts,
+                flowChannel: flowMsg.channel!,
+
+                channel,
+                user: {
+                    connect: {
+                        id: user.id,
+                    },
+                },
+                data: {
+                    attachments,
+                    record: id
+                },
+            },
+        });
+
+        await app.client.chat.update({
+            channel: flowMsg.channel!,
+            ts: flowMsg.ts,
+            text: "Select which sessions should be linked to your scrapbook post.",
+            blocks: ChooseSessions.chooseSessionsButton(scrapbook.internalId),
+        });
+
+        res.status(200).send("Success");
+    } catch (error) {
+        emitter.emit("error", error);
+    }
 });
+
+// app.event("message", async ({ event }) => {
+//     if (event.channel !== Environment.SCRAPBOOK_CHANNEL) { return; }
+//     if ((event as any).thread_ts) { return; }
+
+//     // 1. Send a DM to the user so they can select which sessions go to their scrapbook post
+//     // 2. Add an entry to the airtable to represent the scrapbook post
+//     // 3. Mark sessions associated with the scrapbook post (& are approved) as "banked"
+//     // 4. Send a confirmation message to the user
+
+//     // console.log(`Recieved request to post to scrapbook: ${JSON.stringify(req.body)} - Thanks scrappy!`);
+//     // log(`Recieved request to post to scrapbook: ${JSON.stringify(req.body)} - Thanks scrappy!`);
+
+//     // const slackId: string = req.body.slackId;
+//     // const postTime: string = req.body.postTime;
+//     // const attachments: string[] = req.body.attachments;
+//     // const channel: string = req.body.channel;
+//     console.log(JSON.stringify(event));
+//     log(JSON.stringify(event));
+//     return;
+
+//     const slackId: string = (event as any).user;
+//     const postTime: string = event.ts;
+//     const attachments: string[] = (event as any).attachments;
+//     const channel: string = event.channel;
+
+//     const user = await prisma.user.findFirstOrThrow({
+//         where: {
+//             slackUser: {
+//                 slackId,
+//             },
+//         },
+//         select: {
+//             id: true,
+//             metadata: true,
+//         },
+//     });
+
+//     if (!(user.metadata as any).airtable) {
+//         throw new Error(`Airtable user not found for ${user.id}`);
+//     }
+
+//     const { id } = await AirtableAPI.Scrapbook.create({
+//         "Ship TS": postTime,
+//         User: [(user.metadata as any).airtable?.id],
+//         Sessions: [],
+//         Attachments: attachments.map((url: string) => ({ url })),
+//     });
+
+//     const scrapbook = await prisma.scrapbook.create({
+//         data: {
+//             internalId: uid(),
+//             ts: postTime,
+//             channel,
+//             user: {
+//                 connect: {
+//                     id: user.id,
+//                 },
+//             },
+//             data: {
+//                 attachments,
+//                 record: id
+//             },
+//         },
+//     });
+
+
+
+//     await app.client.chat.postMessage({
+//         channel: slackId,
+//         text: "Select which sessions should be linked to your scrapbook post.",
+//         blocks: ChooseSessions.chooseSessionsButton(scrapbook.internalId),
+//     });
+// });

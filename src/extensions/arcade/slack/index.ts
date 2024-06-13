@@ -1,74 +1,150 @@
 import { Slack, app } from "../../../lib/bolt.js";
 import { Actions, Callbacks } from "../../../lib/constants.js";
-import { ChooseSessions } from "../view.js";
+import { ChooseSessions } from "./view.js";
 import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../lib/airtable.js";
+import { log } from "../lib/log.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
-  if (body.type !== "block_actions") return;
-  await ack();
+    await ack();
 
-  const data = JSON.parse(
-    body.state?.values.actions[Actions.CHOOSE_SESSIONS].value!
-  );
+    if (body.type !== "block_actions") return;
 
-  const sessions = await prisma.session.findMany({
-    where: {
-      user: {
-        slackUser: {
-          slackId: data.slackId,
+    const flowTs = body.message!.ts;
+
+    const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
+        where: {
+            flowTs,
+        }
+    });
+
+    // Get the latest post
+    const scrapbooks = await prisma.scrapbook.findMany({
+        where: {
+            userId: scrapbook?.userId,
         },
-      },
-      completed: true,
-      scrapbookTs: null,
-    },
-  });
+        select: {
+            createdAt: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
 
-  await app.client.views.open({
-    trigger_id: body.trigger_id,
-    view: ChooseSessions.chooseSessionsModal(sessions, data.scrapbookId),
-  });
+    const sessions = await prisma.session.findMany({
+        where: {
+            userId: scrapbook?.userId,
+            completed: true,
+            createdAt: {
+                // Before today & after the last post  
+                // Assuming the latest post is the last post (scrapbook)
+                // gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
+                // lte: scrapbook?.createdAt,
+            },
+            metadata: {
+                path: ["airtable", "status"],
+                not: "Banked",
+            }
+        },
+    });
+
+    log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
+
+    await app.client.views.open({
+        trigger_id: body.trigger_id,
+        view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+    });
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
-  await ack();
+    await ack();
 
-  const selectedSessions =
-    view.state.values.sessions.sessions.selected_options?.map(
-      (option: any) => option.value
-    );
-
-  if (!selectedSessions) {
-    await app.client.chat.postEphemeral({
-      user: body.user.id,
-      channel: body.user.id,
-      text: "No sessions selected. Please try again.",
+    const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
+        where: {
+            internalId: view.private_metadata,
+        }
     });
-    return;
-  }
 
-  let bankedSessions = 0;
-  for (const sessionId of selectedSessions) {
-    const update = {
-      Scrapbook: [body.view.private_metadata],
-    } as any;
+    const selectedSessionIds =
+        view.state.values.sessions.sessions.selected_options?.map(
+            (option: any) => option.value
+        );
 
-    const session = await AirtableAPI.Session.find(sessionId);
-
-    if (session?.fields.Status === "Approved") {
-      update["Status"] = "Banked";
-      bankedSessions++;
+    if (!selectedSessionIds) {
+        await app.client.chat.postEphemeral({
+            user: body.user.id,
+            channel: body.user.id,
+            text: "No sessions selected. Please try again.",
+        });
+        return;
     }
 
-    await AirtableAPI.Session.update(sessionId, update);
-  }
+    let bankedSessions = 0;
 
-  await app.client.chat.postMessage({
-    channel: body.user.id,
-    text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${
-      bankedSessions === 1 ? " has" : "s have"
-    } been marked as banked.`,
-  });
+    // for (const sessionId of selectedSessions) {
+    //     const update = {
+    //         Scrapbook: [body.view.private_metadata],
+    //     } as any;
+
+    //     const session = await AirtableAPI.Session.find(sessionId);
+
+    //     if (session?.fields.Status === "Approved") {
+    //         update["Status"] = "Banked";
+    //         bankedSessions++;
+    //     }
+
+    //     await AirtableAPI.Session.update(sessionId, update);
+    // }
+    const selectedSessions = await prisma.session.findMany({
+        where: {
+            id: {
+                in: selectedSessionIds,
+            },
+        },
+    });
+    
+    for (const session of selectedSessions) {        
+        if (session.metadata?.airtable?.status === "Approved") {
+            await prisma.session.update({
+                where: {
+                    id: session.id,
+                },
+                data: {
+                    metadata: {
+                        ...session.metadata,
+                        airtable: {
+                            ...session.metadata?.airtable,
+                            status: "Banked",
+                        },
+                    },
+                },
+            });
+
+            await AirtableAPI.Session.update(session.metadata?.airtable?.id, {
+                "Scrapbook": [scrapbook.data.record],
+                "Status": "Banked",
+            });
+
+            bankedSessions++;
+        } else {
+            await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
+                "Scrapbook": [scrapbook.data.record],
+            });
+        }
+    }
+
+    await app.client.chat.update({
+        channel: scrapbook.channel,
+        ts: scrapbook.flowTs,
+        text: "🎉 Sessions linked!",
+        blocks: ChooseSessions.completedSessions(selectedSessions),
+    });
+
+    await app.client.chat.postMessage({
+        channel: scrapbook.channel,
+        text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
+            } been marked as banked.`,
+    });
 });
 
 // app.command(Commands.SESSIONS, async ({ command, ack }) => {

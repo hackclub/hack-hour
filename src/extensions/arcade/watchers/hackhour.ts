@@ -1,8 +1,8 @@
 import { prisma, uid } from "../../../lib/prisma.js";
 import { Session } from "@prisma/client";
 import { AirtableAPI } from "../lib/airtable.js";
-import { app } from "../../../lib/bolt.js";
-import { Environment } from "../../../lib/constants.js";
+import { app, Slack } from "../../../lib/bolt.js";
+import { Constants, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 
 import getUrls from "get-urls";
@@ -22,6 +22,16 @@ const registerSession = async (session: Session) => {
         });
 
         if (!user.slackUser) { throw new Error(`Slack user not found for ${user.id}`); }
+
+        if (session.metadata.onboarding) {
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                text: t('onboarding_complete', {
+                    slackId: user.slackUser!.slackId
+                }),
+                thread_ts: session.messageTs
+            });
+        }
 
         if (!user.metadata.airtable) {
             // Add the user to the Airtable
@@ -53,7 +63,7 @@ const registerSession = async (session: Session) => {
 
             if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
         }
-            
+
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
         log(`Fetched or created user ${user.metadata.airtable.id}`);
 
@@ -109,7 +119,7 @@ const registerSession = async (session: Session) => {
             status: "Unreviewed",
             reason: ""
         };
-        
+
         await prisma.session.update({
             where: {
                 id: session.id
@@ -123,8 +133,8 @@ const registerSession = async (session: Session) => {
 
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        if (airtableUser.fields['Minutes (Approved)'] < (60*5)) {
-            await app.client.chat.postEphemeral({
+        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced) {
+            await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
                 text: t('onboarding_evidence_reminder', {
@@ -148,7 +158,7 @@ app.event("message", async ({ event }) => {
     if (channel !== Environment.MAIN_CHANNEL) { return; }
 
     console.log(thread_ts);
- 
+
     // Update the airtable to Re-review if any activity is detected
     if (thread_ts) {
         const session = await prisma.session.findFirst({
@@ -183,48 +193,53 @@ app.event("message", async ({ event }) => {
                 return;
             }
 
-            if (!airtableSession.fields["Activity"]) {
-                await app.client.chat.postEphemeral({
+
+            const user = await prisma.user.findUniqueOrThrow({
+                where: {
+                    id: session.userId
+                },
+                include: {
+                    slackUser: true
+                }
+            });
+
+            // Check if the user posted anything in the thread
+            const evidence = await app.client.conversations.replies({
+                channel: Environment.MAIN_CHANNEL,
+                ts: session.messageTs
+            });
+
+            if (!evidence.messages) { throw new Error(`No evidence found for ${session.messageTs}`); }
+
+            const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
+
+            // Borrowed from david's code, thanks david!
+            const urlsExist = evidence.messages.find(message => getUrls(message.text ? message.text : "").size > 0)
+            const imagesExist = evidence.messages.find(message => message.files ? message.files.length > 0 : false)
+
+            const evidenced = urlsExist !== undefined || imagesExist !== undefined;
+
+            if (!airtableSession.fields["Activity"] && activity) {
+                await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
-                    text: `This session has been marked for re-review! Make sure to provide evidence for your work, including any code or media.`,
+                    text: t('activity_detect', {
+                        
+                    }),
                 });
             }
 
-            if (!airtableSession.fields["Evidenced"]) {
-                await app.client.chat.postEphemeral({
+            if (!airtableSession.fields["Evidenced"] && evidenced) {
+                await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
-                    text: `This session has been marked for re-review! Thanks for providing evidence for your work!`,
+                    text: t('evidence_detect', {
+
+                    })
                 });
             }
 
             if (airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") {
-                const user = await prisma.user.findUniqueOrThrow({
-                    where: {
-                        id: session.userId
-                    },
-                    include: {
-                        slackUser: true
-                    }
-                });
-
-                // Check if the user posted anything in the thread
-                const evidence = await app.client.conversations.replies({
-                    channel: Environment.MAIN_CHANNEL,
-                    ts: session.messageTs
-                });
-
-                if (!evidence.messages) { throw new Error(`No evidence found for ${session.messageTs}`); }
-
-                const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
-
-                // Borrowed from david's code, thanks david!
-                const urlsExist = evidence.messages.find(message => getUrls(message.text ? message.text : "").size > 0)
-                const imagesExist = evidence.messages.find(message => message.files ? message.files.length > 0 : false)
-
-                const evidenced = urlsExist !== undefined || imagesExist !== undefined;
-
                 await AirtableAPI.Session.update(session.metadata.airtable.id, {
                     "Status": "Requested Re-review",
                     "Activity": activity,
@@ -233,6 +248,11 @@ app.event("message", async ({ event }) => {
 
                 console.log(`Session ${session.id} updated to Re-review`);
                 log(`Session ${session.id} updated to Re-review`);
+            } else {
+                await AirtableAPI.Session.update(session.metadata.airtable.id, {
+                    "Activity": activity,
+                    "Evidenced": evidenced
+                });                
             }
         }
     }
@@ -240,27 +260,43 @@ app.event("message", async ({ event }) => {
 
 emitter.on('start', async (session: Session) => {
     try {
-        const user = await prisma.user.findUniqueOrThrow({
+        const slackUser = await prisma.slackUser.findUniqueOrThrow({
             where: {
-                id: session.userId
-            },
-            include: {
-                slackUser: true
+                userId: session.userId
             }
         });
 
-        if (!user.metadata.airtable) {
-            // This is their first session! Say hello!
-            await app.client.chat.postEphemeral({
+        if (session.metadata.onboarding) {
+            await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
-                user: user.slackUser!.slackId,
-                text: t('welcome', {
-                    slackId: user.slackUser!.slackId
+                text: t('onboarding_init', {
+                    slackId: slackUser.slackId
                 }),
                 thread_ts: session.messageTs
             });
         }
     } catch (error) {
         emitter.emit('error', error);
+    }
+});
+
+emitter.on('sessionUpdate', async (session: Session) => {
+    const slackUser = await prisma.slackUser.findUniqueOrThrow({
+        where: {
+            userId: session.userId
+        }
+    });
+
+    if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && session.metadata.onboarding) {
+        // Send a reminder every 15 minutes
+        await Slack.chat.postMessage({
+            thread_ts: session.messageTs,
+            user: slackUser.slackId,
+            channel: Environment.MAIN_CHANNEL,
+            text: t(`onboarding_update`, {
+                slackId: slackUser.slackId,
+                minutes: session.time - session.elapsed
+            })
+        });
     }
 });

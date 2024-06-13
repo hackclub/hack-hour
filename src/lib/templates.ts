@@ -1,7 +1,20 @@
-import { stringify, parse } from 'yaml';
+import { parse } from 'yaml';
 import fs from 'fs';
 
-type template = 'update' | 'complete' | 'encouragement' | 'cancel' | 'toplevel' | 'pause' | 'init' | 'onboarding_evidence_reminder' | 'welcome';
+type template = 
+    'update' | 
+    'complete' | 
+    'encouragement' | 
+    'cancel' | 
+    'toplevel' | 
+    'pause' | 
+    'init' | 
+    'onboarding_init' | 
+    'onboarding_update' | 
+    'onboarding_complete' |
+    'onboarding_evidence_reminder' |
+    'activity_detect' |
+    'evidence_detect';
 
 interface data {
     slackId?: string,
@@ -37,11 +50,3 @@ export function formatHour(minutes: number | undefined | null): string {
 
     return hours.toFixed(1);
 }
-
-/*
-DEPRECATED - use getPermalink instead
-export function generateMessageURL(ts: string) {
-    // Converts slack ts from payload into a url
-    return `https://hackclub.slack.com/archives/C06S6E7CXK7/p${ts.replace('.', '')}`
-}
-*/

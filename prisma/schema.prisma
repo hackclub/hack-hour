@@ -66,8 +66,8 @@ model Session {
 
   // transaction Transaction? 
 
-  scrapbook Scrapbook? @relation(fields: [scrapbookTs], references: [ts])
-  scrapbookTs String?
+  scrapbook Scrapbook? @relation(fields: [scrapbookId], references: [internalId])
+  scrapbookId String? @unique
 
   /// [SessionMetadata]
   metadata Json
@@ -134,10 +134,20 @@ model Log {
 
 // A grouping of sessions associated with a scrapbook post
 model Scrapbook {
-  ts String @id
+  internalId String @id
+  ts String
+  channel String
+
+  flowTs String @unique
+  flowChannel String
 
   user   User   @relation(fields: [userId], references: [id])
   userId String
+
+  /// [ScrapbookMetadata]
+  data Json
+
+  createdAt DateTime @default(now())
 
   sessions Session[]
 }

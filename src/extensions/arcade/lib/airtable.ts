@@ -33,6 +33,8 @@ type AirtableUserRead = {
     "Minutes (All)": number,
     "Minutes (Approved)": number,
     "Minutes (Banked)": number,
+    "Spent (Incl. Pending)": number,
+    "Balance (UI)": number,
 };
 
 type AirtableSessionWrite = {
@@ -48,6 +50,7 @@ type AirtableSessionWrite = {
     "Evidenced": boolean,
     "Activity": boolean,
     "Reason"?: string,
+    "Scrapbook"?: [AirtableRecordID] | [],
 };
 
 type AirtableSessionRead = {
@@ -64,16 +67,18 @@ type AirtableSessionRead = {
     "Activity": boolean,
     "Reason": string,
     "Approved Minutes": number,
-    "Scrapbook": [AirtableRecordID],
+    "Scrapbook": [AirtableRecordID] | [],
 };
 
 type AirtableScrapbookWrite = {
-    "Ship TS": string,
+    "Scrapbook TS": string,
+    "Scrapbook URL": string,
     "Sessions": AirtableRecordID[],
     "User": [AirtableRecordID],
     "Attachments": {
         "url": string
-    }[]
+    }[],
+    "Text": string
 };
 
 type AirtableScrapbookRead = AirtableScrapbookWrite;

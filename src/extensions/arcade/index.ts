@@ -1,5 +1,5 @@
-import { express } from "../../lib/bolt.js";
-
+import "./watchers/scrapbook.js";
 import "./watchers/hackhour.js";
 import "./watchers/airtable.js";
-import { prisma } from "../../lib/prisma.js";
+import "./slack/index.js";
+import "./slack/shop.js";
