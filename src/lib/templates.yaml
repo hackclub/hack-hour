@@ -54,3 +54,9 @@ init:
     - "I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>"    
     - "time travelling in <#${main}> like there's no tomorrow!"
     - "perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>"
+
+welcome:
+    - "welcome to hack hour, <@${slackId}>! :wave:"
+
+onboarding_evidence_reminder:
+    - hey <@${slackID}>! make sure to put your evidence in the thread! :D

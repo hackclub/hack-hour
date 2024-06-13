@@ -29,7 +29,10 @@ type AirtableUserRead = {
     "Hack Hour ID": string,
     "Slack ID": string,
     "Ships": AirtableRecordID[],
-    "Sessions": AirtableRecordID[]
+    "Sessions": AirtableRecordID[],
+    "Minutes (All)": number,
+    "Minutes (Approved)": number,
+    "Minutes (Banked)": number,
 };
 
 type AirtableSessionWrite = {
@@ -45,8 +48,6 @@ type AirtableSessionWrite = {
     "Evidenced": boolean,
     "Activity": boolean,
     "Reason"?: string,
-    "Approved Minutes": number,
-    "Scrapbook": [AirtableRecordID],
 };
 
 type AirtableSessionRead = {

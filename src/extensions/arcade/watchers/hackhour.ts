@@ -8,6 +8,7 @@ import { emitter } from "../../../lib/emitter.js";
 import getUrls from "get-urls";
 
 import { log } from "../lib/log.js";
+import { t } from "../../../lib/templates.js";
 
 const registerSession = async (session: Session) => {
     try {
@@ -118,27 +119,20 @@ const registerSession = async (session: Session) => {
             }
         });
 
-        // await prisma.transaction.create({
-        //     data: {
-        //         id: uid(),
-        //         type: "session",
-        //         amount: session.elapsed,
-                
-        //         user: {
-        //             connect: {
-        //                 id: user.id
-        //             }
-        //         },
+        const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
 
-        //         session: {
-        //             connect: {
-        //                 id: session.id
-        //             }
-        //         },
+        if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        //         data: {}
-        //     }
-        // });
+        if (airtableUser.fields['Minutes (Approved)'] < (60*5)) {
+            await app.client.chat.postEphemeral({
+                channel: Environment.MAIN_CHANNEL,
+                user: user.slackUser!.slackId,
+                text: t('onboarding_evidence_reminder', {
+                    slackId: user.slackUser!.slackId
+                }),
+                thread_ts: session.messageTs
+            });
+        }
     } catch (error) {
         emitter.emit('error', error);
     }
@@ -148,11 +142,16 @@ emitter.on('cancel', registerSession);
 emitter.on('complete', registerSession);
 
 app.event("message", async ({ event }) => {
+    const channel = (event as any).channel;
     const thread_ts = (event as any).thread_ts;
 
+    if (channel !== Environment.MAIN_CHANNEL) { return; }
+
+    console.log(thread_ts);
+ 
     // Update the airtable to Re-review if any activity is detected
     if (thread_ts) {
-        const session = await prisma.session.findFirstOrThrow({
+        const session = await prisma.session.findFirst({
             where: {
                 messageTs: thread_ts
             },
@@ -164,6 +163,8 @@ app.event("message", async ({ event }) => {
                 }
             }
         });
+
+        if (!session) { return; }
 
         if (!session.metadata.airtable) { throw new Error(`Session ${session.id} is missing an Airtable ID`); }
 
@@ -234,5 +235,32 @@ app.event("message", async ({ event }) => {
                 log(`Session ${session.id} updated to Re-review`);
             }
         }
+    }
+});
+
+emitter.on('start', async (session: Session) => {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: session.userId
+            },
+            include: {
+                slackUser: true
+            }
+        });
+
+        if (!user.metadata.airtable) {
+            // This is their first session! Say hello!
+            await app.client.chat.postEphemeral({
+                channel: Environment.MAIN_CHANNEL,
+                user: user.slackUser!.slackId,
+                text: t('welcome', {
+                    slackId: user.slackUser!.slackId
+                }),
+                thread_ts: session.messageTs
+            });
+        }
+    } catch (error) {
+        emitter.emit('error', error);
     }
 });

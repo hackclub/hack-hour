@@ -14,6 +14,8 @@ import { Slack } from "../../../lib/bolt.js";
 
 Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
+        await ack();
+
         const thread_ts = (body as any).message.thread_ts;
 
         await app.client.views.open({
@@ -27,6 +29,8 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
 
 Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     try {
+        await ack();
+
         const slackId = body.user.id;
         const messageTs = view.private_metadata;
 
@@ -58,6 +62,8 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
                 
 Slack.command(Commands.CANCEL, async ({ ack, body }) => {
     try {
+        await ack();
+
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({

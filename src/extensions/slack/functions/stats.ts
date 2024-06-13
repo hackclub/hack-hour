@@ -7,6 +7,8 @@ import { Stats } from "../views/stats.js";
 
 Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     try {
+        await ack();
+
         const slackId = body.user.id;
 
         const user = await prisma.user.findFirst({

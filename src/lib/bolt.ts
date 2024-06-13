@@ -74,7 +74,7 @@ export const Slack = {
         app.action(actionId, async (payload) => {
             const { action, ack, respond } = payload;
     
-            await ack();
+            // await ack();
     
             try {
                 await app.client.chat.postMessage({

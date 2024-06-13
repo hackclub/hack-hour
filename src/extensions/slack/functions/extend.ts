@@ -9,6 +9,7 @@ import { Session } from "../../../lib/corelib.js";
 Time Extension
 */
 Slack.action(Actions.EXTEND, async ({ ack, body }) => {
+    await ack();
     // TODO
 //    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
     informUser(body.user.id, `This command is disabled for now!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);

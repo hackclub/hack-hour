@@ -12,7 +12,7 @@ declare global {
                 id: string,
                 status: string,
                 reason: string
-            },
+            }
         }
         type UserMetadata = {
             airtable?: {
