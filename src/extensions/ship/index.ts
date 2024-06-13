@@ -857,7 +857,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     const blocks = [];
 
-    const remaining = Math.floor((airtableUser.fields["Approved"] - airtableUser.fields["Minutes spent (incl. pending)"])/60);
+    const remaining = Math.floor(airtableUser.fields["Total available balance (minutes)"]/60);
 
     blocks.push({
         "type": "section",
