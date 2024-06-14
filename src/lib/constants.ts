@@ -37,7 +37,9 @@ export const Constants = {
 
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
 
-  AUTO_CANCEL: 60
+  AUTO_CANCEL: 60,
+
+  ARCADIUS_URL: 'https://7ac5-71-235-174-134.ngrok-free.app/',
 };
 
 // Commands
