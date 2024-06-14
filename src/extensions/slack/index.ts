@@ -29,7 +29,6 @@ const log = async (message: string) => {
         text: message
     });
     console.log(message);
-
 }
 
 const hack = async ({ command }: CommandHandler) => {
@@ -169,9 +168,9 @@ const hack = async ({ command }: CommandHandler) => {
                 work: command.text,
                 slack: {
                     template: t_fetch('toplevel'),
-                    controllerTemplate: slackUser.user.metadata.airtable ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
+                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
                 },
-                onboarding: slackUser.user.metadata.airtable ? false : true,
+                onboarding: slackUser.user.metadata.firstTime 
                 banked: false
             },
 
