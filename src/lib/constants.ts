@@ -50,6 +50,8 @@ export const Commands = Environment.PROD ? {
   STATS: '/mystats',
   SESSIONS: '/sessions',
   SHOP: '/shop',
+  HOUR: '/hour',
+  ARCADE: '/arcade',
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -66,6 +68,8 @@ export const Commands = Environment.PROD ? {
   STATS: '/teststats',
   SESSIONS: '/testsessions',
   SHOP: '/testshop',
+  HOUR: '/testhour',
+  ARCADE: '/testarcade',
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',
@@ -91,6 +95,8 @@ export const Actions = {
   ATTACH_REPO: 'attachrepo',
 
   CHOOSE_SESSIONS: 'choosesessions',
+
+  HACK: 'hack',
 };
 
 export const Callbacks = {

@@ -1,6 +1,6 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
-import { t, formatHour } from "../../../lib/templates.js";
+import { t, formatHour, t_format } from "../../../lib/templates.js";
 import { Constants, Actions, Environment } from "../../../lib/constants.js";
 import { app } from "../../../lib/bolt.js";
 
@@ -49,7 +49,10 @@ export class Controller {
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
-            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+            info.text.text = t_format(session.metadata.slack.controllerTemplate, {
+                minutes: session.time - session.elapsed,
+            })
+            // info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
         }
 
         // Pause Button

@@ -8,6 +8,7 @@ import { emitter } from "../../../lib/emitter.js";
 import { Session } from "../../../lib/corelib.js";
 
 import { fetchSlackId, informUser } from "../lib/lib.js";
+import { t } from "../../../lib/templates.js";
 
 // TODO: Move to a standard library
 
@@ -31,7 +32,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot pause another user's session!`,
+                text: t(`error.not_yours`, {}),
                 thread_ts: (body as any).message.thread_ts
             });                
 
@@ -45,7 +46,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot pause another user's session!`,
+                text: t(`error.not_yours`, {}),
                 thread_ts: (body as any).message.thread_ts
             });                
 
@@ -78,7 +79,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot resume another user's session!`,
+                text: t(`error.not_yours`, {}),
                 thread_ts: (body as any).message.thread_ts
             });                
 
@@ -92,7 +93,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot resume another user's session!`,
+                text: t(`error.not_yours`, {}),
                 thread_ts: (body as any).message.thread_ts
             });                
 
@@ -123,15 +124,19 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, `There is no running session!`, body.channel_id);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
             return;
         }
 
         const updatedSession = await Session.pause(session);
 
         const toggleMessage = updatedSession.paused ?
-            `Session paused! Run \`${Commands.PAUSE}\` again or \`${Commands.START}\` to resume. You still have ${updatedSession.time - updatedSession.elapsed} minutes left.` :
-            `Resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` again to pause.`;
+        t('action.paused', {
+            minutes: updatedSession.time - updatedSession.elapsed
+        }) :
+        t('action.resumed', {
+            minutes: updatedSession.time - updatedSession.elapsed
+        });
 
         informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
@@ -157,18 +162,20 @@ Slack.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, "There is no running session!", body.channel_id);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
             return;
         }
 
         if (!session.paused) {
-            informUser(slackId, `Session is already running! Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
+            informUser(slackId, t('error.already_resumed', {}), body.channel_id);
         }
 
         const updatedSession = await Session.pause(session);
 
         // Send a message to the user in the channel they ran the command
-        informUser(slackId, `Session resumed! You have ${updatedSession.time - updatedSession.elapsed} minutes left. Run \`${Commands.PAUSE}\` to pause.`, body.channel_id);
+        informUser(slackId, t('action.resumed', {
+            minutes: updatedSession.time - updatedSession.elapsed
+        }), body.channel_id);
     } catch (error) {
         emitter.emit('error', error);
     }
