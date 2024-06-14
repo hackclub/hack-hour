@@ -132,15 +132,15 @@ export class Controller {
                 "type": "actions",
                 "elements": [
                     pause,
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Extend",
-                            "emoji": true
-                        },
-                        "action_id": Actions.EXTEND
-                    },
+                    // {
+                    //     "type": "button",
+                    //     "text": {
+                    //         "type": "plain_text",
+                    //         "text": "Extend",
+                    //         "emoji": true
+                    //     },
+                    //     "action_id": Actions.EXTEND
+                    // },
                     {
                         "type": "button",
                         "text": {
