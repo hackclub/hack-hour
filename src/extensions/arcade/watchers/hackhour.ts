@@ -74,9 +74,26 @@ const findOrCreateUser = async (userId: string) => {
 
 const registerSession = async (session: Session) => {
     try {
-        const user = await findOrCreateUser(session.userId);
+        let user = await findOrCreateUser(session.userId);
 
         if (!user) { throw new Error(`User not found for ${session.userId}`); }
+
+        if (user.metadata.onboarding) {
+            user.metadata.onboarding = false;
+
+            user = await prisma.user.update({
+                where: {
+                    id: user.id
+                },
+                data: {
+                    metadata: user.metadata
+                },
+                include: {
+                    slackUser: true
+                }
+            });
+        }
+
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
         if (session.metadata.onboarding) {
@@ -88,7 +105,7 @@ const registerSession = async (session: Session) => {
                 thread_ts: session.messageTs
             });
         }
-
+        
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
         log(`Fetched or created user ${user.metadata.airtable.id}`);
 
@@ -290,13 +307,24 @@ emitter.on('start', async (session: Session) => {
 
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-
-
-        if (!airtableUser.fields['dmChannel']) {
-            // Todo: send message in the 3way dm
-        } else {
-            // init with arcadius on creating the 3way
-            
+        if (user.metadata.onboarding) {
+            if (!airtableUser.fields['dmChannel']) {
+                // Todo: send message in the 3way dm
+            } else {
+                // init with arcadius on creating the 3way
+                fetch(
+                    Constants.ARCADIUS_URL + "/begin",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            userId: user.slackUser!.slackId,
+                        })
+                    }
+                )
+            }          
         }
 
         // if (session.metadata.onboarding) {
