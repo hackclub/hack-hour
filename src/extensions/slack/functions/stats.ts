@@ -2,6 +2,7 @@ import { app, Slack } from "../../../lib/bolt.js";
 import { Commands, Callbacks, Actions, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { prisma } from "../../../lib/prisma.js";
+import { t } from "../../../lib/templates.js";
 import { informUser } from "../lib/lib.js";
 import { Stats } from "../views/stats.js";
 
@@ -20,7 +21,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
         });
 
         if (!user) {
-            informUser(slackId, `Run \`${Commands.HACK}\`!`, Environment.MAIN_CHANNEL, (body as any).message.ts);
+            informUser(slackId, t('error.not_a_user', {}), Environment.MAIN_CHANNEL, (body as any).message.ts);
             return;
         }
 
@@ -47,7 +48,7 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
     });
 
     if (!user) {
-        informUser(slackId, `Run \`${Commands.HACK}\`!`, channelId);
+        informUser(slackId, t('error.not_a_user', {}), channelId);
         return;
     }
 

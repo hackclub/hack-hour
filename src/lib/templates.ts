@@ -9,14 +9,31 @@ type template =
     'toplevel' | 
     'pause' | 
     'init' |
+    'hack' |
+
+    'action.paused' |
+    'action.resumed' |
 
     'onboarding.init' |
+    'onboarding.encouragement' |
     'onboarding.update' |
     'onboarding.complete' |
     'onboarding.evidence_reminder' |
+    'onboarding.new_face' |
 
     'detect.activity' |
-    'detect.evidence'
+    'detect.evidence' |
+
+    'error.already_hacking' |
+    'error.not_hacking' |
+    'error.empty_text' |
+    'error.not_a_user' |
+    'error.already_resumed' |
+    'error.not_yours' |
+    'error.generic' |
+
+    'airtable.approved' |
+    'airtable.rejected' 
     ;
 
 interface data {
@@ -24,6 +41,8 @@ interface data {
     minutes?: number,
     repo?: string,
     main?: string,
+    status?: string,
+    reason?: string,
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
@@ -60,7 +79,6 @@ function flatten(obj: any, prefix: string = '') {
 }
 
 const templates = flatten(templatesRaw);
-console.log(templates);
 
 const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
 export const pfps = parse(pfpFile);

@@ -11,6 +11,7 @@ import { Cancel } from "../views/cancel.js";
 
 import { Session } from "../../../lib/corelib.js";
 import { Slack } from "../../../lib/bolt.js";
+import { t } from "../../../lib/templates.js";
 
 Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
@@ -47,7 +48,7 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: `You cannot end another user's session!`,
+                text: t(`error.not_yours`, {}),
                 thread_ts: messageTs
             });                
 
@@ -78,7 +79,7 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         if (!session) {
             // Send a message to the user in the channel they ran the command
-            informUser(slackId, `There is no running session!`, body.channel_id);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
 
             return;
         }

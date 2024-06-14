@@ -5,6 +5,7 @@ import { Goals } from "../views/goals.js";
 import { Actions, Callbacks } from "../../../lib/constants.js";
 import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
+import { t } from "../../../lib/templates.js";
 
 Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
@@ -36,7 +37,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
                 throw new Error(`Channel not found`);
             }
 
-            informUser(slackId, "This is not your session!", body.channel.id, (body as any).message.ts);
+            informUser(slackId, t('error.not_yours', {}), body.channel.id, (body as any).message.ts);
 
             return;
         }

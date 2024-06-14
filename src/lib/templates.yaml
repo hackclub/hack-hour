@@ -7,6 +7,9 @@ update:
     - you're amazing <@${slackId}>! only `${minutes}` minutes left!
     - impressive work! just `${minutes}` minutes left <@${slackId}>!
 
+hack:
+    - tick tock i'm a clock
+
 complete:
     - WOOOOO! YOU DID IT <@${slackId}>!
     - guess what? <@${slackId}> finished their hour!
@@ -32,11 +35,11 @@ pause:
     - <@${slackId}> is drinking some coffee!
 
 encouragement:
-    - "Keep it up!"
-    - "You're doing great!"
-    - "You've got this!"
-    - "You are ducktastic!"
-    - "Wizard!"
+    - "You have `${minutes}` minutes remaining! Keep it up!"
+    - "You have `${minutes}` minutes remaining! You're doing great!"
+    - "You have `${minutes}` minutes remaining! You've got this!"
+    - "You have `${minutes}` minutes remaining! You are ducktastic!"
+    - "You have `${minutes}` minutes remaining! Wizard!"
 
 toplevel:
     - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` minutes remaining to work on:"
@@ -59,8 +62,15 @@ welcome:
     - "welcome to hack hour, <@${slackId}>! :wave:"
 
 onboarding:
+    new_face:
+        - "looks like you're new around here :eyes:"
+
+    encouragement:
+#        - "You have `${minutes}` minutes remaining! Onboarding text goes here!"
+        - ""
+
     init:
-        - "check out all this <https://hackclub.com/arcade/#shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
+        - "check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
 
     update:
         - nice work <@${slackId}>! `${minutes}` min down- nice work! let’s keep going. make sure to post a screenshot of your progress or a commit link.
@@ -72,8 +82,38 @@ onboarding:
         - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
 
 errors:
+    #context: attempting to start a new session while already in one
+    already_hacking:
+        - hey! you're already in a hack hour session! you can't start another one until you finish the one you're in!
+
+    not_hacking:
+        - hmph, whatcha doin? want some garbage? run `/hack`!
+
+    empty_text:
+        - you need to provide something to work on!
+
     cancel:
         - hey! are ya tryin to pull some funny business?
+
+    not_a_user:
+        - who are ya? never seen you before - maybe run `/hack` so we can get to know each other!
+
+    not_yours:
+        - hands to yourself buddy
+
+    generic:
+        - something went wrong! try again!
+    
+    #context: trying to resume a session that hasn't been paused
+    already_resumed:
+        - you've already started your hack hour! keep going! and `/pause` if ya need a break1
+
+action:
+    pause:
+        - i paused the clock for ya. you still got `${minutes}` minutes left
+
+    resume:
+        - ready? you have `${minutes}` minutes left!
 
 detect:
     activity:
@@ -81,3 +121,9 @@ detect:
 
     evidence:
         - thanks for documenting your journey!!! :D
+
+airtable:
+    approved:
+        - great work <@${slackId}>! you've got a hack hour! this hour is now approved!
+    rejected:
+        - womp womp <@${slackId}>! this hour is now rejected! i wunder why

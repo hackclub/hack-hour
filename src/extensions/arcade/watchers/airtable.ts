@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { log } from "../lib/log.js";
+import { t } from "../../../lib/templates.js";
 
 express.post('/airtable/session/update', async (req, res) => {
     try {
@@ -63,6 +64,21 @@ express.post('/airtable/session/update', async (req, res) => {
 
             console.log(`Queued session ${session.messageTs} for banking`);
             log(`Queued session ${session.messageTs} for banking`);
+        }
+
+        // Send a message in that thread saying it was updated
+        if (session.metadata.airtable!.status === "Approved") {
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                thread_ts: session.messageTs,
+                text: t('airtable.approved', {})
+            });
+        } else if (session.metadata.airtable!.status === "Rejected") {
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                thread_ts: session.messageTs,
+                text: t('airtable.rejected', {})
+            });
         }
 
         res.sendStatus(200);

@@ -6,7 +6,8 @@ declare global {
         type SessionMetadata = {
             work: string,
             slack: {
-                "template": string
+                template: string,
+                controllerTemplate: string,
             },
             airtable?: {
                 id: string,
