@@ -1,7 +1,7 @@
 // Typed event emitter
 // Adapted from https://rjzaworski.com/2019/10/event-emitters-in-typescript
 
-import { Session } from "@prisma/client";
+import { Session, User } from "@prisma/client";
 import { Environment, Constants } from "./constants.js";
 import { Server } from "http";
 
@@ -21,6 +21,8 @@ type EventMap = {
     cancel: (session: Session) => void,
     pause: (session: Session) => void,
     resume: (session: Session) => void,
+    
+    firstTime: (userId: string) => void,
 }
 
 export type Event = keyof EventMap;

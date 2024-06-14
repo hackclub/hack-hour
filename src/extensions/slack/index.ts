@@ -1,5 +1,5 @@
 import { app, Slack } from "../../lib/bolt.js";
-import { Actions, Commands, Environment } from "../../lib/constants.js";
+import { Actions, Commands, Constants, Environment } from "../../lib/constants.js";
 import { prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
 
@@ -51,7 +51,7 @@ const hack = async ({ command }: CommandHandler) => {
                         metadata: {
                             airtable: undefined,
                             ships: {},
-                            onboarding: true
+                            firstTime: true
                         }
                     }
                 },
@@ -72,6 +72,27 @@ const hack = async ({ command }: CommandHandler) => {
             }
         }
     );
+
+    if (slackUser.user.metadata.firstTime) {
+        // Send a message in the dm
+        
+        // await fetch(
+        //     Constants.ARCADIUS_URL + "/begin",
+        //     {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         body: JSON.stringify({
+        //             userId: slackUser.slackId,
+        //         })
+        //     }
+        // )
+
+        emitter.emit('firstTime', slackUser.userId);
+
+        return;
+    }
 
     if (slackUser.user.sessions.length > 0) {
         await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
@@ -202,7 +223,7 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                             }
                         },
                         metadata: {
-                            onboarding: true,
+                            firstTime: true,
                             airtable: undefined,
                             ships: {}
                         }

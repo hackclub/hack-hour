@@ -69,7 +69,8 @@ export async function informUser(slackId: string, message: string, channel: stri
             user: slackId,
             channel,
             text: message,
-            thread_ts
+            thread_ts,
+            icon_url: pfp
         });
     } catch (error) {
         const response = (error as any).data;
@@ -78,7 +79,8 @@ export async function informUser(slackId: string, message: string, channel: stri
             user: slackId,
             channel: slackId,
             thread_ts,
-            text: message
+            text: message,
+            icon_url: pfp
         });
 
         if (response.error !== 'channel_not_found') {

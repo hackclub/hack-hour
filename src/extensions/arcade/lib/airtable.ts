@@ -19,25 +19,41 @@ const scrapbooks = base("Scrapbook");
 type AirtableRecordID = string;
 
 type AirtableUserWrite = {
-    "Name": string,
+    "Name"?: string,
     "Internal ID"?: string,
     "Slack ID": string,
     "Initial Banked Minutes"?: number,
     "Inital Order Refunded Minutes"?: number,
 };
 
+/*
+Balance (Minutes): it considers unfulfilled orders
+Settled Balance (Minutes): Only includes fulfilled orders
+
+Minutes (All): The sum of ALL sessions that belongs to the user (includes rejected)
+Minutes (Approved): sum of approved and banked minutes
+Minutes (Banked): sum of banked minutes (and filters to ensure it has a Scrapbook)
+Initial Banked Minutes: Migrated from Hack Hour
+Initial Order Refunded Minutes: Handles declined orders from Hack Hour
+Total Earned (Minutes): Minutes (Banked) + the two initials
+Total Earned (Hours): just converts minutes to hours
+Spent (Minutes): Cost of fulfilled orders
+Spent Incl. Pending (Minutes): Cost of orders, excluding ones declined.
+*/
 type AirtableUserRead = {
     "Name": string,
     "Internal ID": string,
     "Slack ID": string,
     "Ships": AirtableRecordID[],
     "Sessions": AirtableRecordID[],
-    "Minutes (All)": number,
+    // "Minutes (All)": number,
     "Minutes (Approved)": number,
-    "Minutes (Banked)": number,
+    // "Minutes (Banked)": number,
+    "Total Earned (Minutes)": number,
     "Spent (Incl. Pending)": number,
-    "Balance (UI)": number,
+    "Balance (Minutes)": number,
     "dmChannel": string,
+    // "Preexisting": boolean,
 };
 
 type AirtableSessionWrite = {
