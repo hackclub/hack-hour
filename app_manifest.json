@@ -1,0 +1,120 @@
+{
+    "display_information": {
+        "name": "Hack Hour",
+        "description": "An hour a day keeps the doctor away (Mk. 3)",
+        "background_color": "#8f1f1f"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "the doctoreur",
+            "always_online": false
+        },
+        "slash_commands": [
+            {
+                "command": "/hack",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Start a Hack Session",
+                "usage_hint": "[what you're working on]",
+                "should_escape": true
+            },
+            {
+                "command": "/cancel",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Cancel Current Session",
+                "should_escape": false
+            },
+            {
+                "command": "/mystats",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "View your stats",
+                "should_escape": false
+            },
+            {
+                "command": "/pause",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Pauses current session",
+                "should_escape": false
+            },
+            {
+                "command": "/start",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Starts current session",
+                "should_escape": false
+            },
+            {
+                "command": "/extend",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Extends current session",
+                "usage_hint": "[minutes]",
+                "should_escape": false
+            },
+            {
+                "command": "/admin",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "admin",
+                "should_escape": false
+            },
+            {
+                "command": "/sessions",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Views your sessions",
+                "should_escape": false
+            },
+            {
+                "command": "/shop",
+                "url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+                "description": "Opens the shop",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "channels:history",
+                "channels:join",
+                "channels:write.topic",
+                "chat:write",
+                "chat:write.customize",
+                "chat:write.public",
+                "commands",
+                "files:read",
+                "groups:history",
+                "groups:read",
+                "groups:write.topic",
+                "im:history",
+                "im:read",
+                "im:write",
+                "links.embed:write",
+                "links:read",
+                "links:write",
+                "reactions:read",
+                "reactions:write",
+                "remote_files:share",
+                "usergroups:read",
+                "usergroups:write",
+                "users:read",
+                "mpim:read",
+                "mpim:write",
+                "groups:write",
+                "mpim:history"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "request_url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events",
+            "bot_events": [
+                "message.channels",
+                "reaction_added"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://hackhour-9870d80cb898.herokuapp.com/slack/events"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

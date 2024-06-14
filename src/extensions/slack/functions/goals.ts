@@ -1,4 +1,4 @@
-import { app } from "../../../lib/bolt.js";
+import { Slack } from "../../../lib/bolt.js";
 import { prisma, uid } from "../../../lib/prisma.js";
 
 import { Goals } from "../views/goals.js";
@@ -6,14 +6,16 @@ import { Actions, Callbacks } from "../../../lib/constants.js";
 import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
 
-app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
-        const slackId: string = body.user.id;
-        const trigger_id: string = (body as any).trigger_id;
+        await ack();
 
-        const session = await prisma.session.findUnique({
+        const slackId: string = body.user.id;
+        const trigger_id: string = (body as any).trigger_id
+
+        const session = await prisma.session.findFirstOrThrow({//findUnique({
             where: {
-                controlTs: (body as any).message.ts
+                messageTs: (body as any).message.thread_ts
             },
             include: {
                 user: {
@@ -23,19 +25,13 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
                 }
             }
         });
-
-        if (!session) {
-            throw new Error(`Session not found`);
-        }
-
+        
         if (!session.user.slackUser) {
             throw new Error(`Slack user not found`);
         }
 
         if (slackId !== session.user.slackUser.slackId) {
             // Post an ephemeral message to the user telling that they are not registered
-            await ack();
-
             if (!body.channel || !body.channel.id) {
                 throw new Error(`Channel not found`);
             }
@@ -45,25 +41,25 @@ app.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
             return;
         }
 
-        await ack();
- 
         await client.views.open({
             trigger_id: trigger_id,
-            view: await Goals.main(session.messageTs)
+            view: await Goals.main(session.id)
         });
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     try {
+        await ack();
+
         const goalId = (body as any).actions[0].selected_option.value;
-        const sessionTs = (body as any).view.private_metadata
+        const sessionId = (body as any).view.private_metadata
 
         let session = await prisma.session.findUniqueOrThrow({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             }
         });
 
@@ -73,31 +69,18 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             }
         });
 
-        await prisma.goal.updateMany({
-            where: {
-                selected: true
-            },
-            data: {
-                selected: false
-            }
-        });
-
-        const newGoal = await prisma.goal.update({
+        const newGoal = await prisma.goal.findUniqueOrThrow({
             where: {
                 id: goalId
-            },
-            data: {
-                selected: true,
             }
         });
 
         session = await prisma.session.update({
             where: {
-                messageTs: sessionTs,
+                id: sessionId,
                 goal: {
                     completed: false
                 },
-                bankId: null
             },
             data: {
                 goal: {
@@ -114,7 +97,7 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
                     id: oldGoal.id
                 },
                 data: {
-                    totalMinutes: {
+                    minutes: {
                         decrement: session.elapsed
                     }
                 }
@@ -125,186 +108,161 @@ app.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
                     id: newGoal.id
                 },
                 data: {
-                    totalMinutes: {
+                    minutes: {
                         increment: session.elapsed
                     }
                 }
             });
         }
 
-        await ack();
-
         updateTopLevel(session);
         updateController(session);
 
         await client.views.update({
             view_id: (body as any).view.root_view_id,
-            view: await Goals.main(session.messageTs)
+            view: await Goals.main(session.id)
         });
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-app.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
+Slack.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
     await ack();
 });
 
-app.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
     try {
         await ack();
 
-        const sessionTs = (body as any).view.private_metadata;
+        const sessionId = (body as any).view.private_metadata;
         const trigger_id: string = (body as any).trigger_id;
 
         await client.views.push({
             trigger_id: trigger_id,
-            view: await Goals.create(sessionTs)
+            view: await Goals.create(sessionId)
         });
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-app.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
     try {
+        await ack();
+
         const slackId = body.user.id;
 
-        const sessionTs = body.view.private_metadata;
+        const sessionId = body.view.private_metadata;
         const goalName = view.state.values.goal_name.name.value;
-
-        if (!goalName) {
-            await ack({
-                response_action: 'errors',
-                errors: {
-                    goal_name: 'Please enter a goal name'
-                }
-            });
-
-            return;
-        }
-
-        const session = await prisma.session.findUniqueOrThrow({
-            where: {
-                messageTs: sessionTs
-            }
-        });
 
         const user = await prisma.user.findFirstOrThrow({
             where: {
                 slackUser: {
                     slackId: slackId
                 }
+            },
+            include: {
+                goals: {
+                    where: {
+                        completed: false
+                    }
+                }
             }
         });
 
-        await prisma.goal.updateMany({
-            where: {
-                userId: user.id
-            },
-            data: {
-                selected: false
-            }
-        });
+        if (!goalName) {
+            // await ack({
+            //     response_action: 'errors',
+            //     errors: {
+            //         goal_name: 'Please enter a goal name'
+            //     }
+            // });
+
+            await client.views.update({
+                view_id: body.view.root_view_id!,
+                view: await Goals.main(sessionId, 'Please enter a goal name')
+            });            
+
+            // updating views is broken
+ 
+            return;
+        }
 
         // Check if goal already exists
-        const existingGoal = await prisma.goal.findFirst({
-            where: {
-                name: goalName,
-                completed: false,
-                userId: user.id
-            }
-        });
+        if (user.goals.find(goal => goal.name === goalName)) {
+            // await client.views.push({
+            //     trigger_id: trigger_id,
+            //     view: await Goals.create(sessionId, 'Goal with this name already exists')
+            // });
 
-        if (existingGoal) {
-            // User should not have been able to get here
-            await ack({
-                response_action: 'errors',
-                errors: {
-                    goal_name: 'Goal with this name already exists'
-                }
+            await client.views.update({
+                view_id: body.view.root_view_id!,
+                view: await Goals.main(sessionId, 'Goal with this name already exists')
             });
 
             return;
         }
 
         // Check if the max number of goals has been reached
-        const goals = await prisma.goal.findMany({
-            where: {
-                userId: user.id,
-                completed: false
-            }
-        });
-
-        if (goals.length > 9) {
+        if (user.goals.length > 9) {
             // User should not have been able to get here
+            // await ack({
+            //     response_action: 'errors',
+            //     errors: {
+            //         "goal_name": 'You have reached the maximum number of goals'
+            //     }
+            // });
 
-            await ack({
-                response_action: 'errors',
-                errors: {
-                    goal_name: 'You have reached the maximum number of goals'
-                }
+            await client.views.update({
+                view_id: body.view.root_view_id!,
+                view: await Goals.main(sessionId, 'You have reached the maximum number of goals')
             });
-            
+
             return;
         }
-
-        await ack();
 
         const newGoal = await prisma.goal.create({
             data: {
                 id: uid(),
 
                 name: goalName,
-                description: "", // TODO
-
-                createdAt: new Date(),
-                selected: true,
-
-                totalMinutes: 0,
 
                 user: {
                     connect: {
                         id: user.id
                     }
-                }
+                },
+
+                metadata: {}
             }
         });
 
-        if (!body.view.root_view_id) {
-            // User should not have been able to get here
-            throw new Error(`Root view not found`);
-        }
-
         // Update root view with new goal
         await client.views.update({
-            view_id: body.view.root_view_id,
-            view: await Goals.main(sessionTs)
+            view_id: body.view.root_view_id!,
+            view: await Goals.main(sessionId)
         });
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
     try {
 
-        const sessionTs = (body as any).view.private_metadata;
+        const sessionId = (body as any).view.private_metadata;
 
         const trigger_id: string = (body as any).trigger_id;
 
         const session = await prisma.session.findUniqueOrThrow({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             },
             include: {
                 goal: true
             }
         });
-
-        if (!session) {
-            throw new Error(`Session not found`);
-        }
 
         if (!session.goal) {
             throw new Error(`Goal not found`);
@@ -322,27 +280,25 @@ app.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
             return;
         }
 
-        await ack();
-
         await client.views.push({
             trigger_id: trigger_id,
-            view: await Goals.delete(sessionTs)
+            view: await Goals.delete(sessionId)
         });
     } catch (error) {
         emitter.emit('error', error);
     }
 });
 
-app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
     try {
-        const sessionTs = body.view.private_metadata;
-
         await ack();
 
-        // Mark the goal as complete
+        const sessionId = body.view.private_metadata;
+
+         // Mark the goal as complete
         let session = await prisma.session.findUniqueOrThrow({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             }
         });
 
@@ -363,13 +319,13 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
         const noGoal = await prisma.goal.findFirstOrThrow({
             where: {
                 userId: session.userId,
-                name: "No Goal"
+                default: true
             }
         });
 
         session = await prisma.session.update({
             where: {
-                messageTs: sessionTs
+                id: sessionId
             },
             data: {
                 goalId: noGoal.id
@@ -399,7 +355,7 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
                     id: oldGoal.id
                 },
                 data: {
-                    totalMinutes: {
+                    minutes: {
                         decrement: session.elapsed
                     }
                 }
@@ -410,7 +366,7 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
                     id: noGoal.id
                 },
                 data: {
-                    totalMinutes: {
+                    minutes: {
                         increment: session.elapsed
                     }
                 }
@@ -422,7 +378,7 @@ app.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
 
         await client.views.update({
             view_id: body.view.root_view_id,
-            view: await Goals.main(sessionTs)
+            view: await Goals.main(sessionId)
         });
     } catch (error) {
         emitter.emit('error', error);

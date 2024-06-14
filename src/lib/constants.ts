@@ -1,12 +1,4 @@
-// Environment Variables - typescript doesn't typecheck process.env
-// Throw if not defined
-function assertEnv(envVar: string): string { 
-  if (!process.env[envVar]) { 
-    throw new Error(`Environment variable ${envVar} is not defined.`); 
-  } else {
-    return process.env[envVar] as string;
-  }
-}
+import { assertEnv } from "./assert.js";
 
 export const Environment = {
   // Server/Slack App
@@ -41,6 +33,8 @@ export const Constants = {
 //  MIN_MS: 1 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
+  PROMOTION_THRESH: 3 * 60, // 3 hours
+
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
 
   AUTO_CANCEL: 60
@@ -55,7 +49,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/hack',
   STATS: '/mystats',
   SESSIONS: '/sessions',
-  SHOP: '/shop'
+  SHOP: '/shop',
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -71,7 +65,7 @@ export const Commands = Environment.PROD ? {
   HACK: '/testhack',
   STATS: '/teststats',
   SESSIONS: '/testsessions',
-  SHOP: '/testshop'
+  SHOP: '/testshop',
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',
@@ -93,6 +87,10 @@ export const Actions = {
   DELETE_GOAL: 'deletegoal',
 
   VIEW_STATS: 'viewstats',
+
+  ATTACH_REPO: 'attachrepo',
+
+  CHOOSE_SESSIONS: 'choosesessions',
 };
 
 export const Callbacks = {
@@ -105,4 +103,8 @@ export const Callbacks = {
   STATS: 'stats',
 
   CANCEL: 'cancel',
+
+  ATTACH_REPO: 'attachrepo',
+
+  CHOOSE_SESSIONS: 'choosesessions',
 };

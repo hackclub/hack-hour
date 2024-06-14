@@ -2,114 +2,152 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // the user... duh
 model User {
-  id               String  @id
-  lifetimeMinutes  Int
-  apiKey           String  @unique
-  slackUser        SlackUser?
-  sessions         Session[]
-  goals            Goal[]
+  id String @id
 
-  metadata         Json?
+  lifetimeMinutes Int
 
-  submissions      Bank[]
+  apiKey String @unique
+
+  slackUser SlackUser?
+  sessions  Session[]
+  goals     Goal[]
+
+  /// [UserMetadata]
+  metadata Json
+
+  log          Log[]
+  // transactions Transaction[]
+  scrapbooks   Scrapbook[]
 }
 
 // slack data of the user
 model SlackUser {
-  slackId          String  @id
-  user             User    @relation(fields: [userId], references: [id])
-  userId           String  @unique
-  tz_offset        Int
-
-  slackToken       String?
+  slackId String @id
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @unique
 }
 
 // tracks the user's hour (/hack)
-model Session { // Hack Hour
-  user       User  @relation(fields: [userId], references: [id])
-  userId     String
-  messageTs  String  @id
-  controlTs  String  @unique
-  createdAt  DateTime @default(now())
-  time       Int
-  elapsed    Int
+model Session {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  id String @id
+
+  messageTs String
+  controlTs String
+
+  createdAt         DateTime @default(now())
+  time              Int
+  elapsed           Int
   elapsedSincePause Int
 
-  completed  Boolean
-  cancelled  Boolean
-  paused     Boolean
+  completed Boolean
+  cancelled Boolean
+  paused    Boolean
 
-  goal       Goal? @relation(fields: [goalId], references: [id])
-  goalId     String?
+  goal   Goal   @relation(fields: [goalId], references: [id])
+  goalId String
 
-  bank       Bank? @relation(fields: [bankId], references: [id])
-  bankId     String?
+  evidence Boolean @default(false)
+  logs     Log[]
 
-  metadata   Json?
+  // transaction Transaction? 
+
+  scrapbook Scrapbook? @relation(fields: [scrapbookId], references: [internalId])
+  scrapbookId String? @unique
+
+  /// [SessionMetadata]
+  metadata Json
 }
 
 // Categorizes the user's sessions (group)
-model Goal { // Group
-  id          String  @id
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String
+model Goal {
+  id     String @id
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
   name        String
-  description String
+  description String @default("")
 
-  totalMinutes Int
-  createdAt   DateTime
+  minutes   Int      @default(0)
+  createdAt DateTime @default(now())
 
-  selected    Boolean
+  default Boolean @default(false)
 
-  completed   Boolean @default(false)
-  metadata    Json?
+  completed Boolean @default(false)
 
-  sessions    Session[]
+  sessions Session[]
+
+  metadata Json
 }
 
 // Ship posts & etc. - anything that counts as a banked hour
-model Bank { 
-  id          String  @id
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String
+model Log {
+  id     String @id
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  minutes     Int
+  approved Boolean @default(false)
 
-  approved    Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  type        String // "ship"/"ysws"/"scrapbook"
+  sessions Session[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-//lastBankedAt DateTime
-
-  sessions    Session[]
-
-  data    Json
-  // { "shipLink": "URL", "goalId": "###" }
+  /// [LogData]
+  data Json
 }
 
-// flow:
-//- user has a hack hour (minute: 1)
-//- hack hour finished, go to bank their points in #ship (bot DMs after)
-//  - show a list of goals and below that a list of ungoal'd (ungrouped) hack hours
-//- we review hours (prioritize banked hours)
-//- once a banked hour is approved, remove the ability to change group or remove from bank
-//  - AND LOCK THIS IN THE DATABASE (CRITICAL)
+// Transaction - watch for verified banked hours & also purchase redemptions
+// model Transaction {
+//   id String @id
 
-//hour.banked?
-//user.hours.where(:banked?)
-//hour.bank_association_exists?
+//   user   User   @relation(fields: [userId], references: [id])
+//   userId String
 
-// questions:
-//- how many banked hours in total does a user have?
-//  - user.sessions.where(banked: bank, goal: id).sum(:minutes)
+//   type String // "bank"/"redeem"
+
+//   amount   Int
+//   approved Boolean @default(false)
+
+//   createdAt DateTime @default(now())
+
+//   session Session? @relation(fields: [sessionId], references: [id])
+//   sessionId String? @unique
+
+//   /// [TransactionMetadata]
+//   data Json
+// }
+
+// A grouping of sessions associated with a scrapbook post
+model Scrapbook {
+  internalId String @id
+  ts String
+  channel String
+
+  flowTs String @unique
+  flowChannel String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  /// [ScrapbookMetadata]
+  data Json
+
+  createdAt DateTime @default(now())
+
+  sessions Session[]
+}

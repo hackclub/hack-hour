@@ -6,16 +6,17 @@ import { Environment, Actions, Commands, Callbacks } from "../../../lib/constant
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import { fetchSlackId, informUser, updateTopLevel } from "../lib/lib.js";
+import { fetchSlackId, informUser } from "../lib/lib.js";
 import { Cancel } from "../views/cancel.js";
 
 import { Session } from "../../../lib/corelib.js";
+import { Slack } from "../../../lib/bolt.js";
 
-app.action(Actions.CANCEL, async ({ ack, body }) => {
+Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
-        const thread_ts = (body as any).message.thread_ts;
-
         await ack();
+
+        const thread_ts = (body as any).message.thread_ts;
 
         await app.client.views.open({
             trigger_id: (body as any).trigger_id,
@@ -26,7 +27,7 @@ app.action(Actions.CANCEL, async ({ ack, body }) => {
     }
 });
 
-app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
+Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     try {
         await ack();
 
@@ -43,7 +44,7 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
  
         if (!session || slackId !== await fetchSlackId(session.userId)) {
             // Send an ephemeral message to the actor
-            await app.client.chat.postEphemeral({
+            await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot end another user's session!`,
@@ -59,10 +60,8 @@ app.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     }
 });
                 
-app.command(Commands.CANCEL, async ({ ack, body }) => {
+Slack.command(Commands.CANCEL, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({

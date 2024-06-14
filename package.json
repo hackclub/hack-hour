@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "prisma_deploy": "prisma migrate deploy",
+    "debug": "tsx ./src/entry.ts",
     "start": "npm run prisma_deploy && tsx ./src/entry.ts"
   },
   "repository": {
@@ -25,7 +26,9 @@
     "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "get-urls": "^12.1.0",
     "lowdb": "^7.0.1",
+    "prisma-json-types-generator": "^3.0.4",
     "tsx": "^4.10.5",
     "ws": "^8.17.0",
     "yaml": "^2.4.2"

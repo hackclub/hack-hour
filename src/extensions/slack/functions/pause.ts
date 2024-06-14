@@ -1,7 +1,7 @@
 /*
 Pause Management
 */
-import { app } from "../../../lib/bolt.js";
+import { Slack } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
@@ -11,11 +11,11 @@ import { fetchSlackId, informUser } from "../lib/lib.js";
 
 // TODO: Move to a standard library
 
-app.action(Actions.PAUSE, async ({ ack, body }) => {
+Slack.action(Actions.PAUSE, async ({ ack, body }) => {
     try {
-        const slackId = body.user.id;
-
         await ack();
+
+        const slackId = body.user.id;
 
         const session = await prisma.session.findFirst({
             where: {
@@ -28,7 +28,7 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
 
         if (!session) {
             // Send an ephemeral message to the actor
-            await app.client.chat.postEphemeral({
+            await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot pause another user's session!`,
@@ -42,7 +42,7 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
 
         if (slackId !== slackOwnerId) {
             // Send an ephemeral message to the actor
-            await app.client.chat.postEphemeral({
+            await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot pause another user's session!`,
@@ -58,11 +58,11 @@ app.action(Actions.PAUSE, async ({ ack, body }) => {
     }
 });
 
-app.action(Actions.RESUME, async ({ ack, body }) => {
+Slack.action(Actions.RESUME, async ({ ack, body }) => {
     try {
-        const slackId = body.user.id;
-
         await ack();
+
+        const slackId = body.user.id;
 
         const session = await prisma.session.findFirst({
             where: {
@@ -75,7 +75,7 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
 
         if (!session) {
             // Send an ephemeral message to the actor
-            await app.client.chat.postEphemeral({
+            await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot resume another user's session!`,
@@ -89,7 +89,7 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
 
         if (slackId !== slackOwnerId) {
             // Send an ephemeral message to the actor
-            await app.client.chat.postEphemeral({
+            await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
                 text: `You cannot resume another user's session!`,
@@ -106,10 +106,8 @@ app.action(Actions.RESUME, async ({ ack, body }) => {
 });
 
 // Can toggle
-app.command(Commands.PAUSE, async ({ ack, body }) => {
+Slack.command(Commands.PAUSE, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({
@@ -142,10 +140,8 @@ app.command(Commands.PAUSE, async ({ ack, body }) => {
 });
 
 // Can only start
-app.command(Commands.START, async ({ ack, body }) => {
+Slack.command(Commands.START, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user_id;
 
         const session = await prisma.session.findFirst({

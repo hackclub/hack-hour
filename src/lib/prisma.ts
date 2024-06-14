@@ -1,6 +1,39 @@
 import { PrismaClient } from '@prisma/client';
 import cuid2 from '@paralleldrive/cuid2';
 
+declare global {
+    namespace PrismaJson {
+        type SessionMetadata = {
+            work: string,
+            slack: {
+                "template": string
+            },
+            airtable?: {
+                id: string,
+                status: string,
+                reason: string
+            },
+            onboarding: boolean,
+            banked: boolean, 
+        }
+        type UserMetadata = {
+            airtable?: {
+                id: string
+            },
+            ships: {
+                [shipTs: string]: string
+            }
+        }
+        type LogData = {
+            // TODO
+        }
+        type ScrapbookMetadata = {
+            record: string,
+            attachments: string[]
+        }
+    }
+}
+
 cuid2.init();
 
 export const prisma = new PrismaClient();

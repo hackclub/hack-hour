@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Environment } from "../../../lib/constants.js";
 
-import { app } from "../../../lib/bolt.js";
+import { app, Slack } from "../../../lib/bolt.js";
 import { prisma } from "../../../lib/prisma.js";
 import { t } from "../../../lib/templates.js";
 
@@ -14,7 +14,7 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 export type Session = Prisma.SessionGetPayload<{}>;
 
 export async function updateController(session: Session) {
-    await app.client.chat.update({
+    await Slack.chat.update({
         ts: session.controlTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await Controller.panel(session),
@@ -38,39 +38,12 @@ export async function updateTopLevel(session: Session) {
         return;
     }
 
-    await app.client.chat.update({
+    await Slack.chat.update({
         ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await TopLevel.topLevel(session),
         text: `${(session.metadata as any).work}` // TODO: Replace with accessibility friendly text
     });
-}
-            
-export async function slashCommand(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
-    app.command(command, async (payload) => {
-        const { command: event, ack, respond } = payload;
-
-        await ack();
-
-        try {
-            respond({
-                blocks: [
-                    {
-                    type: "context",
-                    elements: [
-                        {
-                        type: "mrkdwn",
-                        text: `${command} ${event.text}`,
-                        },
-                    ],
-                    },
-                ]
-            })
-            commandHandler(payload);
-        } catch(error) {
-            emitter.emit('error', error)
-        }
-    })
 }
 
 export async function fetchSlackId(userId: string) {
@@ -141,18 +114,4 @@ export async function informUserBlocks(slackId: string, blocks: any[], channel: 
         }
     }
     
-}
-
-// Todo: Move to core standard lib
-export async function cancelSession(slackId: string, session: Session) {
-    const updatedSession = await prisma.session.update({
-        where: {
-            messageTs: session.messageTs
-        },
-        data: {
-            cancelled: true
-        }
-    });
-
-    emitter.emit('cancel', updatedSession);
 }

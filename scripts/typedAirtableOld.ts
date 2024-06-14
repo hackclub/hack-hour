@@ -3,17 +3,21 @@ dotenv.config();
 // A typed wrapper over airtable API
 import Airtable from "airtable";
 
+const AIRTABLE_TOKEN = '';
+const AIRTABLE_BASE = '';
+
 Airtable.configure({
-    apiKey: process.env.AIRTABLE_TOKEN
+    apiKey: AIRTABLE_TOKEN
 });
 
-if (!process.env.AIRTABLE_BASE) { throw new Error("No Airtable base provided"); }
+if (!AIRTABLE_BASE) { throw new Error("No Airtable base provided"); }
 
-const base = Airtable.base(process.env.AIRTABLE_BASE);
+const base = Airtable.base(AIRTABLE_BASE);
 const users = base("V2: Users");
 const ships = base("V2: Ships");
 const sessions = base("V2: Sessions");
 const banks = base("V2: Banks");
+const man = base("Manual Session Submissions");
 
 type AirtableRecordID = string;
 
@@ -62,6 +66,7 @@ type AirtableShipRead = {
 
 type AirtableSessionWrite = {
     "Code URL": string,
+    "Code URL Base": string,
     "User": AirtableRecordID[],
     "Work": string,
     "Minutes": number,
@@ -101,6 +106,26 @@ type AirtableBankRead = {
     "Sessions": AirtableRecordID[], 
     "Approved Minutes": number,
     "Ship ID": string,
+};
+
+type AirtableManRead = {
+    "Code URL": string,
+    "Code URL Base": string,
+    "Slack ID": string,
+    "Work": string,
+    "Minutes": number,
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Already in Sessions Base",
+    "Created At": string,
+};
+
+type AirtableManWrite = {
+    "Code URL": string,
+    "Code URL Base": string,
+    "Slack ID": string,
+    "Work": string,
+    "Minutes": number,
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Already in Sessions Base",
+    "Created At": string,
 };
 
 
@@ -258,4 +283,38 @@ export const AirtableAPI = {
             return records.map(record => ({id: record.id, fields: record.fields as AirtableBankRead}));
         }
     },
+    Man: {
+        async fetch(recordId: string): Promise<{id: AirtableRecordID, fields: AirtableManRead} | null> {
+            const record = await man.find(recordId);
+
+            if (!record) { return null; }
+
+            return {id: record.id, fields: record.fields as AirtableManRead};
+        },
+
+        async search(shipUrl: string): Promise<{id: AirtableRecordID, fields: AirtableManRead} | null> {
+            const records = await man.select({
+                filterByFormula: `{Ship URL} = "${shipUrl}"`
+            }).all();
+
+            if (records.length === 0) { return null; }
+
+            return {id: records[0].id, fields: records[0].fields as AirtableManRead};
+        },
+
+        async update(id: AirtableRecordID, session: Partial<AirtableManWrite>): Promise<{id: AirtableRecordID, fields: AirtableManWrite}> {
+            const records = await man.update([{
+                "id": id,
+                "fields": session
+            }]);
+
+            return {id: records[0].id, fields: records[0].fields as AirtableManWrite};
+        },
+        
+        async fetchAll(): Promise<{id: AirtableRecordID, fields: AirtableManRead}[]> {
+            const records = await man.select().all();
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableManRead}));
+        }        
+    }
 };

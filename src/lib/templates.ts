@@ -1,7 +1,23 @@
-import { stringify, parse } from 'yaml';
+import { parse } from 'yaml';
 import fs from 'fs';
 
-type template = 'update' | 'complete' | 'encouragement' | 'cancel' | 'toplevel' | 'pause' | 'init';
+type template = 
+    'update' | 
+    'complete' | 
+    'encouragement' | 
+    'cancel' | 
+    'toplevel' | 
+    'pause' | 
+    'init' |
+
+    'onboarding.init' |
+    'onboarding.update' |
+    'onboarding.complete' |
+    'onboarding.evidence_reminder' |
+
+    'detect.activity' |
+    'detect.evidence'
+    ;
 
 interface data {
     slackId?: string,
@@ -11,7 +27,43 @@ interface data {
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
-const templates = parse(file);
+const templatesRaw = parse(file);
+
+/*
+{
+    "update": [x, y, z],
+    "onboarding": {
+        "update": [x, y, z],
+    } 
+}
+
+flatten
+
+{
+    "update": [x, y, z],
+    "onboarding.update": [x, y, z],
+}
+*/
+
+function flatten(obj: any, prefix: string = '') {
+    let result: any = {};
+
+    for (const key in obj) {
+        if (typeof obj[key] === 'object' && Array.isArray(obj[key]) === false) {
+            result = { ...result, ...flatten(obj[key], `${prefix}${key}.`) }
+        } else {
+            result[`${prefix}${key}`] = obj[key];
+        }
+    }
+
+    return result;
+}
+
+const templates = flatten(templatesRaw);
+console.log(templates);
+
+const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
+export const pfps = parse(pfpFile);
 
 export function t(template: template, data: data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
@@ -37,11 +89,3 @@ export function formatHour(minutes: number | undefined | null): string {
 
     return hours.toFixed(1);
 }
-
-/*
-DEPRECATED - use getPermalink instead
-export function generateMessageURL(ts: string) {
-    // Converts slack ts from payload into a url
-    return `https://hackclub.slack.com/archives/C06S6E7CXK7/p${ts.replace('.', '')}`
-}
-*/

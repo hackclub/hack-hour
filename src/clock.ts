@@ -19,7 +19,7 @@ emitter.on('minute', async () => {
             if (session.paused) {
                 updatedSession = await prisma.session.update({
                     where: {
-                        messageTs: session.messageTs
+                        id: session.id
                     },
                     data: {
                         elapsedSincePause: {
@@ -31,7 +31,7 @@ emitter.on('minute', async () => {
                 if (updatedSession.elapsedSincePause > Constants.AUTO_CANCEL) {
                     updatedSession = await prisma.session.update({
                         where: {
-                            messageTs: session.messageTs
+                            id: session.id
                         },
                         data: {
                             paused: false,
@@ -48,7 +48,7 @@ emitter.on('minute', async () => {
             } else {
                 updatedSession = await prisma.session.update({
                     where: {
-                        messageTs: session.messageTs
+                        id: session.id
                     },
                     data: {
                         elapsed: {
@@ -57,20 +57,6 @@ emitter.on('minute', async () => {
                     }
                 });
             }
-
-            /*
-            await prisma.goal.updateMany({                
-                where: {
-                    userId: session.userId,
-                    selected: true
-                },
-                data: {
-                    totalMinutes: {
-                        increment: 1
-                    }
-                }
-            });
-            */
 
             await prisma.user.update({
                 where: {
@@ -86,7 +72,7 @@ emitter.on('minute', async () => {
             if (updatedSession.elapsed >= updatedSession.time) { // TODO: Commit hours to goal, verify hours with events                
                 updatedSession = await prisma.session.update({
                     where: {
-                        messageTs: session.messageTs
+                        id: session.id
                     },
                     data: {
                         completed: true

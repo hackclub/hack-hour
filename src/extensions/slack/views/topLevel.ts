@@ -104,7 +104,7 @@ export class TopLevel {
             elements: [
                 {
                     "type": "mrkdwn",
-                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.totalMinutes)} hours`
+                    "text": `*Goal:* ${curGoal.name} - ${formatHour(curGoal.minutes)} hours`
                 }
             ]
         });
