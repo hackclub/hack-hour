@@ -123,6 +123,17 @@ const hack = async ({ command }: CommandHandler) => {
                 text: "Pointer to DM"
             });
 
+            slackUser.user.metadata.firstTime = false;
+
+            await prisma.user.update({
+                where: {
+                    id: slackUser.userId
+                },
+                data: {
+                    metadata: slackUser.user.metadata
+                }
+            });
+
             return;
         }
         // Continue with flow if arcadius is unable to handle it or has it handled
