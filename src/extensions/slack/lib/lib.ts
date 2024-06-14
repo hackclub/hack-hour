@@ -14,6 +14,13 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 export type Session = Prisma.SessionGetPayload<{}>;
 
 export async function updateController(session: Session) {
+    // Post the controller into the log channel
+    await Slack.chat.update({
+        ts: session.controlTs,
+        channel: Environment.INTERNAL_CHANNEL,
+        text: "```" + JSON.stringify(await Controller.panel(session), null, 4) + "```",
+    });
+
     await Slack.chat.update({
         ts: session.controlTs,
         channel: Environment.MAIN_CHANNEL,
