@@ -121,7 +121,7 @@ const hack = async ({ command }: CommandHandler) => {
             await app.client.chat.postMessage({
                 channel: channel,
                 user: slackUser.slackId,
-                text: "Test"
+                text: "Pointer to DM"
             });
 
             return;
