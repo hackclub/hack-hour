@@ -75,6 +75,14 @@ const hack = async ({ command }: CommandHandler) => {
 
     if (slackUser.user.metadata.firstTime) {
         // Send a message in the dm
+
+        console.log(`First time for ${slackUser.slackId}`);
+        
+        // Make a log
+        await Slack.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            text: `oooooo - it's the first time for <@${slackUser.slackId}>`
+        });
         
         // await fetch(
         //     Constants.ARCADIUS_URL + "/begin",
