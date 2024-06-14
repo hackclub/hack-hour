@@ -322,6 +322,8 @@ emitter.on('firstTime', async (userId: string) => {
                 })
             }
         );
+
+        log(`I got a response! It was \n${JSON.stringify(response)}`)
         
         const result = await response.json();
 
