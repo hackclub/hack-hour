@@ -299,7 +299,7 @@ app.event("message", async ({ event }) => {
 
 emitter.on('firstTime', async (userId: string) => {
     try {
-        log(`First time user ${userId}`);
+        await log(`First time user ${userId}`);
 
         const user = await prisma.user.findUniqueOrThrow({
             where: {
@@ -323,7 +323,7 @@ emitter.on('firstTime', async (userId: string) => {
             }
         );
 
-        log(`I got a response! It was \n${JSON.stringify(response)}`)
+        await log(`I got a response! It was \n${JSON.stringify(response)}`)
         
         const result = await response.json();
 

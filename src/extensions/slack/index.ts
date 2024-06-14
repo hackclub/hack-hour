@@ -23,7 +23,17 @@ Session Creation
 
 type CommandHandler = Parameters<Parameters<typeof Slack.command>[1]>[0];
 
+const log = async (message: string) => {
+    await Slack.chat.postMessage({
+        channel: Environment.INTERNAL_CHANNEL,
+        text: message
+    });
+    console.log(message);
+
+}
+
 const hack = async ({ command }: CommandHandler) => {
+    log(`got command ${command.command} from ${command.user_id}`);
     const slackId = command.user_id;
 
     let slackUser = await prisma.slackUser.upsert(
@@ -76,13 +86,16 @@ const hack = async ({ command }: CommandHandler) => {
     if (slackUser.user.metadata.firstTime) {
         // Send a message in the dm
 
-        console.log(`First time for ${slackUser.slackId}`);
+        // console.log(`First time for ${slackUser.slackId}`);
+        log(`First time for ${slackUser.slackId}`);
         
         // Make a log
-        await Slack.chat.postMessage({
-            channel: Environment.INTERNAL_CHANNEL,
-            text: `oooooo - it's the first time for <@${slackUser.slackId}>`
-        });
+        // await Slack.chat.postMessage({
+        //     channel: Environment.INTERNAL_CHANNEL,
+        //     text: `oooooo - it's the first time for <@${slackUser.slackId}>`
+        // });
+        // console.log(`oooooo - it's the first time for <@${slackUser.slackId}>`);
+        await log(`oooooo - it's the first time for <@${slackUser.slackId}>`);
         
         // await fetch(
         //     Constants.ARCADIUS_URL + "/begin",
@@ -192,6 +205,7 @@ Slack.command(Commands.HOUR, hack);
 Slack.command(Commands.ARCADE, hack);
 
 Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
+    console.log("hack action");
     await ack();
     await respond({
         delete_original: true
@@ -343,6 +357,8 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 Minute tracker
 */
 emitter.on('sessionUpdate', async (session: Session) => {
+    console.log("in session update emit handler");
+    
     try {
         // Check if the prisma user has a slack component
         const slackUser = await prisma.slackUser.findUnique({
@@ -401,6 +417,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
 });
 
 emitter.on('complete', async (session: Session) => {
+    console.log("in complete emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -479,6 +496,7 @@ emitter.on('complete', async (session: Session) => {
 });
 
 emitter.on('cancel', async (session: Session) => {
+    console.log("in cancel emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -542,11 +560,13 @@ emitter.on('cancel', async (session: Session) => {
 });
 
 emitter.on('pause', async (session: Session) => {
+    console.log("in pause emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('resume', async (session: Session) => {
+    console.log("in resume emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
