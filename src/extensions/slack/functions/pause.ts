@@ -8,7 +8,7 @@ import { emitter } from "../../../lib/emitter.js";
 import { Session } from "../../../lib/corelib.js";
 
 import { fetchSlackId, informUser } from "../lib/lib.js";
-import { t } from "../../../lib/templates.js";
+import { pfps, t } from "../../../lib/templates.js";
 
 // TODO: Move to a standard library
 
@@ -28,13 +28,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            // Send an ephemeral message to the actor
-            await Slack.chat.postEphemeral({
-                user: slackId,
-                channel: Environment.MAIN_CHANNEL,
-                text: t(`error.not_yours`, {}),
-                thread_ts: (body as any).message.thread_ts
-            });                
+            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
 
             return;
         }
@@ -75,13 +69,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
         });
 
         if (!session) {
-            // Send an ephemeral message to the actor
-            await Slack.chat.postEphemeral({
-                user: slackId,
-                channel: Environment.MAIN_CHANNEL,
-                text: t(`error.not_yours`, {}),
-                thread_ts: (body as any).message.thread_ts
-            });                
+            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);          
 
             return;
         }
@@ -89,13 +77,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
         const slackOwnerId = await fetchSlackId(session.userId);
 
         if (slackId !== slackOwnerId) {
-            // Send an ephemeral message to the actor
-            await Slack.chat.postEphemeral({
-                user: slackId,
-                channel: Environment.MAIN_CHANNEL,
-                text: t(`error.not_yours`, {}),
-                thread_ts: (body as any).message.thread_ts
-            });                
+            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
 
             return;
         }
@@ -162,12 +144,12 @@ Slack.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id, pfps['question']);
             return;
         }
 
         if (!session.paused) {
-            informUser(slackId, t('error.already_resumed', {}), body.channel_id);
+            informUser(slackId, t('error.already_resumed', {}), body.channel_id, pfps['question']);
         }
 
         const updatedSession = await Session.pause(session);
