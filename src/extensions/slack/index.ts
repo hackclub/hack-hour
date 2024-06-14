@@ -50,7 +50,8 @@ const hack = async ({ command }: CommandHandler) => {
                         },
                         metadata: {
                             airtable: undefined,
-                            ships: {}
+                            ships: {},
+                            onboarding: true
                         }
                     }
                 },
@@ -201,6 +202,7 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                             }
                         },
                         metadata: {
+                            onboarding: true,
                             airtable: undefined,
                             ships: {}
                         }
