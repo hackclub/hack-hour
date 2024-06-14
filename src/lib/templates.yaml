@@ -68,6 +68,7 @@ onboarding:
     encouragement:
         - "You have `${minutes}` minutes remaining! Onboarding text goes here!"
 #        - "aaaaa"
+        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
 
     init:
         - "check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
@@ -81,7 +82,7 @@ onboarding:
     evidence_reminder:
         - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
 
-errors:
+error:
     #context: attempting to start a new session while already in one
     already_hacking:
         - hey! you're already in a hack hour session! you can't start another one until you finish the one you're in!
