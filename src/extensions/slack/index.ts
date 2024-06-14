@@ -106,6 +106,7 @@ const hack = async ({ command }: CommandHandler) => {
         try {
             result = await response.json();
         } catch (error) {
+            await log(`I got an error! It was \n${error}`)
             result = {};
         }
 
