@@ -87,7 +87,7 @@ const hack = async ({ command }: CommandHandler) => {
         const user = slackUser.user;
         
         const response = await fetch(
-            Constants.ARCADIUS_URL + "/begin",
+            "https://7ac5-71-235-174-134.ngrok-free.app/begin",
             {
                 method: "POST",
                 headers: {
@@ -100,7 +100,6 @@ const hack = async ({ command }: CommandHandler) => {
         );
 
         await log(`I got a response! It was \n${JSON.stringify(response)}`)
-        
          
         let result;
         
