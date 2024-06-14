@@ -33,6 +33,7 @@ const log = async (message: string) => {
 }
 
 const hack = async ({ command }: CommandHandler) => {
+    try {
     log(`got command ${command.command} from ${command.user_id}`);
     const slackId = command.user_id;
 
@@ -100,22 +101,32 @@ const hack = async ({ command }: CommandHandler) => {
 
         await log(`I got a response! It was \n${JSON.stringify(response)}`)
         
-        const result = await response.json();
+         
+        let result;
+        
+        try {
+            result = await response.json();
+        } catch (error) {
+            result = {};
+        }
 
         const channel = result.channel;
         const recordId = result.arcadeUserId;
 
-        await AirtableAPI.User.update(recordId, {
-            "Internal ID": user.id,
-        });
+        if (channel && recordId) {
+            await AirtableAPI.User.update(recordId, {
+                "Internal ID": user.id,
+            });
 
-        await app.client.chat.postMessage({
-            channel: channel,
-            user: slackUser.slackId,
-            text: "Test"
-        });
-        
-        return;
+            await app.client.chat.postMessage({
+                channel: channel,
+                user: slackUser.slackId,
+                text: "Test"
+            });
+
+            return;
+        }
+        // Continue with flow if arcadius is unable to handle it or has it handled
     }
 
     if (slackUser.user.sessions.length > 0) {
@@ -201,6 +212,9 @@ const hack = async ({ command }: CommandHandler) => {
         channel: Environment.MAIN_CHANNEL,
         ts: assertVal(topLevel!.ts)
     });
+} catch (error) {
+    emitter.emit('error', error);
+}
 };
 
 Slack.command(Commands.HACK, hack);
