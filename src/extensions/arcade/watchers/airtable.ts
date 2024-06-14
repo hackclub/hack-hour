@@ -15,11 +15,6 @@ express.post('/airtable/session/update', async (req, res) => {
             throw new Error(`No session found for ${record}`);
         }
 
-        const permalink = (await app.client.chat.getPermalink({
-            channel: Environment.MAIN_CHANNEL,
-            message_ts: airtableSession.fields["Message TS"]
-        })).permalink;
-
         console.log(`Received session ${record} from Airtable`);
 
         const session = await prisma.session.findFirstOrThrow({
@@ -30,44 +25,6 @@ express.post('/airtable/session/update', async (req, res) => {
                 }
             }
         });
-
-        // if (session.metadata.airtable?.status !== airtableSession.fields["Status"]) {
-        //     if (airtableSession.fields["Status"] === "Rejected") {
-        //         // Update this as an unapproved transaction
-        //         await prisma.transaction.update({
-        //             where: {
-        //                 sessionId: session.id
-        //             },
-        //             data: {
-        //                 approved: false
-        //             }
-        //         });
-        //         log(`Transaction for <session|${permalink}> rejected`);
-        //     } else if (airtableSession.fields["Status"] === "Approved" && airtableSession.fields["Scrapbook"].length > 0) {
-        //         // Update this as an approved transaction
-        //         await prisma.transaction.update({
-        //             where: {
-        //                 sessionId: session.id
-        //             },
-        //             data: {
-        //                 approved: true
-        //             }
-        //         });
-        //         log(`Transaction for <session|${permalink}> approved`);
-        //     }   
-        // }     
-
-        // if (session.elapsed !== airtableSession.fields["Approved Minutes"]) {
-        //     await prisma.transaction.update({
-        //         where: {
-        //             sessionId: session.id
-        //         },
-        //         data: {
-        //             amount: airtableSession.fields["Approved Minutes"]
-        //         }
-        //     });
-        //     log(`Transaction for <session|${permalink}> updated to ${airtableSession.fields["Approved Minutes"]} minutes`);
-        // }
 
         session.metadata.airtable = {
             id: record,
@@ -86,6 +43,27 @@ express.post('/airtable/session/update', async (req, res) => {
 
         console.log(`Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
         log(`Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
+
+        // Check if it was approved & has a scrapbook
+        if (airtableSession.fields["Status"] === "Approved" && airtableSession.fields["Scrapbook"].length > 0) {
+            await AirtableAPI.Session.update(airtableSession.id, {
+                "Status": "Banked"
+            });
+
+            session.metadata.airtable!.status = "Banked";
+
+            await prisma.session.update({
+                where: {
+                    id: session.id
+                },
+                data: {
+                    metadata: session.metadata
+                }
+            });
+
+            console.log(`Queued session ${session.messageTs} for banking`);
+            log(`Queued session ${session.messageTs} for banking`);
+        }
 
         res.sendStatus(200);
     } catch (error) {

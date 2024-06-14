@@ -102,6 +102,15 @@ export const AirtableAPI = {
             return {id: records[0].id, fields: records[0].fields as AirtableUserRead};
         },
 
+        async lookupBySlack(slack: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
+            const records = await users.select({
+                filterByFormula: `{Slack ID} = "${slack}"`
+            }).all();
+
+            if (records.length === 0) { return null; }
+            return {id: records[0].id, fields: records[0].fields as AirtableUserRead};
+        },
+
         async create(user: AirtableUserWrite): Promise<{id: AirtableRecordID, fields: AirtableUserWrite}> {
             const record = await users.create([{
                 "fields": user

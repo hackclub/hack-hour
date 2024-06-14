@@ -137,7 +137,7 @@ export class ChooseSessions {
             type: "section",
             text: {
                 type: "mrkdwn",
-                text: `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}* - \n${session.metadata.work}`,
+                text: `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}* - ${session.metadata.work}`,
             },
         })));
     }

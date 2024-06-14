@@ -13,7 +13,8 @@ declare global {
                 status: string,
                 reason: string
             },
-            onboarding: boolean
+            onboarding: boolean,
+            banked: boolean, 
         }
         type UserMetadata = {
             airtable?: {

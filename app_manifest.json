@@ -82,6 +82,9 @@
                 "groups:history",
                 "groups:read",
                 "groups:write.topic",
+                "im:history",
+                "im:read",
+                "im:write",
                 "links.embed:write",
                 "links:read",
                 "links:write",
@@ -91,9 +94,10 @@
                 "usergroups:read",
                 "usergroups:write",
                 "users:read",
-                "im:write",
-                "im:history",
-                "im:read"
+                "mpim:read",
+                "mpim:write",
+                "groups:write",
+                "mpim:history"
             ]
         }
     },

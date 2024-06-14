@@ -39,11 +39,23 @@ const registerSession = async (session: Session) => {
                 user: user.slackUser.slackId
             });
 
-            const { id } = await AirtableAPI.User.create({
-                "Hack Hour ID": user.id,
-                "Name": slackLookup.user!.real_name!,
-                "Slack ID": user.slackUser.slackId,
-            });
+            // Check if the slack id already exists in the Airtable
+            const airtableUserExists = await AirtableAPI.User.lookupBySlack(user.slackUser.slackId);
+
+            let id;
+            if (airtableUserExists) {
+                ({ id } = await AirtableAPI.User.update(airtableUserExists.id, {
+                    "Hack Hour ID": user.id,
+                    "Name": slackLookup.user!.real_name!,
+                    "Slack ID": user.slackUser.slackId,
+                }));                
+            } else {
+                ({ id } = await AirtableAPI.User.create({
+                    "Hack Hour ID": user.id,
+                    "Name": slackLookup.user!.real_name!,
+                    "Slack ID": user.slackUser.slackId,
+                }));
+            }
 
             user.metadata.airtable = {
                 id

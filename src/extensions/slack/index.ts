@@ -251,7 +251,8 @@ const hack = async ({ command, ack }: CommandHandler) => {
                 slack: {
                     template: t_fetch('toplevel'),
                 },
-                onboarding: slackUser.user.metadata.airtable ? false : true
+                onboarding: slackUser.user.metadata.airtable ? false : true,
+                banked: false
             },
 
             goal: {
@@ -547,7 +548,7 @@ emitter.on('error', async (error) => {
         }
         await Slack.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
-            channel: Environment.INTERNAL_CHANNEL || 'C0P5NE354',
+            channel: 'C0P5NE354',
             text: `<!subteam^${process.env.DEV_USERGROUP}> \`${error.message}\`\n\`\`\`${error.stack}\`\`\``,
         });
     } catch (error) {
