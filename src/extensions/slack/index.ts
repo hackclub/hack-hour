@@ -16,6 +16,7 @@ import "./functions/goals.js";
 import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
+import { AirtableAPI } from "../arcade/lib/airtable.js";
 
 /*
 Session Creation
@@ -67,9 +68,8 @@ const hack = async ({ command }: CommandHandler) => {
             },
             update: {},
             include: {
-                user: {
-                    select: {
-                        metadata: true,
+                user: {     
+                    include: {               
                         sessions: {
                             where: {
                                 completed: false,
@@ -83,34 +83,38 @@ const hack = async ({ command }: CommandHandler) => {
     );
 
     if (slackUser.user.metadata.firstTime) {
-        // Send a message in the dm
-
-        // console.log(`First time for ${slackUser.slackId}`);
-        log(`First time for ${slackUser.slackId}`);
+        const user = slackUser.user;
         
-        // Make a log
-        // await Slack.chat.postMessage({
-        //     channel: Environment.INTERNAL_CHANNEL,
-        //     text: `oooooo - it's the first time for <@${slackUser.slackId}>`
-        // });
-        // console.log(`oooooo - it's the first time for <@${slackUser.slackId}>`);
-        await log(`oooooo - it's the first time for <@${slackUser.slackId}>`);
+        const response = await fetch(
+            Constants.ARCADIUS_URL + "/begin",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    userId: slackUser.slackId
+                })
+            }
+        );
+
+        await log(`I got a response! It was \n${JSON.stringify(response)}`)
         
-        // await fetch(
-        //     Constants.ARCADIUS_URL + "/begin",
-        //     {
-        //         method: "POST",
-        //         headers: {
-        //             "Content-Type": "application/json"
-        //         },
-        //         body: JSON.stringify({
-        //             userId: slackUser.slackId,
-        //         })
-        //     }
-        // )
+        const result = await response.json();
 
-        emitter.emit('firstTime', slackUser.userId);
+        const channel = result.channel;
+        const recordId = result.arcadeUserId;
 
+        await AirtableAPI.User.update(recordId, {
+            "Internal ID": user.id,
+        });
+
+        await app.client.chat.postMessage({
+            channel: channel,
+            user: slackUser.slackId,
+            text: "Test"
+        });
+        
         return;
     }
 
