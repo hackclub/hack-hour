@@ -26,7 +26,7 @@ cancel:
     - it looks like <@${slackId}> is already done!
 #    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
 
-pause: 
+pause:
     - <@${slackId}> is taking five!
     - <@${slackId}> is catching a break!
     - <@${slackId}> is drinking some coffee!
@@ -36,12 +36,12 @@ encouragement:
     - "You're doing great!"
     - "You've got this!"
     - "You are ducktastic!"
-    - "Wizard!"    
+    - "Wizard!"
 
 toplevel:
     - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` minutes remaining to work on:"
     - "<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:"
-    - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"  
+    - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"
 
 init:
     - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
@@ -51,27 +51,33 @@ init:
     - "if scrapbook is the past and ship is the future, then <${repo}|I> am the present...<#${main}>"
     - "watching for new hours in <#${main}>"
     - "no, I am not hack minute. <${repo}|I am> <#${main}>!"
-    - "I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>"    
+    - "I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>"
     - "time travelling in <#${main}> like there's no tomorrow!"
     - "perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>"
 
 welcome:
     - "welcome to hack hour, <@${slackId}>! :wave:"
 
-onboarding_init:
-    - "check out all this <https://hackclub.com/arcade/#shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
+onboarding:
+    init:
+        - "check out all this <https://hackclub.com/arcade/#shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
 
-onboarding_update:
-    - nice work <@${slackId}>! `${minutes}` min down- nice work! let’s keep going. make sure to post a screenshot of your progress or a commit link.
+    update:
+        - nice work <@${slackId}>! `${minutes}` min down- nice work! let’s keep going. make sure to post a screenshot of your progress or a commit link.
 
-onboarding_complete:
-    - great work <@${slackId}>! you've got a hack hour! this hour is still unreviewed, but keep on hacking to get more hours! 
+    complete:
+        - great work <@${slackId}>! you've got a hack hour! this hour is still unreviewed, but keep on hacking to get more hours!
 
-onboarding_evidence_reminder:
-    - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
+    evidence_reminder:
+        - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
 
-activity_detect:
-    - remember that you need to provide a git commit or a photo!
+errors:
+    cancel:
+        - hey! are ya tryin to pull some funny business?
 
-evidence_detect:
-    - thanks for documenting your journey!!! :D
+detect:
+    activity:
+        - remember that you need to provide a git commit or a photo!
+
+    evidence:
+        - thanks for documenting your journey!!! :D

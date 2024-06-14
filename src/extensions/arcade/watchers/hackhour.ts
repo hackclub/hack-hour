@@ -26,7 +26,7 @@ const registerSession = async (session: Session) => {
         if (session.metadata.onboarding) {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding_complete', {
+                text: t('onboarding.complete', {
                     slackId: user.slackUser!.slackId
                 }),
                 thread_ts: session.messageTs
@@ -45,13 +45,13 @@ const registerSession = async (session: Session) => {
             let id;
             if (airtableUserExists) {
                 ({ id } = await AirtableAPI.User.update(airtableUserExists.id, {
-                    "Hack Hour ID": user.id,
+                    "Internal ID": user.id,
                     "Name": slackLookup.user!.real_name!,
                     "Slack ID": user.slackUser.slackId,
                 }));                
             } else {
                 ({ id } = await AirtableAPI.User.create({
-                    "Hack Hour ID": user.id,
+                    "Internal ID": user.id,
                     "Name": slackLookup.user!.real_name!,
                     "Slack ID": user.slackUser.slackId,
                 }));
@@ -149,7 +149,7 @@ const registerSession = async (session: Session) => {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
-                text: t('onboarding_evidence_reminder', {
+                text: t('onboarding.evidence_reminder', {
                     slackId: user.slackUser!.slackId
                 }),
                 thread_ts: session.messageTs
@@ -235,9 +235,7 @@ app.event("message", async ({ event }) => {
                 await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
-                    text: t('activity_detect', {
-                        
-                    }),
+                    text: t('detect.activity', {}),
                 });
             }
 
@@ -245,9 +243,7 @@ app.event("message", async ({ event }) => {
                 await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
-                    text: t('evidence_detect', {
-
-                    })
+                    text: t('detect.evidence', {})
                 });
             }
 
@@ -281,7 +277,7 @@ emitter.on('start', async (session: Session) => {
         if (session.metadata.onboarding) {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding_init', {
+                text: t('onboarding.init', {
                     slackId: slackUser.slackId
                 }),
                 thread_ts: session.messageTs
@@ -305,7 +301,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
             thread_ts: session.messageTs,
             user: slackUser.slackId,
             channel: Environment.MAIN_CHANNEL,
-            text: t(`onboarding_update`, {
+            text: t(`onboarding.update`, {
                 slackId: slackUser.slackId,
                 minutes: session.time - session.elapsed
             })

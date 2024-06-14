@@ -8,13 +8,16 @@ type template =
     'cancel' | 
     'toplevel' | 
     'pause' | 
-    'init' | 
-    'onboarding_init' | 
-    'onboarding_update' | 
-    'onboarding_complete' |
-    'onboarding_evidence_reminder' |
-    'activity_detect' |
-    'evidence_detect';
+    'init' |
+
+    'onboarding.init' |
+    'onboarding.update' |
+    'onboarding.complete' |
+    'onboarding.evidence_reminder' |
+
+    'detect.activity' |
+    'detect.evidence'
+    ;
 
 interface data {
     slackId?: string,
@@ -24,7 +27,40 @@ interface data {
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
-const templates = parse(file);
+const templatesRaw = parse(file);
+
+/*
+{
+    "update": [x, y, z],
+    "onboarding": {
+        "update": [x, y, z],
+    } 
+}
+
+flatten
+
+{
+    "update": [x, y, z],
+    "onboarding.update": [x, y, z],
+}
+*/
+
+function flatten(obj: any, prefix: string = '') {
+    let result: any = {};
+
+    for (const key in obj) {
+        if (typeof obj[key] === 'object' && Array.isArray(obj[key]) === false) {
+            result = { ...result, ...flatten(obj[key], `${prefix}${key}.`) }
+        } else {
+            result[`${prefix}${key}`] = obj[key];
+        }
+    }
+
+    return result;
+}
+
+const templates = flatten(templatesRaw);
+console.log(templates);
 
 const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
 export const pfps = parse(pfpFile);

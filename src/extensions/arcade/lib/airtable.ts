@@ -20,13 +20,15 @@ type AirtableRecordID = string;
 
 type AirtableUserWrite = {
     "Name": string,
-    "Hack Hour ID": string,
+    "Internal ID"?: string,
     "Slack ID": string,
+    "Initial Banked Minutes"?: number,
+    "Inital Order Refunded Minutes"?: number,
 };
 
 type AirtableUserRead = {
     "Name": string,
-    "Hack Hour ID": string,
+    "Internal ID": string,
     "Slack ID": string,
     "Ships": AirtableRecordID[],
     "Sessions": AirtableRecordID[],
