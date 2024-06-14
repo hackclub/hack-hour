@@ -110,10 +110,10 @@ error:
         - you've already started your hack hour! keep going! and `/pause` if ya need a break1
 
 action:
-    pause:
+    paused:
         - i paused the clock for ya. you still got `${minutes}` minutes left
 
-    resume:
+    resumed:
         - ready? you have `${minutes}` minutes left!
 
 detect:
