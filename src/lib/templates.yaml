@@ -66,8 +66,8 @@ onboarding:
         - "looks like you're new around here :eyes:"
 
     encouragement:
-#        - "You have `${minutes}` minutes remaining! Onboarding text goes here!"
-        - ""
+        - "You have `${minutes}` minutes remaining! Onboarding text goes here!"
+#        - "aaaaa"
 
     init:
         - "check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
