@@ -16,7 +16,6 @@ export type Session = Prisma.SessionGetPayload<{}>;
 export async function updateController(session: Session) {
     // Post the controller into the log channel
     await Slack.chat.postMessage({
-        ts: session.controlTs,
         channel: Environment.INTERNAL_CHANNEL,
         text: "```" + JSON.stringify(await Controller.panel(session), null, 4) + "```",
     });
