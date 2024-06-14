@@ -110,6 +110,8 @@ const hack = async ({ command }: CommandHandler) => {
             result = {};
         }
 
+        await log(`I got a result! It was \n${JSON.stringify(result)}`)
+
         const channel = result.channel;
         const recordId = result.arcadeUserId;
 
