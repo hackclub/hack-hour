@@ -10,11 +10,11 @@ import getUrls from "get-urls";
 import { log } from "../lib/log.js";
 import { t } from "../../../lib/templates.js";
 
-const registerSession = async (session: Session) => {
+const findOrCreateUser = async (userId: string) => {
     try {
         let user = await prisma.user.findUniqueOrThrow({
             where: {
-                id: session.userId
+                id: userId
             },
             include: {
                 slackUser: true
@@ -22,16 +22,6 @@ const registerSession = async (session: Session) => {
         });
 
         if (!user.slackUser) { throw new Error(`Slack user not found for ${user.id}`); }
-
-        if (session.metadata.onboarding) {
-            await app.client.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding.complete', {
-                    slackId: user.slackUser!.slackId
-                }),
-                thread_ts: session.messageTs
-            });
-        }
 
         if (!user.metadata.airtable) {
             // Add the user to the Airtable
@@ -48,7 +38,7 @@ const registerSession = async (session: Session) => {
                     "Internal ID": user.id,
                     "Name": slackLookup.user!.real_name!,
                     "Slack ID": user.slackUser.slackId,
-                }));                
+                }));
             } else {
                 ({ id } = await AirtableAPI.User.create({
                     "Internal ID": user.id,
@@ -74,6 +64,29 @@ const registerSession = async (session: Session) => {
             });
 
             if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+        }
+
+        return user;
+    } catch (error) {
+        emitter.emit('error', error);
+    }
+};
+
+const registerSession = async (session: Session) => {
+    try {
+        const user = await findOrCreateUser(session.userId);
+
+        if (!user) { throw new Error(`User not found for ${session.userId}`); }
+        if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+        if (session.metadata.onboarding) {
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                text: t('onboarding.complete', {
+                    slackId: user.slackUser!.slackId
+                }),
+                thread_ts: session.messageTs
+            });
         }
 
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
@@ -260,7 +273,7 @@ app.event("message", async ({ event }) => {
                 await AirtableAPI.Session.update(session.metadata.airtable.id, {
                     "Activity": activity,
                     "Evidenced": evidenced
-                });                
+                });
             }
         }
     }
@@ -268,21 +281,20 @@ app.event("message", async ({ event }) => {
 
 emitter.on('start', async (session: Session) => {
     try {
-        const slackUser = await prisma.slackUser.findUniqueOrThrow({
-            where: {
-                userId: session.userId
-            }
-        });
+        const user = await findOrCreateUser(session.userId);
 
-        if (session.metadata.onboarding) {
-            await app.client.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding.init', {
-                    slackId: slackUser.slackId
-                }),
-                thread_ts: session.messageTs
-            });
-        }
+        if (!user) { throw new Error(`User not found for ${session.userId}`); }
+        if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+        // if (session.metadata.onboarding) {
+        //     await app.client.chat.postMessage({
+        //         channel: Environment.MAIN_CHANNEL,
+        //         text: t('onboarding.init', {
+        //             slackId: slackUser.slackId
+        //         }),
+        //         thread_ts: session.messageTs
+        //     });
+        // }
     } catch (error) {
         emitter.emit('error', error);
     }

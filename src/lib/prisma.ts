@@ -23,7 +23,8 @@ declare global {
             },
             ships: {
                 [shipTs: string]: string
-            }
+            },
+            onboarding: boolean,
         }
         type LogData = {
             // TODO
