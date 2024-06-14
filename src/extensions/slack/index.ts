@@ -565,6 +565,12 @@ emitter.on('init', async () => {
 
         await Slack.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
+            channel: Environment.INTERNAL_CHANNEL,
+            text: `_yawnns_`,
+        });
+
+        await Slack.chat.postMessage({
+            token: process.env.SLACK_BOT_TOKEN,
             channel: 'C0P5NE354',
             text: `_${message}_`,
             blocks: [

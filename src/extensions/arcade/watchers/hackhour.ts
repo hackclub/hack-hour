@@ -299,6 +299,8 @@ app.event("message", async ({ event }) => {
 
 emitter.on('firstTime', async (userId: string) => {
     try {
+        log(`First time user ${userId}`);
+
         const user = await prisma.user.findUniqueOrThrow({
             where: {
                 id: userId
