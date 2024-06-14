@@ -197,8 +197,13 @@ export const Slack = {
 
     helper: {
         async ensureChannels() {
-            // TODO
+            await app.client.conversations.join({
+                channel: Environment.MAIN_CHANNEL
+            });
+
             return;            
         }
     }
 }
+
+await Slack.helper.ensureChannels();

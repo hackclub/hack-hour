@@ -89,15 +89,22 @@
                 "groups:history",
                 "groups:read",
                 "groups:write.topic",
+                "im:history",
+                "im:read",
+                "im:write",
                 "links.embed:write",
                 "links:read",
                 "links:write",
                 "reactions:read",
                 "reactions:write",
+                "remote_files:share",
                 "usergroups:read",
                 "usergroups:write",
                 "users:read",
-                "remote_files:share"
+                "mpim:read",
+                "mpim:write",
+                "groups:write",
+                "mpim:history"
             ]
         }
     },

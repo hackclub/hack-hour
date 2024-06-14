@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import fs from 'fs';
+// import fs from 'fs';
 
 import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
@@ -7,14 +7,21 @@ import { app } from './lib/bolt.js'
 
 import './clock.js';
 
-// Programmatically import index.ts from each extension in the extensions folder
-const extensions = await fs.promises.readdir('./src/extensions');
+// // Programmatically import index.ts from each extension in the extensions folder
+// const extensions = await fs.promises.readdir('./src/extensions');
 
-await Promise.all(extensions.map(async (extension) => {
-    if (!(await fs.promises.lstat(`./src/extensions/${extension}`)).isDirectory()) return;
+// await Promise.all(extensions.map(async (extension) => {
+//     if (!(await fs.promises.lstat(`./src/extensions/${extension}`)).isDirectory()) return;
 
-    await import(`./extensions/${extension}/index.js`);
-}));
+//     await import(`./extensions/${extension}/index.js`);
+// }));
+
+import "./extensions/slack/index.js";
+import "./extensions/api/index.js";
+
+if (process.env.ARCADE) {
+    await import("./extensions/arcade/index.js");
+}
 
 try {
     await prisma.$connect();

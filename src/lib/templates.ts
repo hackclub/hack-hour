@@ -26,6 +26,9 @@ interface data {
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
 const templates = parse(file);
 
+const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
+export const pfps = parse(pfpFile);
+
 export function t(template: template, data: data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
     return t_format(t_fetch(template), data);
