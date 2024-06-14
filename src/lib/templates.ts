@@ -1,5 +1,6 @@
 import { parse } from 'yaml';
 import fs from 'fs';
+import { prisma } from './prisma.js';
 
 type template = 
     'update' | 
@@ -106,4 +107,19 @@ export function formatHour(minutes: number | undefined | null): string {
     const hours = minutes / 60
 
     return hours.toFixed(1);
+}
+
+export async function arcadeUrl(slackId: string) {
+    const user = await prisma.slackUser.findUnique({
+        where: {
+            slackId: slackId
+        },
+        select: {
+            user: true
+        }
+    });
+
+    const airtableRecord = user?.user.metadata.airtable?.id;
+
+    return `https://hack.club.com/arcade-shop?user_id=${airtableRecord}&slack_id=${slackId}`;
 }
