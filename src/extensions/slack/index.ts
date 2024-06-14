@@ -170,7 +170,7 @@ const hack = async ({ command }: CommandHandler) => {
                     template: t_fetch('toplevel'),
                     controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
                 },
-                onboarding: slackUser.user.metadata.firstTime 
+                onboarding: slackUser.user.metadata.firstTime,
                 banked: false
             },
 
