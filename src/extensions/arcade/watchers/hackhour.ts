@@ -1,5 +1,5 @@
 import { prisma, uid } from "../../../lib/prisma.js";
-import { Session } from "@prisma/client";
+import { Session, User } from "@prisma/client";
 import { AirtableAPI } from "../lib/airtable.js";
 import { app, Slack } from "../../../lib/bolt.js";
 import { Constants, Environment } from "../../../lib/constants.js";
@@ -34,9 +34,10 @@ const findOrCreateUser = async (userId: string) => {
 
             let id;
             if (airtableUserExists) {
+                // Assume the Arcadius already got to this person & has their information ready - all we need to do is create the association
                 ({ id } = await AirtableAPI.User.update(airtableUserExists.id, {
                     "Internal ID": user.id,
-                    "Name": slackLookup.user!.real_name!,
+                    // "Name": slackLookup.user!.real_name!,
                     "Slack ID": user.slackUser.slackId,
                 }));
             } else {
@@ -78,8 +79,8 @@ const registerSession = async (session: Session) => {
 
         if (!user) { throw new Error(`User not found for ${session.userId}`); }
 
-        if (user.metadata.onboarding) {
-            user.metadata.onboarding = false;
+        if (user.metadata.firstTime) {
+            user.metadata.firstTime = false;
 
             user = await prisma.user.update({
                 where: {
@@ -296,46 +297,44 @@ app.event("message", async ({ event }) => {
     }
 });
 
-emitter.on('start', async (session: Session) => {
+emitter.on('firstTime', async (userId: string) => {
     try {
-        const user = await findOrCreateUser(session.userId);
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: userId
+            },
+            include: {
+                slackUser: true
+            }
+        });
+        
+        const response = await fetch(
+            Constants.ARCADIUS_URL + "/begin",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    userId: user?.slackUser?.slackId
+                })
+            }
+        );
+        
+        const result = await response.json();
 
-        if (!user) { throw new Error(`User not found for ${session.userId}`); }
-        if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+        const channel = result.channel;
+        const recordId = result.arcadeUserId;
 
-        const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
+        await AirtableAPI.User.update(recordId, {
+            "Internal ID": userId,
+        });
 
-        if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
-
-        if (user.metadata.onboarding) {
-            if (!airtableUser.fields['dmChannel']) {
-                // Todo: send message in the 3way dm
-            } else {
-                // init with arcadius on creating the 3way
-                fetch(
-                    Constants.ARCADIUS_URL + "/begin",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            userId: user.slackUser!.slackId,
-                        })
-                    }
-                )
-            }          
-        }
-
-        // if (session.metadata.onboarding) {
-        //     await app.client.chat.postMessage({
-        //         channel: Environment.MAIN_CHANNEL,
-        //         text: t('onboarding.init', {
-        //             slackId: slackUser.slackId
-        //         }),
-        //         thread_ts: session.messageTs
-        //     });
-        // }
+        await app.client.chat.postMessage({
+            channel: channel,
+            user: user.slackUser!.slackId,
+            text: "Test"
+        });
     } catch (error) {
         emitter.emit('error', error);
     }
