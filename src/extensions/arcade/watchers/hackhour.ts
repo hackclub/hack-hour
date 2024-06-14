@@ -297,53 +297,6 @@ app.event("message", async ({ event }) => {
     }
 });
 
-emitter.on('firstTime', async (userId: string) => {
-    try {
-        await log(`First time user ${userId}`);
-
-        const user = await prisma.user.findUniqueOrThrow({
-            where: {
-                id: userId
-            },
-            include: {
-                slackUser: true
-            }
-        });
-        
-        const response = await fetch(
-            Constants.ARCADIUS_URL + "/begin",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    userId: user?.slackUser?.slackId
-                })
-            }
-        );
-
-        await log(`I got a response! It was \n${JSON.stringify(response)}`)
-        
-        const result = await response.json();
-
-        const channel = result.channel;
-        const recordId = result.arcadeUserId;
-
-        await AirtableAPI.User.update(recordId, {
-            "Internal ID": userId,
-        });
-
-        await app.client.chat.postMessage({
-            channel: channel,
-            user: user.slackUser!.slackId,
-            text: "Test"
-        });
-    } catch (error) {
-        emitter.emit('error', error);
-    }
-});
-
 emitter.on('sessionUpdate', async (session: Session) => {
     const slackUser = await prisma.slackUser.findUniqueOrThrow({
         where: {

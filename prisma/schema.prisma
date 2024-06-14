@@ -111,27 +111,6 @@ model Log {
   data Json
 }
 
-// Transaction - watch for verified banked hours & also purchase redemptions
-// model Transaction {
-//   id String @id
-
-//   user   User   @relation(fields: [userId], references: [id])
-//   userId String
-
-//   type String // "bank"/"redeem"
-
-//   amount   Int
-//   approved Boolean @default(false)
-
-//   createdAt DateTime @default(now())
-
-//   session Session? @relation(fields: [sessionId], references: [id])
-//   sessionId String? @unique
-
-//   /// [TransactionMetadata]
-//   data Json
-// }
-
 // A grouping of sessions associated with a scrapbook post
 model Scrapbook {
   internalId String @id
