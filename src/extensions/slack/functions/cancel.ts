@@ -11,7 +11,7 @@ import { Cancel } from "../views/cancel.js";
 
 import { Session } from "../../../lib/corelib.js";
 import { Slack } from "../../../lib/bolt.js";
-import { t } from "../../../lib/templates.js";
+import { pfps, t } from "../../../lib/templates.js";
 
 Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
@@ -44,13 +44,7 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
         });
  
         if (!session || slackId !== await fetchSlackId(session.userId)) {
-            // Send an ephemeral message to the actor
-            await Slack.chat.postEphemeral({
-                user: slackId,
-                channel: Environment.MAIN_CHANNEL,
-                text: t(`error.not_yours`, {}),
-                thread_ts: messageTs
-            });                
+            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
 
             return;
         }
@@ -79,7 +73,7 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         if (!session) {
             // Send a message to the user in the channel they ran the command
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id, pfps['question']);
 
             return;
         }

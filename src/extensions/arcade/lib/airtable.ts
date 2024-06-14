@@ -37,6 +37,7 @@ type AirtableUserRead = {
     "Minutes (Banked)": number,
     "Spent (Incl. Pending)": number,
     "Balance (UI)": number,
+    "dmChannel": string,
 };
 
 type AirtableSessionWrite = {

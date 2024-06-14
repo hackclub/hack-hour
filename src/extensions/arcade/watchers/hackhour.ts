@@ -286,6 +286,19 @@ emitter.on('start', async (session: Session) => {
         if (!user) { throw new Error(`User not found for ${session.userId}`); }
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
+        const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
+
+        if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+
+
+        if (!airtableUser.fields['dmChannel']) {
+            // Todo: send message in the 3way dm
+        } else {
+            // init with arcadius on creating the 3way
+            
+        }
+
         // if (session.metadata.onboarding) {
         //     await app.client.chat.postMessage({
         //         channel: Environment.MAIN_CHANNEL,
