@@ -131,3 +131,7 @@ airtable:
 
 maintanenceMode: 
     - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
+
+arcade:
+    complete: 
+        - awesome, you completed your first <${url}|hour>!

@@ -83,63 +83,10 @@ const hack = async ({ command }: CommandHandler) => {
         }
     );
 
-    if (slackUser.user.metadata.firstTime) {
-        const user = slackUser.user;
-        
-        const response = await fetch(
-            "https://7ac5-71-235-174-134.ngrok-free.app/begin",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    userId: slackUser.slackId
-                })
-            }
-        );
-
-        await log(`I got a response! It was \n${JSON.stringify(response)}`)
-         
-        let result;
-        
-        try {
-            result = await response.json();
-        } catch (error) {
-            await log(`I got an error! It was \n${error}`)
-            result = {};
-        }
-
-        await log(`I got a result! It was \n${JSON.stringify(result)}`)
-
-        const channel = result.channel;
-        const recordId = result.arcadeUserId;
-
-        if (channel && recordId) {
-            await AirtableAPI.User.update(recordId, {
-                "Internal ID": user.id,
-            });
-
-            await app.client.chat.postMessage({
-                channel: channel,
-                user: slackUser.slackId,
-                text: "Pointer to DM"
-            });
-
-            slackUser.user.metadata.firstTime = false;
-
-            await prisma.user.update({
-                where: {
-                    id: slackUser.userId
-                },
-                data: {
-                    metadata: slackUser.user.metadata
-                }
-            });
-
-            return;
-        }
-        // Continue with flow if arcadius is unable to handle it or has it handled
+    if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
+        // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
+        emitter.emit('firstTime', slackUser.user);
+        return;
     }
 
     if (slackUser.user.sessions.length > 0) {
@@ -235,7 +182,6 @@ Slack.command(Commands.HOUR, hack);
 Slack.command(Commands.ARCADE, hack);
 
 Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
-    console.log("hack action");
     await ack();
     await respond({
         delete_original: true
@@ -387,8 +333,6 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 Minute tracker
 */
 emitter.on('sessionUpdate', async (session: Session) => {
-    console.log("in session update emit handler");
-    
     try {
         // Check if the prisma user has a slack component
         const slackUser = await prisma.slackUser.findUnique({
@@ -447,7 +391,6 @@ emitter.on('sessionUpdate', async (session: Session) => {
 });
 
 emitter.on('complete', async (session: Session) => {
-    console.log("in complete emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -526,7 +469,6 @@ emitter.on('complete', async (session: Session) => {
 });
 
 emitter.on('cancel', async (session: Session) => {
-    console.log("in cancel emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -590,20 +532,16 @@ emitter.on('cancel', async (session: Session) => {
 });
 
 emitter.on('pause', async (session: Session) => {
-    console.log("in pause emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('resume', async (session: Session) => {
-    console.log("in resume emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('init', async () => {
-    console.log('🤖 Slack Subroutine Initialized!');
-
     if (Environment.PROD) {
         const message = t('init', {
             repo: "https://github.com/hackclub/hack-hour",
@@ -618,8 +556,6 @@ emitter.on('init', async () => {
         } else {
             buildDesc = 'Development';
         }
-
-        console.log(`Running Release ${releaseVersion}-${buildDesc}`);
 
         await Slack.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
@@ -648,7 +584,7 @@ emitter.on('init', async () => {
                         }
                     ]
                 }
-            ]
+            ],
         });
     }
 });

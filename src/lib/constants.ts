@@ -25,7 +25,13 @@ export const Environment = {
 
   // Control Flags
   PROD: (process.env.PROD === 'true'),
-}
+  ARCADE: (process.env.ARCADE === 'true'),
+
+  // Arcade Config
+  ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
+  ARCADIUS_EXISTING_USER_START: assertEnv('ARCADIUS_EXISTING_USER_START'),
+  SHOP_URL: assertEnv('SHOP_URL'),
+};
 
 // Constants
 export const Constants = {

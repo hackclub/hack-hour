@@ -1,4 +1,5 @@
-import { app, Slack } from "../../../lib/bolt.js";
+import { Slack } from "../../../lib/bolt.js";
+import { emitter } from "../../../lib/emitter.js";
 
 const emojis = {
     yay: "yay",
@@ -263,9 +264,8 @@ export async function reactOnContent(data: {
                 });
             }
         }
-        catch (e) {
-            console.log(data.channel)
-            console.log(e)
+        catch (error) {
+            emitter.emit('error', error);
         }
     });
 }

@@ -73,7 +73,7 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         if (!session) {
             // Send a message to the user in the channel they ran the command
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id, pfps['question']);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id, undefined, pfps['question']);
 
             return;
         }

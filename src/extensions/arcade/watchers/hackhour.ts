@@ -43,7 +43,7 @@ const findOrCreateUser = async (userId: string) => {
             } else {
                 ({ id } = await AirtableAPI.User.create({
                     "Internal ID": user.id,
-                    "Name": slackLookup.user!.real_name!,
+                    // "Name": slackLookup.user!.real_name!,
                     "Slack ID": user.slackUser.slackId,
                 }));
             }
@@ -105,8 +105,18 @@ const registerSession = async (session: Session) => {
                 }),
                 thread_ts: session.messageTs
             });
+
+            const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
+            if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+            await app.client.chat.postMessage({
+                channel: airtableUser.fields['dmChannel'],
+                text: t('arcade.complete', {
+                    slackId: user.slackUser!.slackId
+                })
+            });
         }
-        
+
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
         log(`Fetched or created user ${user.metadata.airtable.id}`);
 
@@ -199,8 +209,6 @@ app.event("message", async ({ event }) => {
     const thread_ts = (event as any).thread_ts;
 
     if (channel !== Environment.MAIN_CHANNEL) { return; }
-
-    console.log(thread_ts);
 
     // Update the airtable to Re-review if any activity is detected
     if (thread_ts) {
@@ -314,6 +322,81 @@ emitter.on('sessionUpdate', async (session: Session) => {
                 slackId: slackUser.slackId,
                 minutes: session.time - session.elapsed
             })
+        });
+    }
+});
+
+emitter.on('firstTime', async (user: User) => {
+    /*
+    Check if arcadius made an entry in the airtable,
+        - YES: just grab the conversation ID and DM the user
+        - NO: create a new entry in the airtable, grab the conversation ID and DM the user
+    */
+    const slackUser = await prisma.slackUser.findUniqueOrThrow({
+        where: {
+            userId: user.id
+        }
+    });
+
+    let airtableUser: Awaited<ReturnType<typeof AirtableAPI.User.lookupBySlack>> = null;
+
+    try {
+        airtableUser = await AirtableAPI.User.lookupBySlack(slackUser.slackId);
+    } catch (error) {
+        airtableUser = null;
+    }
+
+    if (!airtableUser) {
+        const response = await fetch(
+            Environment.ARCADIUS_URL + Environment.ARCADIUS_EXISTING_USER_START,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    slackId: slackUser.slackId
+                })
+            }
+        )
+
+        const data = await response.json();
+
+        const channelId = data.channelId;
+        const airtableRecId = data.airtableRecId;
+
+        await AirtableAPI.User.update(airtableRecId, {
+            "Internal ID": user.id,
+        });
+
+        user.metadata.airtable = {
+            id: airtableRecId,
+        };
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                metadata: user.metadata
+            }
+        });
+    } else if (!airtableUser.fields['Internal ID']) {
+        await AirtableAPI.User.update(airtableUser.id, {
+            "Internal ID": user.id,
+        });
+
+        user.metadata.airtable = {
+            id: airtableUser.id,
+        };
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                metadata: user.metadata
+            }
         });
     }
 });
