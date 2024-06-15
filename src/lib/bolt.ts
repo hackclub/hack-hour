@@ -7,6 +7,7 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 import { Environment } from './constants.js';
 import { emitter } from './emitter.js';
 import { assertVal } from './assert.js';
+import { t } from './templates.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -41,7 +42,20 @@ export const Slack = {
             const { command: event, ack, respond } = payload;
     
             await ack();
-    
+            
+            // while working on the bot, only allow the dev team to use the bot
+            const approvedUsers = [
+                'U04QD71QWS0',
+                'UDK5M9Y13',
+                'U078MRX71TJ',
+                'U0777CCQQCF',
+                'U05NX48GL3T',
+            ]
+
+            if (!approvedUsers.includes(event.user_id)) {
+                return respond(t('maintanenceMode', {}))
+            }
+
             try {
                 await app.client.chat.postMessage({
                     channel: Environment.INTERNAL_CHANNEL,
