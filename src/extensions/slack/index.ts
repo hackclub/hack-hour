@@ -62,7 +62,7 @@ const hack = async ({ command }: CommandHandler) => {
                         metadata: {
                             airtable: undefined,
                             ships: {},
-                            firstTime: true
+                            firstTime: false
                         }
                     }
                 },
@@ -83,7 +83,7 @@ const hack = async ({ command }: CommandHandler) => {
         }
     );
 
-    if (slackUser.user.metadata.firstTime) {
+    if (slackUser.user.metadata.firstTime && Boolean(process.env.ARCADE)) {
         const user = slackUser.user;
         
         const response = await fetch(
@@ -275,7 +275,7 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                             }
                         },
                         metadata: {
-                            firstTime: true,
+                            firstTime: false,
                             airtable: undefined,
                             ships: {}
                         }

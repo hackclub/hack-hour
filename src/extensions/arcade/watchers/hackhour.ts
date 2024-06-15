@@ -236,7 +236,6 @@ app.event("message", async ({ event }) => {
                 return;
             }
 
-
             const user = await prisma.user.findUniqueOrThrow({
                 where: {
                     id: session.userId
