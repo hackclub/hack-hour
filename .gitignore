@@ -1,6 +1,7 @@
 .env
 .dev.env
 .prod.env
+.heroku.env
 
 node_modules
 build
