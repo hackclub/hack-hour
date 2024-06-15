@@ -129,4 +129,5 @@ airtable:
     rejected:
         - womp womp <@${slackId}>! this hour is now rejected! i wunder why
 
-maintanenceMode: You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
+maintanenceMode: 
+    - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.

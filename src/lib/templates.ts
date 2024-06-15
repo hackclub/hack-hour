@@ -12,6 +12,8 @@ type template =
     'init' |
     'hack' |
 
+    'maintanenceMode' |
+
     'action.paused' |
     'action.resumed' |
 
