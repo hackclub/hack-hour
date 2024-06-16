@@ -98,7 +98,16 @@ export class TopLevel {
             }
         });
 
-
+        if (session.metadata.slack.attachment) {
+            blocks.push({
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: `<${metadata.slack.attachment}|oooooo attachement O:>`
+                }
+            });
+        }
+        
         blocks.push({
             type: "context",
             elements: [
@@ -108,7 +117,7 @@ export class TopLevel {
                 }
             ]
         });
-
+        
         return blocks;
     }
 }

@@ -13,12 +13,12 @@ export class Hack {
                     "action_id": "hack",
                     "placeholder": {
                         "type": "plain_text",
-                        "text":  firstTime ? t('popup.onboarding.placeholder', {}) : t('popup.placeholder', {})
+                        "text":  firstTime ? t('firstTime.popup.placeholder', {}) : t('popup.placeholder', {})
                     }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text":  firstTime ? t('popup.onboarding.header', {}) : t('popup.header', {}),
+                    "text":  firstTime ? t('firstTime.popup.header', {}) : t('popup.header', {}),
                     "emoji": true
                 },
                 "block_id": "hack"
@@ -42,7 +42,7 @@ export class Hack {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": firstTime ? t('popup.onboarding.footer', {}) : t('popup.footer', {})
+                        "text": firstTime ? t('firstTime.popup.footer', {}) : t('popup.footer', {})
                     }
                 ]
             }

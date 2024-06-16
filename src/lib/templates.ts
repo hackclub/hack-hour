@@ -8,6 +8,7 @@ type Template =
     'pause' | 
     'encouragement' | 
     'init' |
+    'update' |
 
     'toplevel.main' |
     'toplevel.pause' |
