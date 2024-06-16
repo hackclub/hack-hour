@@ -131,15 +131,19 @@ firstTime:
             - "wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:"
     
     controller:
-        # Note: instead of being randomly shuffled, these are displayed in order [0->n] as the user progresses through the tutorial
-        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
-        - "for every hour, make sure you show me some scraps!! pics or commits, whatever you got!!"
-    
+        # Note: instead of being randomly shuffled, these are displayed in order [0->n]
+        - welcome to your first arcade session!! today we'll just learn how this works.
+
+        when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets
+        - "here's the catch: to get your tickets, you must share scraps of work as you go! for code, link to github commits. pics or videos for everything else.
+        
+        post your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!*"
+
     popup:
         footer:
             - (every session begins with this question)
         placeholder:
-            - 'hint: "the arcade tutorial" is a good answer for this one!!'
+            - 'hint: "the arcade tutorial" is a good answer for this session!!'
         header:
             - 'what are you working on?'
 
@@ -148,4 +152,5 @@ firstTime:
             - "hey hey! you need to show me some scraps!! pics or commits, whatever you got!!"
         
         complete:
-            - "yay yayy! you finished your first hour! here’s those 3 free tickets i promised you..."
+            - "way to go!! we'll end this session early, but it would earn you ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
+
