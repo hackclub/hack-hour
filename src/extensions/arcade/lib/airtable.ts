@@ -151,6 +151,10 @@ export const AirtableAPI = {
             const records = await users.select().all();
 
             return records.map(record => ({id: record.id, fields: record.fields as AirtableUserRead}));
+        },
+
+        async delete(id: AirtableRecordID): Promise<void> {
+            await users.destroy([id]);
         }
     },
     Session: {

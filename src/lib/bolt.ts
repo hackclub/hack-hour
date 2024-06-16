@@ -55,14 +55,15 @@ export const Slack = {
                 'U078ZDVC7CY',
                 'U078D5YH5NG',
                 'U0787QYQM53',
-                'U078BK769BL'
+                'U078BK769BL',
+                'U077XBJ3YPR',
             ]
 
             const user = await app.client.users.info({
                 user: event.user_id
             });
 
-            if (!approvedUsers.includes(event.user_id) && !(user.user!.profile!.real_name!.startsWith('test'))) {
+            if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
                 return respond(t('maintanenceMode', {}))
             }
 
@@ -87,7 +88,7 @@ export const Slack = {
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
-                    user: event.user_id,
+                    user: event.user_id,                    
                     text: `An error occurred while processing your command!`
                 })
             }

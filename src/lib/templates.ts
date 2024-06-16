@@ -51,7 +51,8 @@ type Template =
     
     'firstTime.toplevel.main' |
     'firstTime.controller' |
-    'firstTime.walkthrough.no_evidence' 
+    'firstTime.walkthrough.no_evidence' |
+    'firstTime.walkthrough.complete' 
     ;
 
 interface Data {

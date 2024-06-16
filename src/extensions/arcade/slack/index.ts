@@ -305,6 +305,42 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             channel: command.channel_id,
             text: `Pfp set to ${pfp}`,
         });
+    } else if (subCommand === 'clearme') {
+        const slackUser = await prisma.slackUser.findUnique({
+            where: {
+                slackId: command.user_id,
+            },
+            include: {
+                user: true,
+            }
+        });
+
+        if (!slackUser) {
+            await Slack.chat.postEphemeral({
+                user: command.user_id,
+                channel: command.channel_id,
+                text: "User not found",
+            });
+            return;
+        }
+
+        slackUser.user.metadata.firstTime = true;
+        slackUser.user.metadata.airtable = undefined;
+
+        await prisma.user.update({
+            where: {
+                id: slackUser.user.id,
+            },
+            data: {
+                metadata: slackUser.user.metadata,
+            }
+        });
+
+        await Slack.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            text: "i have no recollection of who you are...",
+        });
     } else {
         Slack.chat.postEphemeral({
             user: command.user_id,

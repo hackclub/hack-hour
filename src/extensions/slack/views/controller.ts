@@ -59,62 +59,36 @@ export class Controller {
         }
 
         if (session.metadata.firstTime) {
-            const elements: Button[] = []
-
-            if (session.metadata.firstTime.step > 0) {
-                elements.push(
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "back",
-                                "emoji": true
-                            },
-                            "action_id": Actions.TUTORIAL_BACK
-                        }
-                );
-            }
-
-            if (session.metadata.firstTime.step + 1 < Object.keys(templates['firstTime.controller']).length) {
-                elements.push(
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "next",
-                                "emoji": true
-                            },
-                            "action_id": Actions.TUTORIAL_ADVANCE
-                        }
-                );
-            }
-
-            if (session.metadata.firstTime.step + 1 == Object.keys(templates['firstTime.controller']).length) {
-                elements.push(
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "end tutorial",
-                                "emoji": true
-                            },
-                            "action_id": Actions.CANCEL
-                        }
-                );
-            }
-
-            return [
-                info,
+            const blocks: KnownBlock[] = [
+                info as KnownBlock,
                 {
                     "type": "divider"
-                },
-                {
-                    "type": "actions",
-                    "elements": elements,
-                    "block_id": "panel"
-                },
-                context
-            ] as KnownBlock[];
+                }                
+            ];
+
+            if (session.metadata.firstTime.step === 0) {
+                blocks.push(                
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "click click",
+                                    "emoji": true
+                                },
+                                "action_id": Actions.TUTORIAL_ADVANCE
+                            }
+                        ],
+                        "block_id": "panel"
+                    }
+                );
+            }
+
+            blocks.push(context as KnownBlock);
+
+            return blocks;
         }
 
         // Pause Button

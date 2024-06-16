@@ -10,13 +10,14 @@ hack:
 popup:
     onboarding:
         footer:
-            - 'hint: "the arcade tutorial" is a good answer for this one!!'
-        placeholder:
             - (every session begins with this question)
+        placeholder:
+            - 'hint: "the arcade tutorial" is a good answer for this one!!'
         header:
             - 'what are you working on?'
     footer:
         - tick tock i'm a clock
+        - 
     placeholder:
         - today i'm working on…
     header:
@@ -94,7 +95,7 @@ onboarding:
         - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
 
     complete:
-        - great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free tickets i promised you…
+        - "great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free :tw_admission_tickets: i promised you…"
 
     evidence_reminder:
         - show me some scraps!! pics or commits, whatever you got!!
@@ -164,8 +165,10 @@ firstTime:
         # Note: instead of being randomly shuffled, these are displayed in order [0->n]
         - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
         - "for every hour, make sure you show me some scraps!! pics or commits, whatever you got!!"
-        - "yay yayy! you finished your first hour! here’s those 3 free tickets i promised you..."
     
-    walkthrough:
+    walkthrough:    
         no_evidence:
             - "hey hey! you need to show me some scraps!! pics or commits, whatever you got!!"
+        
+        complete:
+            - "yay yayy! you finished your first hour! here’s those 3 free tickets i promised you..."
