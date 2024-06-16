@@ -3,7 +3,6 @@ import fs from 'fs';
 import { prisma } from './prisma.js';
 
 type Template = 
-    'update' | 
     'complete' | 
     'cancel' | 
     'pause' | 
@@ -18,18 +17,10 @@ type Template =
     'popup.placeholder' |
     'popup.header' |
 
-    'popup.onboarding.footer' |
-    'popup.onboarding.placeholder' |
-    'popup.onboarding.header' |
-
     'action.paused' |
     'action.resumed' |
 
-    'onboarding.init' |
-    'onboarding.encouragement' |
-    'onboarding.update' |
-    'onboarding.complete' |
-    'onboarding.evidence_reminder' |
+    'evidence_reminder' |
 
     'detect.activity' |
     'detect.evidence' |
@@ -45,14 +36,17 @@ type Template =
     'airtable.approved' |
     'airtable.rejected' |
 
-    'arcade.start' |
- 
     'maintanenceMode' |
-    
+
+    'firstTime.start' |
     'firstTime.toplevel.main' |
     'firstTime.controller' |
     'firstTime.walkthrough.no_evidence' |
-    'firstTime.walkthrough.complete' 
+    'firstTime.walkthrough.complete' |
+
+    'firstTime.popup.footer' |
+    'firstTime.popup.placeholder' |
+    'firstTime.popup.header'     
     ;
 
 interface Data {

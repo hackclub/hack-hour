@@ -8,13 +8,6 @@ hack:
     - impressive work! just `${minutes}` minutes left <@${slackId}>!
 
 popup:
-    onboarding:
-        footer:
-            - (every session begins with this question)
-        placeholder:
-            - 'hint: "the arcade tutorial" is a good answer for this one!!'
-        header:
-            - 'what are you working on?'
     footer:
         - tick tock i'm a clock
         - 
@@ -82,23 +75,8 @@ init:
 # welcome:
 #     - "welcome to hack hour, <@${slackId}>! :wave:"
 
-onboarding:
-    encouragement:
-        - "You have `${minutes}` ${minutes_units} remaining! Onboarding text goes here!"
-        #        - "aaaaa"
-        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
-
-    init:
-        - "check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
-
-    update:
-        - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
-
-    complete:
-        - "great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free :tw_admission_tickets: i promised you…"
-
-    evidence_reminder:
-        - show me some scraps!! pics or commits, whatever you got!!
+evidence_reminder:
+    - show me some scraps!! pics or commits, whatever you got!!
 
 error:
     #context: attempting to start a new session while already in one
@@ -152,11 +130,10 @@ airtable:
 maintanenceMode:
     - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
-arcade:
+firstTime:
     start:
         - woah, you started your first <${url}|hack hour>!
 
-firstTime:
     toplevel:
         main:
             - "wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:"
@@ -166,6 +143,14 @@ firstTime:
         - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
         - "for every hour, make sure you show me some scraps!! pics or commits, whatever you got!!"
     
+    popup:
+        footer:
+            - (every session begins with this question)
+        placeholder:
+            - 'hint: "the arcade tutorial" is a good answer for this one!!'
+        header:
+            - 'what are you working on?'
+
     walkthrough:    
         no_evidence:
             - "hey hey! you need to show me some scraps!! pics or commits, whatever you got!!"

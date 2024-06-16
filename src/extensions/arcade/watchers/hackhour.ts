@@ -164,7 +164,7 @@ const registerSession = async (session: Session) => {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
-                text: t('onboarding.evidence_reminder', {
+                text: t('evidence_reminder', {
                     slackId: user.slackUser!.slackId
                 }),
                 thread_ts: session.messageTs
@@ -447,7 +447,7 @@ emitter.on('start', async (session: Session) => {
 
             await app.client.chat.postMessage({
                 channel: dmChannel,
-                text: t('arcade.start', {
+                text: t('firstTime.start', {
                     slackId: user.slackUser!.slackId,
                     url: permalink.permalink
                 }),

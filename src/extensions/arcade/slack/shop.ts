@@ -57,7 +57,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
                 "text": "V",
                 "emoji": true
             },
-            'url': `https://forms.hackclub.com/eligibility?slack_id=xxxx`
+            'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
 //            "url": `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
             "action_id": Actions.OPEN_SHOP
         }

@@ -1,4 +1,3 @@
-import getUrls from "get-urls";
 import { app, Slack } from "../../../lib/bolt.js";
 import { Actions, Environment } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
@@ -30,7 +29,7 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
     if (session.user.slackUser.slackId !== (body as any).user.id) {
         await Slack.chat.postEphemeral({
             channel: Environment.MAIN_CHANNEL,
-            text: 'Only the user who started the tutorial can advance it',
+            text: t('error.not_yours', {}),
             thread_ts: session.messageTs,
             user: (body as any).user.id
         });
@@ -93,7 +92,7 @@ Slack.action(Actions.TUTORIAL_BACK, async ({ ack, body, client }) => {
     if (session.user.slackUser.slackId !== (body as any).user.id) {
         await Slack.chat.postEphemeral({
             channel: Environment.MAIN_CHANNEL,
-            text: 'Only the user who started the tutorial can advance it',
+            text: t('error.not_yours', {}),
             thread_ts: session.messageTs,
             user: (body as any).user.id
         });

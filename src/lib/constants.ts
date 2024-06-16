@@ -111,6 +111,8 @@ export const Actions = {
 
   TUTORIAL_ADVANCE: 'tutorialadvance',
   TUTORIAL_BACK: 'tutorialback',
+
+  OPEN_SHOP: 'openshop',
 };
 
 export const Callbacks = {

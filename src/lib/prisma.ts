@@ -8,6 +8,7 @@ declare global {
             slack: {
                 template: string,
                 controllerTemplate: string,
+                attachment: string,
             },
             airtable?: {
                 id: string,

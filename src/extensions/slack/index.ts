@@ -143,7 +143,7 @@ const hack = async ({ command }: CommandHandler) => {
                     work: command.text,
                     slack: {
                         template: slackUser.user.metadata.firstTime ? t_fetch('firstTime.toplevel.main') : t_fetch('toplevel.main'),
-                        controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                        controllerTemplate: slackUser.user.metadata.firstTime ? '' : t_fetch('encouragement')
                     },
                     firstTime: slackUser.user.metadata.firstTime ? {
                         step: 0
@@ -300,7 +300,8 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                 work: text,
                 slack: {
                     template: slackUser.user.metadata.firstTime ? t_fetch('firstTime.toplevel.main') : t_fetch('toplevel.main'),
-                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                    controllerTemplate: slackUser.user.metadata.firstTime ? '' : t_fetch('encouragement'),
+                    attachment: ''
                 },
                 firstTime: slackUser.user.metadata.firstTime ? {
                     step: 0
