@@ -41,13 +41,16 @@ type Template =
 
     'firstTime.start' |
     'firstTime.toplevel.main' |
+    
     'firstTime.controller' |
+    'firstTime.tutorial_step_2' |
+
     'firstTime.walkthrough.no_evidence' |
     'firstTime.walkthrough.complete' |
 
     'firstTime.popup.footer' |
     'firstTime.popup.placeholder' |
-    'firstTime.popup.header'     
+    'firstTime.popup.header' 
     ;
 
 interface Data {

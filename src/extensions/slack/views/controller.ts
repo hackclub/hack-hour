@@ -44,7 +44,7 @@ export class Controller {
         };
 
         if (session.metadata.firstTime) {
-            info.text.text = t_format(templates[`firstTime.controller`][session.metadata.firstTime.step], {})
+            info.text.text = t('firstTime.controller', {})
         } else if (session.paused) {
             info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
         } else if (session.cancelled) {
