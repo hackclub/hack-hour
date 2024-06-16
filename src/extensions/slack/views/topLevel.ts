@@ -100,14 +100,11 @@ export class TopLevel {
 
         if (session.metadata.slack.attachment) {
             blocks.push({
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `<${metadata.slack.attachment}|oooooo attachement O:>`
-                }
+                type: "image",
+                image_url: session.metadata.slack.attachment,
+                alt_text: "attachment"
             });
         }
-        
         
         blocks.push({
             type: "context",

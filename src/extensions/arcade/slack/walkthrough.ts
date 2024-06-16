@@ -43,23 +43,24 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
                 user: (body as any).user,
-                blocks: [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": t('firstTime.tutorial_step_2', {})
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "continue..."
-                            },
-                            "action_id": Actions.TUTORIAL_ADVANCE,
-                        }
-                    }
-                ]
+                text: t('firstTime.tutorial_step_2', {}),
+                // blocks: [
+                //     {
+                //         "type": "section",
+                //         "text": {
+                //             "type": "mrkdwn",
+                //             "text": t('firstTime.tutorial_step_2', {})
+                //         },
+                //         "accessory": {
+                //             "type": "button",
+                //             "text": {
+                //                 "type": "plain_text",
+                //                 "text": "continue..."
+                //             },
+                //             "action_id": Actions.TUTORIAL_ADVANCE,
+                //         }
+                //     }
+                // ]
             });
         }
         if (session.metadata.firstTime.step === 1) {
