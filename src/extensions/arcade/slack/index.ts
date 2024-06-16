@@ -1,9 +1,10 @@
 import { Slack, app } from "../../../lib/bolt.js";
-import { Actions, Callbacks } from "../../../lib/constants.js";
+import { Actions, Callbacks, Commands, Constants } from "../../../lib/constants.js";
 import { ChooseSessions } from "./view.js";
 import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../lib/airtable.js";
 import { log } from "../lib/log.js";
+import { pfps } from "../../../lib/templates.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     await ack();
@@ -257,3 +258,58 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
 //         });
 //     }
 // });
+
+let pfp: string = "none";
+Slack.command(Commands.ADMIN, async ({ command }) => {
+    const subCommand = command.text.split(" ")[0];
+    const subArgs = command.text.split(" ").slice(1);
+
+    if (subCommand === 'yap') {
+        Slack.chat.postMessage({
+            channel: command.channel_id,
+            text: subArgs.join(" "),
+            username: Constants.USERNAME,
+            icon_emoji: pfps[pfp as keyof typeof pfps],
+        });
+    } else if (subCommand === 'reply') {
+        // Extract the message ts & channel from the command
+        // subArgs[0] = https://hackclub.slack.com/archives/C07445ZSW2K/p1718503172963599
+        const url = new URL(subArgs[0]);
+        const channel = url.pathname.split("/")[2];
+        const unformattedTs = url.pathname.split("/")[3]; // p1718503501981769 -> 1718503501.981769
+        const ts = unformattedTs.slice(1, 11) + "." + unformattedTs.slice(11);
+
+        Slack.chat.postMessage({
+            channel,
+            thread_ts: ts,
+            text: subArgs.slice(1).join(" "),
+            username: Constants.USERNAME,            
+            icon_emoji: pfps[pfp as keyof typeof pfps],
+        });
+    } else if (subCommand === 'pfp') {
+        if (subArgs.length === 0) {
+            Slack.chat.postEphemeral({
+                user: command.user_id,
+                channel: command.channel_id,
+                text: `Current pfp: ${pfp}\nPfps available: [${Object.keys(pfps).join(", ")}]`,
+            });
+            return;
+        }
+
+        if (Object.keys(pfps).includes(subArgs[0]) || subArgs[0] === "none") {
+            pfp = subArgs[0];           
+        }
+
+        Slack.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            text: `Pfp set to ${pfp}`,
+        });
+    } else {
+        Slack.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            text: `Unknown subcommand: ${subCommand}\nUsage: /admin [yap|reply|pfp]`,
+        });
+    }
+});

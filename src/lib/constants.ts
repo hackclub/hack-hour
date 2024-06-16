@@ -25,7 +25,14 @@ export const Environment = {
 
   // Control Flags
   PROD: (process.env.PROD === 'true'),
-}
+  ARCADE: (process.env.ARCADE === 'true'),
+
+  // Arcade Config
+  ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
+  ARCADIUS_EXISTING_USER_START: assertEnv('ARCADIUS_EXISTING_USER_START'),
+  ARCADIUS_SECRET: assertEnv('ARCADIUS_SECRET'),
+  SHOP_URL: assertEnv('SHOP_URL'),
+};
 
 // Constants
 export const Constants = {
@@ -38,6 +45,8 @@ export const Constants = {
   PUBLIC_DEV_CHANNEL: 'C0P5NE354',
 
   AUTO_CANCEL: 60,
+
+  USERNAME: 'hakkuun'
 };
 
 // Commands
@@ -52,6 +61,7 @@ export const Commands = Environment.PROD ? {
   SHOP: '/shop',
   HOUR: '/hour',
   ARCADE: '/arcade',
+  ADMIN: '/admin',
   /*
   GOALS: '/goals',
   STATS: '/mystats',
@@ -70,6 +80,7 @@ export const Commands = Environment.PROD ? {
   SHOP: '/testshop',
   HOUR: '/testhour',
   ARCADE: '/testarcade',
+  ADMIN: '/testadmin',
   /*
   GOALS: '/testgoals',
   STATS: '/testmystats',

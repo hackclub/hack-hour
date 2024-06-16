@@ -1,14 +1,15 @@
 import { app } from "../../../lib/bolt.js";
-import { Commands } from "../../../lib/constants.js";
+import { Commands, Environment } from "../../../lib/constants.js";
+import { t } from "../../../lib/templates.js";
 import { informUser } from "../../slack/lib/lib.js";
 import { AirtableAPI } from "../lib/airtable.js";
 
 app.command(Commands.SHOP, async ({ command, ack }) => {
-    const airtableUser = await AirtableAPI.User.find(command.user_id);
+    const airtableUser = await AirtableAPI.User.lookupBySlack(command.user_id);
 
     if (!airtableUser) {
         await ack();
-        informUser(command.user_id, "Error", command.channel_id);
+        informUser(command.user_id, t('error.generic', {}), command.channel_id);
         return;
     }
 
@@ -16,7 +17,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     const blocks = [];
 
-    const remaining = Math.floor(airtableUser.fields["Balance (UI)"]/60);
+    const remaining = Math.floor(airtableUser.fields["Balance (Minutes)"]/60);
 
     blocks.push({
         "type": "section",
@@ -43,7 +44,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": `<https://hackclub.com/arcade/?user=${command.user_id}|Open The Shop>`
+            "text": `<${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/|Open The Shop>`
         }
     });
     

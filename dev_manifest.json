@@ -1,82 +1,76 @@
 {
     "display_information": {
-        "name": "Hack Hour Dev",
-        "description": "An hour a day keeps the doctor away (Mk. 3 Dev)",
-        "background_color": "#2a3670"
+        "name": "heidi",
+        "description": "haii, im heidi and im the hakkuun! i like trashy trash and taking your time",
+        "background_color": "#171717",
+        "long_description": "though it looks like they have opposable thumbs, like many mammals they can't manipulate objects with only one hand. it uses them to waste tokens at the claw machine in hopes of fishing up a new plush friend."
     },
     "features": {
         "bot_user": {
-            "display_name": "Hack Hour Dev",
+            "display_name": "hakkuun",
             "always_online": false
         },
         "slash_commands": [
             {
-                "command": "/testhack",
+                "command": "/hack",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Start a New Session",
-                "should_escape": false
+                "description": "Start a Hack Session",
+                "usage_hint": "[what you're working on]",
+                "should_escape": true
             },
             {
-                "command": "/testcancel",
+                "command": "/cancel",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
                 "description": "Cancel Current Session",
                 "should_escape": false
             },
             {
-                "command": "/testpause",
-                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Pause your current hour",
-                "should_escape": false
-            },
-            {
-                "command": "/teststart",
-                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Continue the hour",
-                "should_escape": false
-            },
-            {
-                "command": "/testextend",
-                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Extends the hour",
-                "should_escape": false
-            },
-            {
-                "command": "/teststats",
+                "command": "/mystats",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
                 "description": "View your stats",
                 "should_escape": false
             },
             {
-                "command": "/testsessions",
+                "command": "/pause",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "???",
+                "description": "Pauses current session",
                 "should_escape": false
             },
             {
-                "command": "/testadmin",
+                "command": "/start",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "???",
+                "description": "Starts current session",
                 "should_escape": false
             },
             {
-                "command": "/testshop",
+                "command": "/extend",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Opens the shop!",
+                "description": "Extends current session",
+                "usage_hint": "[minutes]",
                 "should_escape": false
             },
             {
-                "command": "/testremind",
+                "command": "/admin",
                 "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
-                "description": "Opens the shop!",
+                "description": "admin",
+                "should_escape": false
+            },
+            {
+                "command": "/sessions",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Views your sessions",
+                "should_escape": false
+            },
+            {
+                "command": "/shop",
+                "url": "https://optimum-stork-daily.ngrok-free.app/slack/events",
+                "description": "Opens the shop",
                 "should_escape": false
             }
         ]
     },
     "oauth_config": {
         "scopes": {
-            "user": [
-                "chat:write"
-            ],
             "bot": [
                 "channels:history",
                 "channels:join",
@@ -88,6 +82,7 @@
                 "files:read",
                 "groups:history",
                 "groups:read",
+                "groups:write",
                 "groups:write.topic",
                 "im:history",
                 "im:read",
@@ -95,16 +90,16 @@
                 "links.embed:write",
                 "links:read",
                 "links:write",
+                "mpim:history",
+                "mpim:read",
+                "mpim:write",
                 "reactions:read",
                 "reactions:write",
                 "remote_files:share",
                 "usergroups:read",
                 "usergroups:write",
                 "users:read",
-                "mpim:read",
-                "mpim:write",
-                "groups:write",
-                "mpim:history"
+                "users:read.email"
             ]
         }
     },

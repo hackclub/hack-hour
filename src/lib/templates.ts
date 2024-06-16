@@ -2,17 +2,25 @@ import { parse } from 'yaml';
 import fs from 'fs';
 import { prisma } from './prisma.js';
 
-type template = 
+type Template = 
     'update' | 
     'complete' | 
-    'encouragement' | 
     'cancel' | 
-    'toplevel' | 
     'pause' | 
+    'encouragement' | 
     'init' |
-    'hack' |
 
-    'maintanenceMode' |
+    'toplevel.main' |
+    'toplevel.pause' |
+    'toplevel.cancel' |
+    
+    'popup.footer' |
+    'popup.placeholder' |
+    'popup.header' |
+
+    'popup.onboarding.footer' |
+    'popup.onboarding.placeholder' |
+    'popup.onboarding.header' |
 
     'action.paused' |
     'action.resumed' |
@@ -22,7 +30,6 @@ type template =
     'onboarding.update' |
     'onboarding.complete' |
     'onboarding.evidence_reminder' |
-    'onboarding.new_face' |
 
     'detect.activity' |
     'detect.evidence' |
@@ -36,36 +43,28 @@ type template =
     'error.generic' |
 
     'airtable.approved' |
-    'airtable.rejected' 
-    ;
+    'airtable.rejected' |
 
-interface data {
+    'arcade.start' |
+ 
+    'maintanenceMode';
+
+interface Data {
     slackId?: string,
     minutes?: number,
     repo?: string,
     main?: string,
     status?: string,
     reason?: string,
+    url?: string,
+}
+
+interface ExtendedData extends Data {
+    minutes_units?: string,
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
 const templatesRaw = parse(file);
-
-/*
-{
-    "update": [x, y, z],
-    "onboarding": {
-        "update": [x, y, z],
-    } 
-}
-
-flatten
-
-{
-    "update": [x, y, z],
-    "onboarding.update": [x, y, z],
-}
-*/
 
 function flatten(obj: any, prefix: string = '') {
     let result: any = {};
@@ -83,19 +82,32 @@ function flatten(obj: any, prefix: string = '') {
 
 const templates = flatten(templatesRaw);
 
-const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
-export const pfps = parse(pfpFile);
+export const pfps = {
+    question: ":rac_question:",
+    info: ":rac_info:",
+    freaking: ":rac_freaking:",
+    cute: ":rac_cute:",
+    tinfoil: ":rac_believes_in_theory_about_green_lizards_and_space_lasers:",
+    peefest: ":rac_peefest:",
+    woah: ":rac_woah:",
+    threat: ":rac_threat:",
+    thumbs: ":rac_thumbs:",
+    ded: ":rac_ded:"
+};
 
-export function t(template: template, data: data) {
+export function t(template: Template, data: Data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
-    return t_format(t_fetch(template), data);
+    return t_format(t_fetch(template), {
+        ...data,
+        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
+    });
 }
 
-export function t_fetch(template: template) {
+export function t_fetch(template: Template) {
     return (randomChoice(templates[template]) as string);
 }
 
-export function t_format(template: string, data: data) {
+export function t_format(template: string, data: ExtendedData) {
     return template.replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
 }
 

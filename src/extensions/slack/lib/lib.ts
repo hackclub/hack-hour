@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { Environment } from "../../../lib/constants.js";
+import { Constants, Environment } from "../../../lib/constants.js";
 
 import { app, Slack } from "../../../lib/bolt.js";
 import { prisma } from "../../../lib/prisma.js";
@@ -70,7 +70,8 @@ export async function informUser(slackId: string, message: string, channel: stri
             channel,
             text: message,
             thread_ts,
-            icon_url: pfp
+            username: Constants.USERNAME,
+            icon_emoji: pfp
         });
     } catch (error) {
         const response = (error as any).data;
@@ -80,7 +81,8 @@ export async function informUser(slackId: string, message: string, channel: stri
             channel: slackId,
             thread_ts,
             text: message,
-            icon_url: pfp
+            username: Constants.USERNAME,
+            icon_emoji: pfp
         });
 
         if (response.error !== 'channel_not_found') {
