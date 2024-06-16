@@ -1,14 +1,13 @@
-import { prisma, uid } from "../../../lib/prisma.js";
+import { prisma } from "../../../lib/prisma.js";
 import { Session, User } from "@prisma/client";
 import { AirtableAPI } from "../lib/airtable.js";
 import { app, Slack } from "../../../lib/bolt.js";
 import { Constants, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 
-import getUrls from "get-urls";
-
 import { log } from "../lib/log.js";
 import { pfps, t } from "../../../lib/templates.js";
+import { fetchEvidence } from "../lib/helper.js";
 
 const findOrCreateUser = async (userId: string) => {
     try {
@@ -88,7 +87,7 @@ const registerSession = async (session: Session) => {
             //     thread_ts: session.messageTs,
             // });
 
-             user.metadata.firstTime = false;
+            user.metadata.firstTime = false;
 
             user = await prisma.user.update({
                 where: {
@@ -108,21 +107,7 @@ const registerSession = async (session: Session) => {
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
         log(`Fetched or created user ${user.metadata.airtable.id}`);
 
-        // Check if the user posted anything in the thread
-        const evidence = await app.client.conversations.replies({
-            channel: Environment.MAIN_CHANNEL,
-            ts: session.messageTs
-        });
-
-        if (!evidence.messages) { throw new Error(`No evidence found for ${session.messageTs}`); }
-
-        const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
-
-        // Borrowed from david's code, thanks david!
-        const urlsExist = evidence.messages.find(message => getUrls(message.text ? message.text : "").size > 0)
-        const imagesExist = evidence.messages.find(message => message.files ? message.files.length > 0 : false)
-
-        const evidenced = urlsExist !== undefined || imagesExist !== undefined;
+        const { activity, evidenced } = await fetchEvidence(session.messageTs, user.slackUser!.slackId);
 
         const permalink = await app.client.chat.getPermalink({
             channel: Environment.MAIN_CHANNEL,
@@ -174,7 +159,7 @@ const registerSession = async (session: Session) => {
 
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !session.metadata.onboarding) {
+        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !session.metadata.firstTime) {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
@@ -245,21 +230,7 @@ app.event("message", async ({ event }) => {
                 }
             });
 
-            // Check if the user posted anything in the thread
-            const evidence = await app.client.conversations.replies({
-                channel: Environment.MAIN_CHANNEL,
-                ts: session.messageTs
-            });
-
-            if (!evidence.messages) { throw new Error(`No evidence found for ${session.messageTs}`); }
-
-            const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
-
-            // Borrowed from david's code, thanks david!
-            const urlsExist = evidence.messages.find(message => message.user === user.slackUser!.slackId && (getUrls(message.text ? message.text : "").size > 0))
-            const imagesExist = evidence.messages.find(message => message.user === user.slackUser!.slackId && (message.files ? message.files.length > 0 : false))
-
-            const evidenced = urlsExist !== undefined || imagesExist !== undefined;
+            const { activity, evidenced } = await fetchEvidence(session.messageTs, user.slackUser!.slackId);
 
             if (!airtableSession.fields["Activity"] && activity) {
                 await app.client.chat.postMessage({
@@ -305,7 +276,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
         }
     });
 
-    if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && session.metadata.onboarding) {
+    if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && session.metadata.firstTime) {
         // Send a reminder every 15 minutes
         await Slack.chat.postMessage({
             thread_ts: session.messageTs,

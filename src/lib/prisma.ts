@@ -14,7 +14,9 @@ declare global {
                 status: string,
                 reason: string
             },
-            onboarding: boolean,
+            firstTime?: {
+                step: number
+            }
             banked: boolean, 
         }
         type UserMetadata = {

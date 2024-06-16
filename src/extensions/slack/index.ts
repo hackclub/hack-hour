@@ -142,10 +142,12 @@ const hack = async ({ command }: CommandHandler) => {
                 metadata: {
                     work: command.text,
                     slack: {
-                        template: t_fetch('toplevel.main'),
+                        template: slackUser.user.metadata.firstTime ? t_fetch('firstTime.toplevel.main') : t_fetch('toplevel.main'),
                         controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
                     },
-                    onboarding: slackUser.user.metadata.firstTime,
+                    firstTime: slackUser.user.metadata.firstTime ? {
+                        step: 0
+                    } : undefined,
                     banked: false
                 },
 
@@ -300,7 +302,9 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                     template: t_fetch('toplevel.main'),
                     controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
                 },
-                onboarding: slackUser.user.metadata.firstTime,
+                firstTime: slackUser.user.metadata.firstTime ? {
+                    step: 0
+                } : undefined,
                 banked: false
             },
 
@@ -370,7 +374,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
             await updateController(session);
 
             return;
-        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.onboarding) {
+        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.firstTime) {
             // Send a reminder every 15 minutes
             await Slack.chat.postMessage({
                 thread_ts: session.messageTs,
@@ -405,7 +409,7 @@ emitter.on('complete', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: session.metadata.onboarding ? t('onboarding.complete', {
+        text: session.metadata.firstTime ? t('onboarding.complete', {
             slackId: slackUser.slackId
         }) : t('complete', {
             slackId: slackUser.slackId
@@ -415,7 +419,7 @@ emitter.on('complete', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": session.metadata.onboarding ? t('onboarding.complete', {
+                    "text": session.metadata.firstTime ? t('onboarding.complete', {
                         slackId: slackUser.slackId
                     }) : t('complete', {
                         slackId: slackUser.slackId
@@ -487,7 +491,7 @@ emitter.on('cancel', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: session.metadata.onboarding ? t('onboarding.complete', {
+        text: session.metadata.firstTime ? t('onboarding.complete', {
             slackId: slackUser.slackId,
             minutes: session.elapsed
         }) : t('cancel', {
@@ -503,7 +507,7 @@ emitter.on('cancel', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": session.metadata.onboarding ? t('onboarding.complete', {
+                    "text": session.metadata.firstTime ? t('onboarding.complete', {
                         slackId: slackUser.slackId,
                         minutes: session.elapsed
                     }) : t('cancel', {

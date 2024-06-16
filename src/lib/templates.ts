@@ -47,7 +47,12 @@ type Template =
 
     'arcade.start' |
  
-    'maintanenceMode';
+    'maintanenceMode' |
+    
+    'firstTime.toplevel.main' |
+    'firstTime.controller' |
+    'firstTime.walkthrough.no_evidence' 
+    ;
 
 interface Data {
     slackId?: string,
@@ -80,7 +85,9 @@ function flatten(obj: any, prefix: string = '') {
     return result;
 }
 
-const templates = flatten(templatesRaw);
+export const templates: {
+    [key in Template]: string[]
+} = flatten(templatesRaw);
 
 export const pfps = {
     question: ":rac_question:",
@@ -97,18 +104,19 @@ export const pfps = {
 
 export function t(template: Template, data: Data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
-    return t_format(t_fetch(template), {
-        ...data,
-        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
-    });
+    return t_format(t_fetch(template), data);
 }
 
 export function t_fetch(template: Template) {
     return (randomChoice(templates[template]) as string);
 }
 
-export function t_format(template: string, data: ExtendedData) {
-    return template.replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
+export function t_format(template: string, data: Data) {
+    const extendedData = {
+        ...data,
+        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
+    }
+    return template.replace(/\${(.*?)}/g, (_, key) => (extendedData as any)[key])
 }
 
 export function randomChoice<T>(arr: T[]): T {

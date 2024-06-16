@@ -36,7 +36,7 @@ export const Environment = {
 
 // Constants
 export const Constants = {
-  MIN_MS: 60 * 1000,
+  MIN_MS: 10 * 1000,
 //  MIN_MS: 1 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 
@@ -108,6 +108,9 @@ export const Actions = {
   CHOOSE_SESSIONS: 'choosesessions',
 
   HACK: 'hack',
+
+  TUTORIAL_ADVANCE: 'tutorialadvance',
+  TUTORIAL_BACK: 'tutorialback',
 };
 
 export const Callbacks = {

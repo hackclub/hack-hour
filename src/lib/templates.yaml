@@ -1,11 +1,11 @@
 hack:
-  - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
-  - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
-  - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
-  - almost there <@${slackId}>, `${minutes}` minutes left! _twitch_ … i like trash.
-  - power through <@${slackId}>!! you have `${minutes}` minutes left!
-  - wow wow <@${slackId}>!! only `${minutes}` minutes left!
-  - impressive work! just `${minutes}` minutes left <@${slackId}>!
+    - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
+    - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
+    - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
+    - almost there <@${slackId}>, `${minutes}` minutes left! _twitch_ … i like trash.
+    - power through <@${slackId}>!! you have `${minutes}` minutes left!
+    - wow wow <@${slackId}>!! only `${minutes}` minutes left!
+    - impressive work! just `${minutes}` minutes left <@${slackId}>!
 
 popup:
     onboarding:
@@ -23,27 +23,27 @@ popup:
         - 'what are you working on?'
 
 complete:
-  - WOO WOO!! YOU DID IT <@${slackId}>!!
-  - guess what?? <@${slackId}> finished their hour!!
-  - <@${slackId}>'s pretty wizard! they finished their hour! finished itt!!
-  - one more hour for <@${slackId}>!!
-  - pretty wizard <@${slackId}>!! you finished your hour!
-  - have a nice break <@${slackId}>! you _smashed_ that hour!
-  - excellent work <@${slackId}>! :D
-  - amazing work <@${slackId}>! _\*fidget\*_ … got any trash for me?
-  - you're a rockstar <@${slackId}>!! you finished!
-  - legendary <@${slackId}>! you're done!
-  - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
+    - WOO WOO!! YOU DID IT <@${slackId}>!!
+    - guess what?? <@${slackId}> finished their hour!!
+    - <@${slackId}>'s pretty wizard! they finished their hour! finished itt!!
+    - one more hour for <@${slackId}>!!
+    - pretty wizard <@${slackId}>!! you finished your hour!
+    - have a nice break <@${slackId}>! you _smashed_ that hour!
+    - excellent work <@${slackId}>! :D
+    - amazing work <@${slackId}>! _\*fidget\*_ … got any trash for me?
+    - you're a rockstar <@${slackId}>!! you finished!
+    - legendary <@${slackId}>! you're done!
+    - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
 
 cancel:
-  - <@${slackId}> ended their hack hour early!
-  - <@${slackId}> cut their session short!!
-  - it looks like <@${slackId}> is already done! done already!!
+    - <@${slackId}> ended their hack hour early!
+    - <@${slackId}> cut their session short!!
+    - it looks like <@${slackId}> is already done! done already!!
 
 pause:
-  - <@${slackId}> is taking five!!
-  - <@${slackId}> is on a break! _\*snuffle\*_
-  - <@${slackId}> is getting coffee!! _coffee!!_
+    - <@${slackId}> is taking five!!
+    - <@${slackId}> is on a break! _\*snuffle\*_
+    - <@${slackId}> is getting coffee!! _coffee!!_
 
 encouragement:
     - "You have `${minutes}` ${minutes_units} remaining! Keep it up!"
@@ -65,65 +65,66 @@ toplevel:
         - <@${slackId}> is drinking some coffee!
 
 init:
-  - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
-  - "watching time is a daunting task. but <${repo}|I'm> up for the task! <#${main}>"
-  - 'new formula, same great taste! <#${main}>'
-  - 'every hour more power…<#${main}>'
-  - 'if scrapbook is the past and ship is the future, then <${repo}|I> am the present...<#${main}>'
-  - 'watching for new hours in <#${main}>'
-  - 'no, I am not hack minute. <${repo}|I am> <#${main}>!'
-  - 'I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>'
-  - "time travelling in <#${main}> like there's no tomorrow!"
-  - 'perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>'
+    # - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
+    # - "watching time is a daunting task. but <${repo}|I'm> up for the task! <#${main}>"
+    # - "new formula, same great taste! <#${main}>"
+    # - "every hour more power…<#${main}>"
+    # - "if scrapbook is the past and ship is the future, then <${repo}|I> am the present...<#${main}>"
+    # - "watching for new hours in <#${main}>"
+    # - "no, I am not hack minute. <${repo}|I am> <#${main}>!"
+    # - "I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>"
+    # - "time travelling in <#${main}> like there's no tomorrow!"
+    # - "perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>"
+    - "*twitch* <#${main}>"
+    - "*yawns* <#${main}>"
 
 # welcome:
 #     - "welcome to hack hour, <@${slackId}>! :wave:"
 
-
 onboarding:
     encouragement:
         - "You have `${minutes}` ${minutes_units} remaining! Onboarding text goes here!"
-#        - "aaaaa"
+        #        - "aaaaa"
         - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
 
-  init:
-    - 'check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project'
+    init:
+        - "check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project"
 
-  update:
-    - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
+    update:
+        - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
 
-  complete:
-    - great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free tickets i promised you…
+    complete:
+        - great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free tickets i promised you…
 
-  evidence_reminder:
-    - show me some scraps!! pics or commits, whatever you got!!
+    evidence_reminder:
+        - show me some scraps!! pics or commits, whatever you got!!
 
 error:
-  #context: attempting to start a new session while already in one
-  already_hacking:
-    - hey hey!! you're already in a hack hour session! you can't start another one until you finish the one you're in!
+    #context: attempting to start a new session while already in one
+    already_hacking:
+        - hey hey!! you're already in a hack hour session! you can't start another one until you finish the one you're in!
 
-  not_hacking:
-    - hmph, whatcha doin? want some garbage? run `/hack`!
+    not_hacking:
+        - hmph, whatcha doin? want some garbage? run `/hack`!
 
-  empty_text:
-    - you need to provide something to work on!
+    empty_text:
+        - you need to provide something to work on!
 
-  cancel:
-    - hey! are ya tryin to pull some funny business?
+    cancel:
+        - hey! are ya tryin to pull some funny business?
 
-  not_a_user:
-    - who are ya? never seen you before - maybe run `/hack` so we can get to know each other!
+    not_a_user:
+        - who are ya? never seen you before - maybe run `/hack` so we can get to know each other!
 
-  not_yours:
-    - hands to yourself buddy
+    not_yours:
+        - hands to yourself buddy
 
-  generic:
-    - something went wrong! try again!
+    generic:
+        - something went wrong! try again!
 
-  #context: trying to resume a session that hasn't been paused
-  already_resumed:
-    - you've already started your hack hour! keep going! and `/pause` if ya need a break1
+    #context: trying to resume a session that hasn't been paused
+    already_resumed:
+        - you've already started your hack hour! keep going! and `/pause` if ya need a break1
 
 action:
     paused:
@@ -133,23 +134,38 @@ action:
         - ready? you have `${minutes}` ${minutes_units} left!
 
 detect:
-  activity:
-    - share some scraps here!! git commits or photos,
+    activity:
+        - share some scraps here!! git commits or photos,
 
-  evidence:
-    - thanks for sharing, thanks for sharing!!
-    - scraps!! oh my god i love scraps _\*twitch\*_
-    - _\*gentle purring\*_ with enough scraps like this i can build a whole new nest…
+    evidence:
+        - thanks for sharing, thanks for sharing!!
+        - scraps!! oh my god i love scraps _\*twitch\*_
+        - _\*gentle purring\*_ with enough scraps like this i can build a whole new nest…
 
 airtable:
-  approved:
-    - great work <@${slackId}>! you've got a hack hour! this hour is now approved!
-  rejected:
-    - womp womp <@${slackId}>! this hour is now rejected! i wunder why
+    approved:
+        - great work <@${slackId}>! you've got a hack hour! this hour is now approved!
+    rejected:
+        - womp womp <@${slackId}>! this hour is now rejected! i wunder why
 
 maintanenceMode:
-  - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
+    - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
 arcade:
-  start:
-    - woah, you started your first <${url}|hack hour>!
+    start:
+        - woah, you started your first <${url}|hack hour>!
+
+firstTime:
+    toplevel:
+        main:
+            - "wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:"
+    
+    controller:
+        # Note: instead of being randomly shuffled, these are displayed in order [0->n]
+        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
+        - "for every hour, make sure you show me some scraps!! pics or commits, whatever you got!!"
+        - "yay yayy! you finished your first hour! here’s those 3 free tickets i promised you..."
+    
+    walkthrough:
+        no_evidence:
+            - "hey hey! you need to show me some scraps!! pics or commits, whatever you got!!"

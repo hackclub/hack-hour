@@ -1,8 +1,9 @@
 import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
-import { t, formatHour, t_format } from "../../../lib/templates.js";
+import { t, formatHour, t_format, templates } from "../../../lib/templates.js";
 import { Constants, Actions, Environment } from "../../../lib/constants.js";
 import { app } from "../../../lib/bolt.js";
+import { Button, KnownBlock } from "@slack/bolt";
 
 export class Controller {
     public static async panel(session: Session) {
@@ -42,7 +43,9 @@ export class Controller {
             }
         };
 
-        if (session.paused) {
+        if (session.metadata.firstTime) {
+            info.text.text = t_format(templates[`firstTime.controller`][session.metadata.firstTime.step], {})
+        } else if (session.paused) {
             info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
         } else if (session.cancelled) {
             info.text.text = `You have ended your session early.`
@@ -53,6 +56,65 @@ export class Controller {
                 minutes: session.time - session.elapsed,
             })
             // info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+        }
+
+        if (session.metadata.firstTime) {
+            const elements: Button[] = []
+
+            if (session.metadata.firstTime.step > 0) {
+                elements.push(
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "back",
+                                "emoji": true
+                            },
+                            "action_id": Actions.TUTORIAL_BACK
+                        }
+                );
+            }
+
+            if (session.metadata.firstTime.step + 1 < Object.keys(templates['firstTime.controller']).length) {
+                elements.push(
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "next",
+                                "emoji": true
+                            },
+                            "action_id": Actions.TUTORIAL_ADVANCE
+                        }
+                );
+            }
+
+            if (session.metadata.firstTime.step + 1 == Object.keys(templates['firstTime.controller']).length) {
+                elements.push(
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "end tutorial",
+                                "emoji": true
+                            },
+                            "action_id": Actions.CANCEL
+                        }
+                );
+            }
+
+            return [
+                info,
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "actions",
+                    "elements": elements,
+                    "block_id": "panel"
+                },
+                context
+            ] as KnownBlock[];
         }
 
         // Pause Button
@@ -178,6 +240,7 @@ export class Controller {
         ]
     }
 
+    // Notice: with the new hack prompt, quick view will likely be discontinued soon
     public static async quick(session: Session) {
         // Pre-fetch the slack user
         const slackUser = await prisma.slackUser.findUnique({
