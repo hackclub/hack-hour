@@ -10,17 +10,17 @@ hack:
 popup:
     onboarding:
         footer:
-            - "looks like you're new around here :eyes:"
+            - 'hint: "the arcade tutorial" is a good answer for this one!!'
         placeholder:
-            - what are you working on? (onboarding)
+            - (every session begins with this question)
         header:
-            - what are you gonna work on for the next hour? (onboarding)
+            - 'what are you working on?'
     footer:
         - tick tock i'm a clock
     placeholder:
-        - what are you working on?
+        - today i'm working on…
     header:
-        - what are you gonna work on for the next hour?
+        - 'what are you working on?'
 
 complete:
   - WOO WOO!! YOU DID IT <@${slackId}>!!
