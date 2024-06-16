@@ -7,7 +7,7 @@ import { emitter } from "../../../lib/emitter.js";
 
 import { log } from "../lib/log.js";
 import { pfps, t, t_format, templates } from "../../../lib/templates.js";
-import { fetchEvidence } from "../lib/helper.js";
+import { fetchEvidence, surfaceEvidence } from "../lib/helper.js";
 import { Session as LibSession } from "../../../lib/corelib.js";
 
 const findOrCreateUser = async (userId: string) => {
@@ -205,6 +205,8 @@ app.event("message", async ({ event }) => {
         if ((event as any).user !== session.user.slackUser!.slackId) {
             return;
         }
+
+        await surfaceEvidence(thread_ts, session.user.slackUser!.slackId);
 
         if (!session.metadata.airtable) { 
             if (session.metadata.firstTime && session.user.metadata.airtable) {

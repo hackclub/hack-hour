@@ -18,15 +18,30 @@ export const fetchEvidence = async (messageTs: string, slackId: string) => {
     const urlsExist = evidence.messages.find(message => message.user === slackId && (getUrls(message.text ? message.text : "").size > 0))
     const imagesExist = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
 
+    const evidenced = urlsExist !== undefined || imagesExist !== undefined;
+
+    return { activity, evidenced };
+}
+
+export const surfaceEvidence = async (messageTs: string, slackId: string) => {
+    const evidence = await app.client.conversations.replies({
+        channel: Environment.MAIN_CHANNEL,
+        ts: messageTs
+    });
+
+    if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
+
+    const image = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
+
     // attach the evidence to the session
-    if (imagesExist?.files) {
+    if (image?.files) {
         const session = await prisma.session.findFirstOrThrow({
             where: {
                 messageTs: messageTs
             }
         });
-    
-        session.metadata.slack.attachment = imagesExist.files[0].url_private;
+
+        session.metadata.slack.attachment = image.files[0].thumb_480;
 
         await prisma.session.update({
             where: {
@@ -38,7 +53,5 @@ export const fetchEvidence = async (messageTs: string, slackId: string) => {
         });
     }
 
-    const evidenced = urlsExist !== undefined || imagesExist !== undefined;
-
-    return { activity, evidenced };
-}
+    console.log(image?.files);
+};
