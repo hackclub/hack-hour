@@ -2,6 +2,7 @@ import getUrls from "get-urls";
 import { app } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
+import { updateTopLevel } from "../../slack/lib/lib.js";
 
 export const fetchEvidence = async (messageTs: string, slackId: string) => {
     // Check if the user posted anything in the thread
@@ -23,6 +24,7 @@ export const fetchEvidence = async (messageTs: string, slackId: string) => {
     return { activity, evidenced };
 }
 
+// Take any media sent in the thread and attach it to the session
 export const surfaceEvidence = async (messageTs: string, slackId: string) => {
     const evidence = await app.client.conversations.replies({
         channel: Environment.MAIN_CHANNEL,
@@ -31,10 +33,10 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
 
     if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
 
-    const image = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
+    const images = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
 
     // attach the evidence to the session
-    if (image?.files) {
+    if (images?.files && images.files.length > 0) {
         const session = await prisma.session.findFirstOrThrow({
             where: {
                 messageTs: messageTs
@@ -43,7 +45,7 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
 
         session.metadata.slack.attachment = image.files[0].thumb_480;
 
-        await prisma.session.update({
+        const updatedSession = await prisma.session.update({
             where: {
                 id: session.id
             },
@@ -51,6 +53,10 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
                 metadata: session.metadata
             }
         });
+
+        console.log(`woah, pretty picture! ${images.files[0].url_private}`)
+
+        await updateTopLevel(updatedSession);
     }
 
     console.log(image?.files);
