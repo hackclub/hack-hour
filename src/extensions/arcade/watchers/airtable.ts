@@ -66,18 +66,31 @@ express.post('/airtable/session/update', async (req, res) => {
             log(`Queued session ${session.messageTs} for banking`);
         }
 
+        const slackUser = await prisma.slackUser.findUniqueOrThrow({
+            where: {
+                userId: session.userId
+            },
+            select: {
+                slackId: true
+            }
+        });
+
         // Send a message in that thread saying it was updated
         if (session.metadata.airtable!.status === "Approved") {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
-                text: t('airtable.approved', {})
+                text: t('airtable.approved', {
+                    slackId: slackUser.slackId
+                })
             });
         } else if (session.metadata.airtable!.status === "Rejected") {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
-                text: t('airtable.rejected', {})
+                text: t('airtable.rejected', {
+                    slackId: slackUser.slackId
+                })
             });
         }
 

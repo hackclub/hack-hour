@@ -31,9 +31,9 @@ export class TopLevel {
         };
 
         if (session.paused) {
-            topLevelMessage.text.text = t('pause', { slackId: slackUser?.slackId })
+            topLevelMessage.text.text = t('toplevel.pause', { slackId: slackUser?.slackId })
         } else if (session.cancelled) {
-            topLevelMessage.text.text = t('cancel', { slackId: slackUser?.slackId })
+            topLevelMessage.text.text = t('toplevel.cancel', { slackId: slackUser?.slackId })
         } else if (session.completed) {
             topLevelMessage.text.text = t('complete', { slackId: slackUser?.slackId })
         } else {

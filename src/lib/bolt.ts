@@ -42,7 +42,7 @@ export const Slack = {
             const { command: event, ack, respond } = payload;
     
             await ack();
-            
+
             // while working on the bot, only allow the dev team to use the bot
             const approvedUsers = [
                 'U04QD71QWS0',
@@ -52,10 +52,17 @@ export const Slack = {
                 'U05NX48GL3T',
                 'U078ACL01S7',
                 'U078ZCAHCNL',
-                'U078ZDVC7CY'
+                'U078ZDVC7CY',
+                'U078D5YH5NG',
+                'U0787QYQM53',
+                'U078BK769BL'
             ]
 
-            if (!approvedUsers.includes(event.user_id)) {
+            const user = await app.client.users.info({
+                user: event.user_id
+            });
+
+            if (!approvedUsers.includes(event.user_id) && !(user.user!.profile!.real_name!.startsWith('test'))) {
                 return respond(t('maintanenceMode', {}))
             }
 
