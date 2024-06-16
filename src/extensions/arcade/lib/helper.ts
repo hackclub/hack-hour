@@ -33,10 +33,10 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
 
     if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
 
-    const images = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
+    const image = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
 
     // attach the evidence to the session
-    if (images?.files && images.files.length > 0) {
+    if (image?.files && image.files.length > 0) {
         const session = await prisma.session.findFirstOrThrow({
             where: {
                 messageTs: messageTs
@@ -54,10 +54,8 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
-        console.log(`woah, pretty picture! ${images.files[0].url_private}`)
+        console.log(`woah, pretty picture! ${image.files[0].url_private}`)
 
         await updateTopLevel(updatedSession);
     }
-
-    console.log(image?.files);
 };
