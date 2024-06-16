@@ -25,7 +25,7 @@ complete:
 
 cancel:
   - <@${slackId}> ended their hack hour early!
-  - <@${slackId}> finished their hack hour early.
+  - <@${slackId}> cut their session short!!
   - it looks like <@${slackId}> is already done! done already!!
 
 pause:
@@ -62,7 +62,7 @@ welcome:
 
 onboarding:
   new_face:
-    - "looks like you're new around here :eyes:"
+    - Just write "learning to use the arcade" for this session!
 
   encouragement:
     - 'You have `${minutes}` minutes remaining! Onboarding text goes here!'
@@ -76,10 +76,10 @@ onboarding:
     - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
 
   complete:
-    - great work <@${slackId}>, you banked an hour!! keep on hacking to get more hours while we review your scraps!!
+    - great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free tickets i promised you…
 
   evidence_reminder:
-    - hey! remember to document your journey! you need post a git commit or a photo of what you're working on!
+    - show me some scraps!! pics or commits, whatever you got!!
 
 error:
   #context: attempting to start a new session while already in one
@@ -117,10 +117,12 @@ action:
 
 detect:
   activity:
-    - remember that you need to provide a git commit or a photo!
+    - share some scraps here!! git commits or photos,
 
   evidence:
-    - thanks for documenting your journey!!! :D
+    - thanks for sharing, thanks for sharing!!
+    - scraps!! oh my god i love scraps _\*twitch\*_
+    - _\*gentle purring\*_ with enough scraps like this i can build a whole new nest…
 
 airtable:
   approved:
