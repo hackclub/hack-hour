@@ -80,15 +80,15 @@ const registerSession = async (session: Session) => {
         if (!user) { throw new Error(`User not found for ${session.userId}`); }
 
         if (user.metadata.firstTime) {
-            await app.client.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding.complete', {
-                    slackId: user.slackUser!.slackId
-                }),
-                thread_ts: session.messageTs,
-            });
+            // await app.client.chat.postMessage({
+            //     channel: Environment.MAIN_CHANNEL,
+            //     text: t('onboarding.complete', {
+            //         slackId: user.slackUser!.slackId
+            //     }),
+            //     thread_ts: session.messageTs,
+            // });
 
-            user.metadata.firstTime = false;
+             user.metadata.firstTime = false;
 
             user = await prisma.user.update({
                 where: {
@@ -174,7 +174,7 @@ const registerSession = async (session: Session) => {
 
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !user.metadata.firstTime) {
+        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !session.metadata.onboarding) {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
@@ -217,6 +217,10 @@ app.event("message", async ({ event }) => {
 
         if (!session.metadata.airtable) { throw new Error(`Session ${session.id} is missing an Airtable ID`); }
 
+        if ((event as any).user !== session.user.slackUser!.slackId) {
+            return;
+        }
+
         if (session) {
             const airtableSession = await AirtableAPI.Session.find(session.metadata.airtable.id);
 
@@ -231,7 +235,6 @@ app.event("message", async ({ event }) => {
 
                 return;
             }
-
 
             const user = await prisma.user.findUniqueOrThrow({
                 where: {
@@ -253,8 +256,8 @@ app.event("message", async ({ event }) => {
             const activity = evidence.messages.filter(message => message.user === user.slackUser!.slackId).length > 0;
 
             // Borrowed from david's code, thanks david!
-            const urlsExist = evidence.messages.find(message => getUrls(message.text ? message.text : "").size > 0)
-            const imagesExist = evidence.messages.find(message => message.files ? message.files.length > 0 : false)
+            const urlsExist = evidence.messages.find(message => message.user === user.slackUser!.slackId && (getUrls(message.text ? message.text : "").size > 0))
+            const imagesExist = evidence.messages.find(message => message.user === user.slackUser!.slackId && (message.files ? message.files.length > 0 : false))
 
             const evidenced = urlsExist !== undefined || imagesExist !== undefined;
 
@@ -262,6 +265,7 @@ app.event("message", async ({ event }) => {
                 await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
+                    thread_ts: session.messageTs,
                     text: t('detect.activity', {}),
                 });
             }
@@ -270,11 +274,12 @@ app.event("message", async ({ event }) => {
                 await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
+                    thread_ts: session.messageTs,
                     text: t('detect.evidence', {})
                 });
             }
 
-            if (airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") {
+            if ((airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") && activity) {
                 await AirtableAPI.Session.update(session.metadata.airtable.id, {
                     "Status": "Requested Re-review",
                     "Activity": activity,
@@ -341,9 +346,10 @@ export const firstTime = async (user: User) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Environment.ARCADIUS_SECRET}`
                 },
                 body: JSON.stringify({
-                    slackId: slackUser.slackId
+                    userId: slackUser.slackId
                 })
             }
         )

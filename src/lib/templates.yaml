@@ -1,4 +1,4 @@
-update:
+hack:
   - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
   - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
   - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
@@ -7,8 +7,20 @@ update:
   - wow wow <@${slackId}>!! only `${minutes}` minutes left!
   - impressive work! just `${minutes}` minutes left <@${slackId}>!
 
-hack:
-  - tick tock i'm a clock
+popup:
+    onboarding:
+        footer:
+            - "looks like you're new around here :eyes:"
+        placeholder:
+            - what are you working on? (onboarding)
+        header:
+            - what are you gonna work on for the next hour? (onboarding)
+    footer:
+        - tick tock i'm a clock
+    placeholder:
+        - what are you working on?
+    header:
+        - what are you gonna work on for the next hour?
 
 complete:
   - WOO WOO!! YOU DID IT <@${slackId}>!!
@@ -34,16 +46,23 @@ pause:
   - <@${slackId}> is getting coffee!! _coffee!!_
 
 encouragement:
-  - 'You have `${minutes}` minutes remaining! Keep it up!'
-  - "You have `${minutes}` minutes remaining! You're doing great!"
-  - "You have `${minutes}` minutes remaining! You've got this!"
-  - 'You have `${minutes}` minutes remaining! You are ducktastic!'
-  - 'You have `${minutes}` minutes remaining! Wizard!'
+    - "You have `${minutes}` ${minutes_units} remaining! Keep it up!"
+    - "You have `${minutes}` ${minutes_units} remaining! You're doing great!"
+    - "You have `${minutes}` ${minutes_units} remaining! You've got this!"
+    - "You have `${minutes}` ${minutes_units} remaining! You are ducktastic!"
+    - "You have `${minutes}` ${minutes_units} remaining! Wizard!"
 
 toplevel:
-  - 'it looks like <@${slackId}> is getting more power this hour! `${minutes}` minutes remaining to work on:'
-  - '<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` minutes remaining to work on:'
-  - "let's go! <@${slackId}> has `${minutes}` minutes to work on:"
+    main:
+        - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:"
+        - "<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` ${minutes_units} remaining to work on:"
+        - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
+    cancel:
+        - "it looks like <@${slackId}> ended their hour early"
+    pause:
+        - <@${slackId}> is taking five!
+        - <@${slackId}> is catching a break!
+        - <@${slackId}> is drinking some coffee!
 
 init:
   - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
@@ -57,17 +76,15 @@ init:
   - "time travelling in <#${main}> like there's no tomorrow!"
   - 'perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>'
 
-welcome:
-  - 'welcome to hack hour, <@${slackId}>! :wave:'
+# welcome:
+#     - "welcome to hack hour, <@${slackId}>! :wave:"
+
 
 onboarding:
-  new_face:
-    - Just write "learning to use the arcade" for this session!
-
-  encouragement:
-    - 'You have `${minutes}` minutes remaining! Onboarding text goes here!'
-    #        - "aaaaa"
-    - 'hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away'
+    encouragement:
+        - "You have `${minutes}` ${minutes_units} remaining! Onboarding text goes here!"
+#        - "aaaaa"
+        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
 
   init:
     - 'check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project'
@@ -109,11 +126,11 @@ error:
     - you've already started your hack hour! keep going! and `/pause` if ya need a break1
 
 action:
-  paused:
-    - i paused the clock for ya. you still got `${minutes}` minutes left
+    paused:
+        - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
 
-  resumed:
-    - ready? you have `${minutes}` minutes left!
+    resumed:
+        - ready? you have `${minutes}` ${minutes_units} left!
 
 detect:
   activity:

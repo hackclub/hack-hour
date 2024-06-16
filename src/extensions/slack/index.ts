@@ -16,7 +16,6 @@ import "./functions/goals.js";
 import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
-import { AirtableAPI } from "../arcade/lib/airtable.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 
 /*
@@ -97,7 +96,7 @@ const hack = async ({ command }: CommandHandler) => {
         }
 
         if (!command.text || command.text.length == 0) {
-            await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.airtable ? false : true), command.channel_id);
+            await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.firstTime), command.channel_id);
 
             return;
         }
@@ -143,7 +142,7 @@ const hack = async ({ command }: CommandHandler) => {
                 metadata: {
                     work: command.text,
                     slack: {
-                        template: t_fetch('toplevel'),
+                        template: t_fetch('toplevel.main'),
                         controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
                     },
                     onboarding: slackUser.user.metadata.firstTime,
@@ -298,10 +297,10 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
             metadata: {
                 work: text,
                 slack: {
-                    template: t_fetch('toplevel'),
-                    controllerTemplate: slackUser.user.metadata.airtable ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
+                    template: t_fetch('toplevel.main'),
+                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
                 },
-                onboarding: slackUser.user.metadata.airtable ? false : true,
+                onboarding: slackUser.user.metadata.firstTime,
                 banked: false
             },
 
@@ -504,7 +503,10 @@ emitter.on('cancel', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+                    "text": session.metadata.onboarding ? t('onboarding.complete', {
+                        slackId: slackUser.slackId,
+                        minutes: session.elapsed
+                    }) : t('cancel', {
                         slackId: slackUser.slackId,
                         minutes: session.elapsed
                     })

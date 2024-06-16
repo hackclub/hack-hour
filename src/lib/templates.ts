@@ -2,17 +2,25 @@ import { parse } from 'yaml';
 import fs from 'fs';
 import { prisma } from './prisma.js';
 
-type template = 
+type Template = 
     'update' | 
     'complete' | 
-    'encouragement' | 
     'cancel' | 
-    'toplevel' | 
     'pause' | 
+    'encouragement' | 
     'init' |
-    'hack' |
 
-    'maintanenceMode' |
+    'toplevel.main' |
+    'toplevel.pause' |
+    'toplevel.cancel' |
+    
+    'popup.footer' |
+    'popup.placeholder' |
+    'popup.header' |
+
+    'popup.onboarding.footer' |
+    'popup.onboarding.placeholder' |
+    'popup.onboarding.header' |
 
     'action.paused' |
     'action.resumed' |
@@ -22,7 +30,6 @@ type template =
     'onboarding.update' |
     'onboarding.complete' |
     'onboarding.evidence_reminder' |
-    'onboarding.new_face' |
 
     'detect.activity' |
     'detect.evidence' |
@@ -38,9 +45,11 @@ type template =
     'airtable.approved' |
     'airtable.rejected' |
 
-    'arcade.start';
+    'arcade.start' |
+ 
+    'maintanenceMode';
 
-interface data {
+interface Data {
     slackId?: string,
     minutes?: number,
     repo?: string,
@@ -48,6 +57,10 @@ interface data {
     status?: string,
     reason?: string,
     url?: string,
+}
+
+interface ExtendedData extends Data {
+    minutes_units?: string,
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
@@ -82,16 +95,19 @@ export const pfps = {
     ded: ":rac_ded:"
 };
 
-export function t(template: template, data: data) {
+export function t(template: Template, data: Data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
-    return t_format(t_fetch(template), data);
+    return t_format(t_fetch(template), {
+        ...data,
+        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
+    });
 }
 
-export function t_fetch(template: template) {
+export function t_fetch(template: Template) {
     return (randomChoice(templates[template]) as string);
 }
 
-export function t_format(template: string, data: data) {
+export function t_format(template: string, data: ExtendedData) {
     return template.replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
 }
 

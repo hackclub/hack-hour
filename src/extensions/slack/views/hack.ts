@@ -10,11 +10,15 @@ export class Hack {
                 "type": "input",
                 "element": {
                     "type": "plain_text_input",
-                    "action_id": "hack"
+                    "action_id": "hack",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text":  onboarding ? t('popup.onboarding.placeholder', {}) : t('popup.placeholder', {})
+                    }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "what are you gonna work on for the next hour?",
+                    "text":  onboarding ? t('popup.onboarding.header', {}) : t('popup.header', {}),
                     "emoji": true
                 },
                 "block_id": "hack"
@@ -38,7 +42,7 @@ export class Hack {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": onboarding ? t('onboarding.new_face', {}) : t('hack', {})
+                        "text": onboarding ? t('popup.onboarding.footer', {}) : t('popup.footer', {})
                     }
                 ]
             }
