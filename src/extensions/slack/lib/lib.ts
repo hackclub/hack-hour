@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { Environment } from "../../../lib/constants.js";
+import { Constants, Environment } from "../../../lib/constants.js";
 
 import { app, Slack } from "../../../lib/bolt.js";
 import { prisma } from "../../../lib/prisma.js";
@@ -70,6 +70,7 @@ export async function informUser(slackId: string, message: string, channel: stri
             channel,
             text: message,
             thread_ts,
+            username: Constants.USERNAME,
             icon_emoji: pfp
         });
     } catch (error) {
@@ -80,6 +81,7 @@ export async function informUser(slackId: string, message: string, channel: stri
             channel: slackId,
             thread_ts,
             text: message,
+            username: Constants.USERNAME,
             icon_emoji: pfp
         });
 

@@ -24,9 +24,10 @@ complete:
     - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
 
 cancel:
-    - <@${slackId}> ended their hack hour early!
-    - <@${slackId}> finished their hack hour early.
-    - it looks like <@${slackId}> is already done!
+    - "hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!"
+#    - <@${slackId}> ended their hack hour early!
+#    - <@${slackId}> finished their hack hour early.
+#    - it looks like <@${slackId}> is already done!
 #    - ">I tell you, we are here on Earth to fart around,\n>and don't let anybody tell you different.\n_-- Kurt Vonnegut_"
 
 pause:
@@ -133,5 +134,5 @@ maintanenceMode:
     - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
 arcade:
-    complete: 
-        - awesome, you completed your first <${url}|hour>!
+    start: 
+        - woah, you started your first <${url}|hack hour>!

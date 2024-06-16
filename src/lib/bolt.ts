@@ -50,6 +50,9 @@ export const Slack = {
                 'U078MRX71TJ',
                 'U0777CCQQCF',
                 'U05NX48GL3T',
+                'U078ACL01S7',
+                'U078ZCAHCNL',
+                'U078ZDVC7CY'
             ]
 
             if (!approvedUsers.includes(event.user_id)) {

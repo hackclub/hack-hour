@@ -38,7 +38,7 @@ type template =
     'airtable.approved' |
     'airtable.rejected' |
 
-    'arcade.complete';
+    'arcade.start';
 
 interface data {
     slackId?: string,
@@ -47,6 +47,7 @@ interface data {
     main?: string,
     status?: string,
     reason?: string,
+    url?: string,
 }
 
 const file = fs.readFileSync('./src/lib/templates.yaml', 'utf8');
@@ -68,8 +69,18 @@ function flatten(obj: any, prefix: string = '') {
 
 const templates = flatten(templatesRaw);
 
-const pfpFile = fs.readFileSync('./src/lib/haccoon.yaml', 'utf8');
-export const pfps: { [pfp: string]: string } = parse(pfpFile);
+export const pfps = {
+    question: ":rac_question:",
+    info: ":rac_info:",
+    freaking: ":rac_freaking:",
+    cute: ":rac_cute:",
+    tinfoil: ":rac_believes_in_theory_about_green_lizards_and_space_lasers:",
+    peefest: ":rac_peefest:",
+    woah: ":rac_woah:",
+    threat: ":rac_threat:",
+    thumbs: ":rac_thumbs:",
+    ded: ":rac_ded:"
+};
 
 export function t(template: template, data: data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])

@@ -17,6 +17,7 @@ import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { AirtableAPI } from "../arcade/lib/airtable.js";
+import { firstTime } from "../arcade/watchers/hackhour.js";
 
 /*
 Session Creation
@@ -34,147 +35,147 @@ const log = async (message: string) => {
 
 const hack = async ({ command }: CommandHandler) => {
     try {
-    log(`got command ${command.command} from ${command.user_id}`);
-    const slackId = command.user_id;
+        const slackId = command.user_id;
 
-    let slackUser = await prisma.slackUser.upsert(
-        {
-            where: {
-                slackId
-            },
-            create: {
-                slackId,
-                user: {
-                    create: {
-                        id: uid(),
-                        lifetimeMinutes: 0,
-                        apiKey: uid(),
-                        goals: {
-                            create: {
-                                id: uid(),
-                                name: "No Goal",
-                                default: true,                              
-                                metadata: {
-                                    // TODO
+        let slackUser = await prisma.slackUser.upsert(
+            {
+                where: {
+                    slackId
+                },
+                create: {
+                    slackId,
+                    user: {
+                        create: {
+                            id: uid(),
+                            lifetimeMinutes: 0,
+                            apiKey: uid(),
+                            goals: {
+                                create: {
+                                    id: uid(),
+                                    name: "No Goal",
+                                    default: true,
+                                    metadata: {
+                                        // TODO
+                                    }
+                                }
+                            },
+                            metadata: {
+                                airtable: undefined,
+                                ships: {},
+                                firstTime: true
+                            }
+                        }
+                    },
+                },
+                update: {},
+                include: {
+                    user: {
+                        include: {
+                            sessions: {
+                                where: {
+                                    completed: false,
+                                    cancelled: false
                                 }
                             }
-                        },
-                        metadata: {
-                            airtable: undefined,
-                            ships: {},
-                            firstTime: true
                         }
                     }
+                }
+            }
+        );
+
+        if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
+            // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
+            if (await firstTime(slackUser.user)) {
+                return;
+            }
+        }
+
+        if (slackUser.user.sessions.length > 0) {
+            await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
+
+            return;
+        }
+
+        if (!command.text || command.text.length == 0) {
+            await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.airtable ? false : true), command.channel_id);
+
+            return;
+        }
+
+        const topLevel = await Slack.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+        });
+
+        // Create a controller message in the thread
+        const controller = await Slack.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            thread_ts: topLevel!.ts,
+            text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+        })
+
+        if (!controller || !controller.ts) {
+            throw new Error(`Failed to create a message for ${slackId}`)
+        }
+
+        const session = await prisma.session.create({
+            data: {
+                id: uid(),
+
+                user: {
+                    connect: {
+                        id: slackUser.userId
+                    }
                 },
-            },
-            update: {},
-            include: {
-                user: {     
-                    include: {               
-                        sessions: {
+
+                messageTs: assertVal(topLevel!.ts),
+                controlTs: controller.ts,
+
+                time: 60,
+                elapsed: 0,
+
+                completed: false,
+                cancelled: false,
+                paused: false,
+
+                elapsedSincePause: 0,
+
+                metadata: {
+                    work: command.text,
+                    slack: {
+                        template: t_fetch('toplevel'),
+                        controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                    },
+                    onboarding: slackUser.user.metadata.firstTime,
+                    banked: false
+                },
+
+                goal: {
+                    connect: {
+                        id: (await prisma.goal.findFirstOrThrow({
                             where: {
-                                completed: false,
-                                cancelled: false
+                                default: true,
+                                userId: slackUser.userId
                             }
-                        }
+                        })).id
                     }
                 }
             }
-        }
-    );
+        });
 
-    if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
-        // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
-        emitter.emit('firstTime', slackUser.user);
-        return;
+        await updateController(session);
+        await updateTopLevel(session);
+
+        emitter.emit('start', session);
+
+        await reactOnContent({
+            content: command.text,
+            channel: Environment.MAIN_CHANNEL,
+            ts: assertVal(topLevel!.ts)
+        });
+    } catch (error) {
+        emitter.emit('error', error);
     }
-
-    if (slackUser.user.sessions.length > 0) {
-        await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
-
-        return;
-    }
-
-    if (!command.text || command.text.length == 0) {
-        await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.airtable ? false : true), command.channel_id);
-
-        return;
-    }
-
-    const topLevel = await Slack.chat.postMessage({
-        channel: Environment.MAIN_CHANNEL,
-        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
-    });
-
-    // Create a controller message in the thread
-    const controller = await Slack.chat.postMessage({
-        channel: Environment.MAIN_CHANNEL,
-        thread_ts: topLevel!.ts,
-        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
-    })
-
-    if (!controller || !controller.ts) {
-        throw new Error(`Failed to create a message for ${slackId}`)
-    }
-
-    const session = await prisma.session.create({
-        data: {
-            id: uid(),
-
-            user: {
-                connect: {
-                    id: slackUser.userId
-                }
-            },
-
-            messageTs: assertVal(topLevel!.ts),
-            controlTs: controller.ts,
-
-            time: 60,
-            elapsed: 0,
-
-            completed: false,
-            cancelled: false,
-            paused: false,
-
-            elapsedSincePause: 0,
-
-            metadata: {
-                work: command.text,
-                slack: {
-                    template: t_fetch('toplevel'),
-                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
-                },
-                onboarding: slackUser.user.metadata.firstTime,
-                banked: false
-            },
-
-            goal: {
-                connect: {
-                    id: (await prisma.goal.findFirstOrThrow({
-                        where: {
-                            default: true,
-                            userId: slackUser.userId
-                        }
-                    })).id
-                }
-            }
-        }
-    });
-
-    await updateController(session);
-    await updateTopLevel(session);
-
-    emitter.emit('start', session);
-
-    await reactOnContent({
-        content: command.text,
-        channel: Environment.MAIN_CHANNEL,
-        ts: assertVal(topLevel!.ts)
-    });
-} catch (error) {
-    emitter.emit('error', error);
-}
 };
 
 Slack.command(Commands.HACK, hack);
@@ -191,11 +192,11 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 
     let text = '';
     try {
-        text = (body as any).state.values.hack.hack.value;        
+        text = (body as any).state.values.hack.hack.value;
     } catch (error) {
         text = ''
     }
-    
+
     const channel = body.channel!.id!;
 
     let slackUser = await prisma.slackUser.upsert(
@@ -214,7 +215,7 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                             create: {
                                 id: uid(),
                                 name: "No Goal",
-                                default: true,                              
+                                default: true,
                                 metadata: {
                                     // TODO
                                 }
@@ -342,7 +343,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
         });
 
         if (!slackUser) {
-//            throw new Error(`Missing slack component of ${session.userId}`)
+            //            throw new Error(`Missing slack component of ${session.userId}`)
             return;
         }
 
@@ -405,7 +406,9 @@ emitter.on('complete', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t('complete', {
+        text: session.metadata.onboarding ? t('onboarding.complete', {
+            slackId: slackUser.slackId
+        }) : t('complete', {
             slackId: slackUser.slackId
         }),
         blocks: [
@@ -413,7 +416,9 @@ emitter.on('complete', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t('complete', {
+                    "text": session.metadata.onboarding ? t('onboarding.complete', {
+                        slackId: slackUser.slackId
+                    }) : t('complete', {
                         slackId: slackUser.slackId
                     })
                 },
@@ -445,7 +450,7 @@ emitter.on('complete', async (session: Session) => {
                 increment: session.elapsed
             }
         }
-    });    
+    });
 
     await updateController(session);
     await updateTopLevel(session);
@@ -462,7 +467,7 @@ emitter.on('complete', async (session: Session) => {
                 id: session.id
             },
             data: {
-               evidence: true
+                evidence: true
             }
         });
     }
@@ -483,10 +488,17 @@ emitter.on('cancel', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+        text: session.metadata.onboarding ? t('onboarding.complete', {
             slackId: slackUser.slackId,
             minutes: session.elapsed
-        }),
+        }) : t('cancel', {
+            slackId: slackUser.slackId,
+            minutes: session.elapsed
+        }),        
+        // text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+        //     slackId: slackUser.slackId,
+        //     minutes: session.elapsed
+        // }),
         blocks: [
             {
                 "type": "section",
@@ -506,7 +518,7 @@ emitter.on('cancel', async (session: Session) => {
                     "action_id": Actions.VIEW_STATS,
                 }
             }
-        ]        
+        ]
     });
 
     // Increment minutes in goals
@@ -525,7 +537,7 @@ emitter.on('cancel', async (session: Session) => {
         name: "exit",
         channel: Environment.MAIN_CHANNEL,
         timestamp: session.messageTs
-    });    
+    });
 
     await updateController(session);
     await updateTopLevel(session);
@@ -549,7 +561,7 @@ emitter.on('init', async () => {
         });
 
         let releaseVersion = process.env.HEROKU_RELEASE_VERSION || 'vDev';
-        
+
         let buildDesc = process.env.HEROKU_BUILD_DESCRIPTION;
         if (buildDesc) {
             buildDesc = buildDesc.replace('Deploy ', '');

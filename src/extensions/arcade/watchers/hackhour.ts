@@ -8,7 +8,7 @@ import { emitter } from "../../../lib/emitter.js";
 import getUrls from "get-urls";
 
 import { log } from "../lib/log.js";
-import { t } from "../../../lib/templates.js";
+import { pfps, t } from "../../../lib/templates.js";
 
 const findOrCreateUser = async (userId: string) => {
     try {
@@ -80,6 +80,14 @@ const registerSession = async (session: Session) => {
         if (!user) { throw new Error(`User not found for ${session.userId}`); }
 
         if (user.metadata.firstTime) {
+            await app.client.chat.postMessage({
+                channel: Environment.MAIN_CHANNEL,
+                text: t('onboarding.complete', {
+                    slackId: user.slackUser!.slackId
+                }),
+                thread_ts: session.messageTs,
+            });
+
             user.metadata.firstTime = false;
 
             user = await prisma.user.update({
@@ -96,26 +104,6 @@ const registerSession = async (session: Session) => {
         }
 
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
-
-        if (session.metadata.onboarding) {
-            await app.client.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                text: t('onboarding.complete', {
-                    slackId: user.slackUser!.slackId
-                }),
-                thread_ts: session.messageTs
-            });
-
-            const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
-            if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
-
-            await app.client.chat.postMessage({
-                channel: airtableUser.fields['dmChannel'],
-                text: t('arcade.complete', {
-                    slackId: user.slackUser!.slackId
-                })
-            });
-        }
 
         console.log(`Fetched or created user ${user.metadata.airtable.id}`);
         log(`Fetched or created user ${user.metadata.airtable.id}`);
@@ -186,7 +174,7 @@ const registerSession = async (session: Session) => {
 
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced) {
+        if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !user.metadata.firstTime) {
             await app.client.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
@@ -326,7 +314,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
     }
 });
 
-emitter.on('firstTime', async (user: User) => {
+export const firstTime = async (user: User) => {
     /*
     Check if arcadius made an entry in the airtable,
         - YES: just grab the conversation ID and DM the user
@@ -381,22 +369,69 @@ emitter.on('firstTime', async (user: User) => {
                 metadata: user.metadata
             }
         });
+
+        return true;
     } else if (!airtableUser.fields['Internal ID']) {
         await AirtableAPI.User.update(airtableUser.id, {
             "Internal ID": user.id,
         });
+    }
 
-        user.metadata.airtable = {
-            id: airtableUser.id,
-        };
+    user.metadata.airtable = {
+        id: airtableUser.id,
+    };
 
-        await prisma.user.update({
+    await prisma.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
+            metadata: user.metadata
+        }
+    });
+    return false;
+};
+
+emitter.on('start', async (session: Session) => {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
             where: {
-                id: user.id
+                id: session.userId
             },
-            data: {
-                metadata: user.metadata
+            include: {
+                slackUser: {
+                    select: {
+                        slackId: true
+                    }
+                }
             }
         });
+
+        if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+        if (user.metadata.firstTime) {
+            const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
+
+            if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
+
+            const dmChannel = airtableUser.fields['dmChannel'];
+
+            const permalink = await app.client.chat.getPermalink({
+                channel: Environment.MAIN_CHANNEL,
+                message_ts: session.messageTs
+            });
+
+            await app.client.chat.postMessage({
+                channel: dmChannel,
+                text: t('arcade.start', {
+                    slackId: user.slackUser!.slackId,
+                    url: permalink.permalink
+                }),
+                username: Constants.USERNAME,
+                icon_emoji: pfps['woah']
+            });
+        }
+    } catch (error) {
+        emitter.emit('error', error);
     }
 });
