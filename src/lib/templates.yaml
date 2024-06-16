@@ -46,6 +46,15 @@ encouragement:
     - "You have `${minutes}` ${minutes_units} remaining! You are ducktastic!"
     - "You have `${minutes}` ${minutes_units} remaining! Wizard!"
 
+update:
+  - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
+  - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
+  - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
+  - almost there <@${slackId}>, `${minutes}` minutes left! _twitch_ … i like trash.
+  - power through <@${slackId}>!! you have `${minutes}` minutes left!
+  - wow wow <@${slackId}>!! only `${minutes}` minutes left!
+  - impressive work! just `${minutes}` minutes left <@${slackId}>!
+
 toplevel:
     main:
         - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:"
