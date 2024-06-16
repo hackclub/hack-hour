@@ -144,12 +144,12 @@ Slack.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id, pfps['question']);
+            informUser(slackId, t('error.not_hacking', {}), body.channel_id, undefined, pfps['question']);
             return;
         }
 
         if (!session.paused) {
-            informUser(slackId, t('error.already_resumed', {}), body.channel_id, pfps['question']);
+            informUser(slackId, t('error.already_resumed', {}), body.channel_id, undefined, pfps['question']);
         }
 
         const updatedSession = await Session.pause(session);

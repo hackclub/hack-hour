@@ -48,7 +48,7 @@ type AirtableUserRead = {
     "Sessions": AirtableRecordID[],
     // "Minutes (All)": number,
     "Minutes (Approved)": number,
-    // "Minutes (Banked)": number,
+    "Minutes (Banked)": number,
     "Total Earned (Minutes)": number,
     "Spent (Incl. Pending)": number,
     "Balance (Minutes)": number,

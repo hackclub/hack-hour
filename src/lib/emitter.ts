@@ -22,7 +22,7 @@ type EventMap = {
     pause: (session: Session) => void,
     resume: (session: Session) => void,
     
-    firstTime: (userId: string) => void,
+    firstTime: (user: User) => void,
 }
 
 export type Event = keyof EventMap;

@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({});
+
 // import fs from 'fs';
 
 import { prisma } from './lib/prisma.js';
@@ -16,12 +18,12 @@ import './clock.js';
 //     await import(`./extensions/${extension}/index.js`);
 // }));
 
-import "./extensions/slack/index.js";
-import "./extensions/api/index.js";
-
 if (process.env.ARCADE) {
     await import("./extensions/arcade/index.js");
 }
+
+import "./extensions/api/index.js";
+import "./extensions/slack/index.js";
 
 try {
     await prisma.$connect();

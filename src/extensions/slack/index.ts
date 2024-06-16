@@ -17,6 +17,7 @@ import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { AirtableAPI } from "../arcade/lib/airtable.js";
+import { firstTime } from "../arcade/watchers/hackhour.js";
 
 /*
 Session Creation
@@ -34,200 +35,147 @@ const log = async (message: string) => {
 
 const hack = async ({ command }: CommandHandler) => {
     try {
-    log(`got command ${command.command} from ${command.user_id}`);
-    const slackId = command.user_id;
+        const slackId = command.user_id;
 
-    let slackUser = await prisma.slackUser.upsert(
-        {
-            where: {
-                slackId
-            },
-            create: {
-                slackId,
-                user: {
-                    create: {
-                        id: uid(),
-                        lifetimeMinutes: 0,
-                        apiKey: uid(),
-                        goals: {
-                            create: {
-                                id: uid(),
-                                name: "No Goal",
-                                default: true,                              
-                                metadata: {
-                                    // TODO
-                                }
-                            }
-                        },
-                        metadata: {
-                            airtable: undefined,
-                            ships: {},
-                            firstTime: true
-                        }
-                    }
+        let slackUser = await prisma.slackUser.upsert(
+            {
+                where: {
+                    slackId
                 },
-            },
-            update: {},
-            include: {
-                user: {     
-                    include: {               
-                        sessions: {
-                            where: {
-                                completed: false,
-                                cancelled: false
+                create: {
+                    slackId,
+                    user: {
+                        create: {
+                            id: uid(),
+                            lifetimeMinutes: 0,
+                            apiKey: uid(),
+                            goals: {
+                                create: {
+                                    id: uid(),
+                                    name: "No Goal",
+                                    default: true,
+                                    metadata: {
+                                        // TODO
+                                    }
+                                }
+                            },
+                            metadata: {
+                                airtable: undefined,
+                                ships: {},
+                                firstTime: true
+                            }
+                        }
+                    },
+                },
+                update: {},
+                include: {
+                    user: {
+                        include: {
+                            sessions: {
+                                where: {
+                                    completed: false,
+                                    cancelled: false
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
-    );
-
-    if (slackUser.user.metadata.firstTime) {
-        const user = slackUser.user;
-        
-        const response = await fetch(
-            "https://7ac5-71-235-174-134.ngrok-free.app/begin",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    userId: slackUser.slackId
-                })
             }
         );
 
-        await log(`I got a response! It was \n${JSON.stringify(response)}`)
-         
-        let result;
-        
-        try {
-            result = await response.json();
-        } catch (error) {
-            await log(`I got an error! It was \n${error}`)
-            result = {};
+        if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
+            // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
+            if (await firstTime(slackUser.user)) {
+                return;
+            }
         }
 
-        await log(`I got a result! It was \n${JSON.stringify(result)}`)
-
-        const channel = result.channel;
-        const recordId = result.arcadeUserId;
-
-        if (channel && recordId) {
-            await AirtableAPI.User.update(recordId, {
-                "Internal ID": user.id,
-            });
-
-            await app.client.chat.postMessage({
-                channel: channel,
-                user: slackUser.slackId,
-                text: "Pointer to DM"
-            });
-
-            slackUser.user.metadata.firstTime = false;
-
-            await prisma.user.update({
-                where: {
-                    id: slackUser.userId
-                },
-                data: {
-                    metadata: slackUser.user.metadata
-                }
-            });
+        if (slackUser.user.sessions.length > 0) {
+            await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
 
             return;
         }
-        // Continue with flow if arcadius is unable to handle it or has it handled
-    }
 
-    if (slackUser.user.sessions.length > 0) {
-        await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
+        if (!command.text || command.text.length == 0) {
+            await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.airtable ? false : true), command.channel_id);
 
-        return;
-    }
+            return;
+        }
 
-    if (!command.text || command.text.length == 0) {
-        await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.airtable ? false : true), command.channel_id);
+        const topLevel = await Slack.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+        });
 
-        return;
-    }
+        // Create a controller message in the thread
+        const controller = await Slack.chat.postMessage({
+            channel: Environment.MAIN_CHANNEL,
+            thread_ts: topLevel!.ts,
+            text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
+        })
 
-    const topLevel = await Slack.chat.postMessage({
-        channel: Environment.MAIN_CHANNEL,
-        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
-    });
+        if (!controller || !controller.ts) {
+            throw new Error(`Failed to create a message for ${slackId}`)
+        }
 
-    // Create a controller message in the thread
-    const controller = await Slack.chat.postMessage({
-        channel: Environment.MAIN_CHANNEL,
-        thread_ts: topLevel!.ts,
-        text: "Initalizing... :spin-loading:" // Leave it empty, for initialization
-    })
+        const session = await prisma.session.create({
+            data: {
+                id: uid(),
 
-    if (!controller || !controller.ts) {
-        throw new Error(`Failed to create a message for ${slackId}`)
-    }
-
-    const session = await prisma.session.create({
-        data: {
-            id: uid(),
-
-            user: {
-                connect: {
-                    id: slackUser.userId
-                }
-            },
-
-            messageTs: assertVal(topLevel!.ts),
-            controlTs: controller.ts,
-
-            time: 60,
-            elapsed: 0,
-
-            completed: false,
-            cancelled: false,
-            paused: false,
-
-            elapsedSincePause: 0,
-
-            metadata: {
-                work: command.text,
-                slack: {
-                    template: t_fetch('toplevel'),
-                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('encouragement') : t_fetch('onboarding.encouragement')
+                user: {
+                    connect: {
+                        id: slackUser.userId
+                    }
                 },
-                onboarding: slackUser.user.metadata.firstTime,
-                banked: false
-            },
 
-            goal: {
-                connect: {
-                    id: (await prisma.goal.findFirstOrThrow({
-                        where: {
-                            default: true,
-                            userId: slackUser.userId
-                        }
-                    })).id
+                messageTs: assertVal(topLevel!.ts),
+                controlTs: controller.ts,
+
+                time: 60,
+                elapsed: 0,
+
+                completed: false,
+                cancelled: false,
+                paused: false,
+
+                elapsedSincePause: 0,
+
+                metadata: {
+                    work: command.text,
+                    slack: {
+                        template: t_fetch('toplevel'),
+                        controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                    },
+                    onboarding: slackUser.user.metadata.firstTime,
+                    banked: false
+                },
+
+                goal: {
+                    connect: {
+                        id: (await prisma.goal.findFirstOrThrow({
+                            where: {
+                                default: true,
+                                userId: slackUser.userId
+                            }
+                        })).id
+                    }
                 }
             }
-        }
-    });
+        });
 
-    await updateController(session);
-    await updateTopLevel(session);
+        await updateController(session);
+        await updateTopLevel(session);
 
-    emitter.emit('start', session);
+        emitter.emit('start', session);
 
-    await reactOnContent({
-        content: command.text,
-        channel: Environment.MAIN_CHANNEL,
-        ts: assertVal(topLevel!.ts)
-    });
-} catch (error) {
-    emitter.emit('error', error);
-}
+        await reactOnContent({
+            content: command.text,
+            channel: Environment.MAIN_CHANNEL,
+            ts: assertVal(topLevel!.ts)
+        });
+    } catch (error) {
+        emitter.emit('error', error);
+    }
 };
 
 Slack.command(Commands.HACK, hack);
@@ -235,7 +183,6 @@ Slack.command(Commands.HOUR, hack);
 Slack.command(Commands.ARCADE, hack);
 
 Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
-    console.log("hack action");
     await ack();
     await respond({
         delete_original: true
@@ -245,11 +192,11 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 
     let text = '';
     try {
-        text = (body as any).state.values.hack.hack.value;        
+        text = (body as any).state.values.hack.hack.value;
     } catch (error) {
         text = ''
     }
-    
+
     const channel = body.channel!.id!;
 
     let slackUser = await prisma.slackUser.upsert(
@@ -268,7 +215,7 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
                             create: {
                                 id: uid(),
                                 name: "No Goal",
-                                default: true,                              
+                                default: true,
                                 metadata: {
                                     // TODO
                                 }
@@ -387,8 +334,6 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 Minute tracker
 */
 emitter.on('sessionUpdate', async (session: Session) => {
-    console.log("in session update emit handler");
-    
     try {
         // Check if the prisma user has a slack component
         const slackUser = await prisma.slackUser.findUnique({
@@ -398,7 +343,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
         });
 
         if (!slackUser) {
-//            throw new Error(`Missing slack component of ${session.userId}`)
+            //            throw new Error(`Missing slack component of ${session.userId}`)
             return;
         }
 
@@ -447,7 +392,6 @@ emitter.on('sessionUpdate', async (session: Session) => {
 });
 
 emitter.on('complete', async (session: Session) => {
-    console.log("in complete emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -462,7 +406,9 @@ emitter.on('complete', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t('complete', {
+        text: session.metadata.onboarding ? t('onboarding.complete', {
+            slackId: slackUser.slackId
+        }) : t('complete', {
             slackId: slackUser.slackId
         }),
         blocks: [
@@ -470,7 +416,9 @@ emitter.on('complete', async (session: Session) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": t('complete', {
+                    "text": session.metadata.onboarding ? t('onboarding.complete', {
+                        slackId: slackUser.slackId
+                    }) : t('complete', {
                         slackId: slackUser.slackId
                     })
                 },
@@ -502,7 +450,7 @@ emitter.on('complete', async (session: Session) => {
                 increment: session.elapsed
             }
         }
-    });    
+    });
 
     await updateController(session);
     await updateTopLevel(session);
@@ -519,14 +467,13 @@ emitter.on('complete', async (session: Session) => {
                 id: session.id
             },
             data: {
-               evidence: true
+                evidence: true
             }
         });
     }
 });
 
 emitter.on('cancel', async (session: Session) => {
-    console.log("in cancel emit handler");
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             userId: session.userId
@@ -541,10 +488,17 @@ emitter.on('cancel', async (session: Session) => {
     await Slack.chat.postMessage({
         thread_ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+        text: session.metadata.onboarding ? t('onboarding.complete', {
             slackId: slackUser.slackId,
             minutes: session.elapsed
-        }),
+        }) : t('cancel', {
+            slackId: slackUser.slackId,
+            minutes: session.elapsed
+        }),        
+        // text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+        //     slackId: slackUser.slackId,
+        //     minutes: session.elapsed
+        // }),
         blocks: [
             {
                 "type": "section",
@@ -564,7 +518,7 @@ emitter.on('cancel', async (session: Session) => {
                     "action_id": Actions.VIEW_STATS,
                 }
             }
-        ]        
+        ]
     });
 
     // Increment minutes in goals
@@ -583,27 +537,23 @@ emitter.on('cancel', async (session: Session) => {
         name: "exit",
         channel: Environment.MAIN_CHANNEL,
         timestamp: session.messageTs
-    });    
+    });
 
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('pause', async (session: Session) => {
-    console.log("in pause emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('resume', async (session: Session) => {
-    console.log("in resume emit handler");
     await updateController(session);
     await updateTopLevel(session);
 });
 
 emitter.on('init', async () => {
-    console.log('🤖 Slack Subroutine Initialized!');
-
     if (Environment.PROD) {
         const message = t('init', {
             repo: "https://github.com/hackclub/hack-hour",
@@ -611,15 +561,13 @@ emitter.on('init', async () => {
         });
 
         let releaseVersion = process.env.HEROKU_RELEASE_VERSION || 'vDev';
-        
+
         let buildDesc = process.env.HEROKU_BUILD_DESCRIPTION;
         if (buildDesc) {
             buildDesc = buildDesc.replace('Deploy ', '');
         } else {
             buildDesc = 'Development';
         }
-
-        console.log(`Running Release ${releaseVersion}-${buildDesc}`);
 
         await Slack.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
@@ -648,7 +596,7 @@ emitter.on('init', async () => {
                         }
                     ]
                 }
-            ]
+            ],
         });
     }
 });
