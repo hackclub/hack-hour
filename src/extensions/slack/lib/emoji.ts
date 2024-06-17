@@ -244,7 +244,8 @@ const emojis = {
     summit: "leaders-summit",
     "summit vision": "summit-vision",
     "apple vision": "summit-vision",
-    "hack hour": "the_doctor"
+    "hack hour": "the_doctor",
+    "arcade": "arcade",
 } as { [key: string]: string };
 
 export async function reactOnContent(data: {
