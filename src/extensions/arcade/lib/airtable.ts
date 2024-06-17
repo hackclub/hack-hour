@@ -71,6 +71,7 @@ type AirtableSessionWrite = {
     "Activity": boolean,
     "Reason"?: string,
     "Scrapbook"?: [AirtableRecordID] | [],
+    "First Time"?: boolean,
 };
 
 type AirtableSessionRead = {

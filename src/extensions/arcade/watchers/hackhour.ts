@@ -132,6 +132,7 @@ const registerSession = async (session: Session) => {
             "Created At": session.createdAt.toISOString(),
             "Activity": activity,
             "Evidenced": evidenced,
+            "First Time": session.metadata.firstTime ? true : false,
         });
 
         console.log(`Registered session ${session.id} for ${user.metadata.airtable.id} in the Airtable`);

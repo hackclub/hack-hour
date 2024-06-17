@@ -41,13 +41,6 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
             "type": "divider"
         },
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": `<${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/|Open The Shop>`
-            }
-        },
-        {
             "type": "actions",
             "elements": [
                 {
@@ -57,7 +50,8 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
                         "text": "Open the Shop",
                         "emoji": true
                     },
-                    'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
+                    'url': `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
+                    // 'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
                     //            "url": `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
                     // "action_id": Actions.OPEN_SHOP
                 }
