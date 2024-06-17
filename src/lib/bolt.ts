@@ -37,7 +37,7 @@ app.error(async (error) => {
 });
 
 // while working on the bot, only allow the dev team to use the bot
-const approvedUsers = [
+export const approvedUsers = [
     'U0C7B14Q3',
     'U04QD71QWS0',
     'UDK5M9Y13',

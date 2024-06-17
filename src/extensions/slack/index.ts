@@ -85,29 +85,31 @@ const hack = async ({ command }: CommandHandler) => {
 
         if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
             // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
-            if (await firstTime(slackUser.user)) {
+            if (await firstTime(slackUser.user)) { // firstTime returns true if the user is existing, meaning I can redirect them through the arcadius flow
                 const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
-                
-                await informUserBlocks(slackId, [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": /*session.metadata.firstTime ? t('onboarding.complete', {
+
+                if (airtableUser) {
+                    await informUserBlocks(slackId, [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": /*session.metadata.firstTime ? t('onboarding.complete', {
                             slackId: slackUser.slackId
                         }) : */t('firstTime.existing_user', {})
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "continue..."
                             },
-                            "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`,
-                            "action_id": Actions.EXISTING_USER_FIRST_TIME,
+                            "accessory": {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "continue..."
+                                },
+                                "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`,
+                                "action_id": Actions.EXISTING_USER_FIRST_TIME,
+                            }
                         }
-                    }
-                ], command.channel_id);
+                    ], command.channel_id);
+                }
 
                 return;
             }

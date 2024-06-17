@@ -1,4 +1,4 @@
-import { Slack, app } from "../../../lib/bolt.js";
+import { Slack, app, approvedUsers } from "../../../lib/bolt.js";
 import { Actions, Callbacks, Commands, Constants } from "../../../lib/constants.js";
 import { ChooseSessions } from "./view.js";
 import { prisma } from "../../../lib/prisma.js";
@@ -264,6 +264,10 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
 
 let pfp: string = "none";
 Slack.command(Commands.ADMIN, async ({ command }) => {
+    if (approvedUsers.includes(command.user_id) === false) {
+        return;
+    }
+    
     const subCommand = command.text.split(" ")[0];
     const subArgs = command.text.split(" ").slice(1);
 
