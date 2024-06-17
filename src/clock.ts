@@ -17,9 +17,11 @@ emitter.on('minute', async () => {
 
         if (sessions.length < 20) {
             updateWithRatelimit = false
+        } else {
+            console.log(`[${new Date().toISOString()}] Ratelimiting updates`);
         }
 
-        for (const session of sessions) {   
+        for (const session of sessions) {
             let updatedSession = session;
 
             if (session.paused) {
@@ -49,12 +51,12 @@ emitter.on('minute', async () => {
                 } else {
                     if (updateWithRatelimit) {
                         if (updatedSession.elapsedSincePause % 5 === 0) {
-                            emitter.emit('sessionUpdate', {updatedSession, updateSlack: true });
+                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                         } else {
-                            emitter.emit('sessionUpdate', {updatedSession, updateSlack: false });
+                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
                         }
                     } else {
-                        emitter.emit('sessionUpdate', {updatedSession, updateSlack: true });
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                     }
                 }
 
@@ -81,7 +83,7 @@ emitter.on('minute', async () => {
                         increment: 1
                     },
                 }
-            });  
+            });
 
             if (updatedSession.elapsed >= updatedSession.time) { // TODO: Commit hours to goal, verify hours with events                
                 updatedSession = await prisma.session.update({
@@ -95,11 +97,19 @@ emitter.on('minute', async () => {
 
                 emitter.emit('complete', updatedSession);
             } else {
-                emitter.emit('sessionUpdate', {updatedSession, updateSlack: false});
+                if (updateWithRatelimit) {
+                    if (updatedSession.elapsed % 5 === 0) {
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                    } else {
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
+                    }
+                } else {
+                    emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                }
             }
         }
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 

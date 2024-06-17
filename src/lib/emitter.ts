@@ -58,9 +58,9 @@ class Emitter {
 export const emitter = new Emitter();
 
 emitter.on("init", async () => {
-    if (!Environment.PROD) {
-        emitter.emit("minute");
-    }
+    // if (!Environment.PROD) {
+    //     emitter.emit("minute");
+    // }
 
     setInterval(async () => {
         emitter.emit("minute");
