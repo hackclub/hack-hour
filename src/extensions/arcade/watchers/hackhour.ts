@@ -32,8 +32,6 @@ const findOrCreateUser = async (userId: string) => {
             // Check if the slack id already exists in the Airtable
             const airtableUserExists = await AirtableAPI.User.lookupBySlack(user.slackUser.slackId);
 
-            console.log({airtableUserExists})
-
             let id;
             if (airtableUserExists) {
                 // Assume the Arcadius already got to this person & has their information ready - all we need to do is create the association
@@ -362,8 +360,6 @@ export const firstTime = async (user: User) => {
         airtableUser = null;
     }
 
-    await log(JSON.stringify(airtableUser, null, 4));
-
     if (!airtableUser) {
         const response = await fetch(
             Environment.ARCADIUS_URL + '/existing-user-start',
@@ -400,8 +396,6 @@ export const firstTime = async (user: User) => {
                 metadata: user.metadata
             }
         });
-
-        await log("Reached here - updated user for first time flow");
 
         return true;
     } else if (!airtableUser.fields['Internal ID']) {

@@ -280,6 +280,31 @@ export const Slack = {
 
             return;            
         }
+    },
+
+    async slog(message: string) {
+        await app.client.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            text: message,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `> ${message}`
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `${new Date().toString()}`
+                        }
+                    ]
+                }
+            ]
+        });
     }
 }
 
