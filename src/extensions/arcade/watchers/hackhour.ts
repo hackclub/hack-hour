@@ -363,7 +363,7 @@ export const firstTime = async (user: User) => {
 
     if (!airtableUser) {
         const response = await fetch(
-            Environment.ARCADIUS_URL + Environment.ARCADIUS_EXISTING_USER_START,
+            Environment.ARCADIUS_URL + '/existing-user-start',
             {
                 method: 'POST',
                 headers: {
