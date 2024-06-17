@@ -132,7 +132,7 @@ firstTime:
   toplevel:
     main:
 #      - 'wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:'
-      - "*open this thread to run your first arcade session"
+      - "*open this thread to run your first arcade session*"
 
   controller: 
     # Note: instead of being randomly shuffled, these are displayed in order [0->n]
