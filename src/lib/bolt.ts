@@ -351,7 +351,6 @@ export const Slack = {
                     });
                 }
 
-
                 return assertVal(await app.client.chat.update(options));
             } catch (error) {
                 emitter.emit('error', {error});

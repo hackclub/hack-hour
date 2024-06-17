@@ -9,7 +9,7 @@ init:
   - '∗rustles through scraps∗ <#${main}>'
 
 update:
-  - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
+  - _∗twitch∗_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
   - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
   - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
   - almost there <@${slackId}>, `${minutes}` minutes left! _twitch_ … i like trash.
@@ -33,7 +33,7 @@ complete:
   - pretty wizard <@${slackId}>!! you finished your hour!
   - have a nice break <@${slackId}>! you _smashed_ that hour!
   - excellent work <@${slackId}>! :D
-  - amazing work <@${slackId}>! _\*fidget\*_ … got any trash for me?
+  - amazing work <@${slackId}>! _∗fidget∗_ … got any trash for me?
   - you're a rockstar <@${slackId}>!! you finished!
   - legendary <@${slackId}>! you're done!
   - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
@@ -45,7 +45,7 @@ cancel:
 
 pause:
   - <@${slackId}> is taking five!!
-  - <@${slackId}> is on a break! _\*snuffle\*_
+  - <@${slackId}> is on a break! _∗snuffle∗_
   - <@${slackId}> is getting coffee!! _coffee!!_
 
 encouragement:
@@ -113,8 +113,8 @@ detect:
 
   evidence:
     - thanks for sharing, thanks for sharing!!
-    - scraps!! oh my god i love scraps _\*twitch\*_
-    - _\*gentle purring\*_ with enough scraps like this i can build a whole new nest…
+    - scraps!! oh my god i love scraps _∗twitch∗_
+    - _∗gentle purring∗_ with enough scraps like this i can build a whole new nest…
 
 airtable:
   approved:
