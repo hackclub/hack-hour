@@ -57,7 +57,12 @@ export const approvedUsers = [
 export const Slack = {
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
         app.command(command, async (payload) => {
+            const now = new Date();
+            let verb = ""
+
             const { command: event, ack, respond } = payload;
+
+            console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
     
             await ack();
 
@@ -91,8 +96,10 @@ export const Slack = {
                         },
                     ]
                 })
-                commandHandler(payload);
+                await commandHandler(payload);
+                verb = "succeeded"
             } catch(error) {
+                verb = "failed"
                 emitter.emit('error', {error})
 
                 await app.client.chat.postEphemeral({
@@ -101,6 +108,9 @@ export const Slack = {
                     text: `An error occurred while processing your command!`
                 })
             }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
         })
     },
 
