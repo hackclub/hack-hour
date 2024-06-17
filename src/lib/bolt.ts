@@ -460,7 +460,7 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] <@${options.trigger_id}> opened view "${options.view.callback_id}"`)
+                console.log(`[${now.toISOString()}] opening view"`)
 
                 const result = await app.client.views.open(options);
 
@@ -478,7 +478,7 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] <@${options.trigger_id}> updated view "${options.view.callback_id}"`)
+                console.log(`[${now.toISOString()}] updating view`)
 
                 const result = await app.client.views.update(options);
 
