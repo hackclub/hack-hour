@@ -13,6 +13,12 @@ emitter.on('minute', async () => {
 
         console.log(`[${new Date().toISOString()}] 🕒 Updating ${sessions.length} sessions`);
 
+        let updateWithRatelimit = true
+
+        if (sessions.length < 20) {
+            updateWithRatelimit = false
+        }
+
         for (const session of sessions) {   
             let updatedSession = session;
 
@@ -41,7 +47,9 @@ emitter.on('minute', async () => {
 
                     emitter.emit('cancel', updatedSession);
                 } else {
-                    emitter.emit('sessionUpdate', updatedSession);
+                    if (updateWithRatelimit && updatedSession.elapsed % 15 == 0) {
+                        emitter.emit('sessionUpdate', updatedSession);
+                    }
                 }
 
                 continue;
