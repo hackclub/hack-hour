@@ -88,7 +88,7 @@ export async function informUser(slackId: string, message: string, channel: stri
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', error);
+            emitter.emit('error', {error});
         }
     }
 }
@@ -115,7 +115,7 @@ export async function informUserBlocks(slackId: string, blocks: any[], channel: 
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', error);
+            emitter.emit('error', {error});
         }
     }
     

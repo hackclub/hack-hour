@@ -66,6 +66,6 @@ Slack.command(Commands.EXTEND, async ({ ack, body }) => {
         await updateController(updatedSession);
         await updateTopLevel(updatedSession);*/
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });

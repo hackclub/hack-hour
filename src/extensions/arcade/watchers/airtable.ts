@@ -146,7 +146,7 @@ express.post('/airtable/session/update', async (req, res) => {
 
         res.sendStatus(200);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 

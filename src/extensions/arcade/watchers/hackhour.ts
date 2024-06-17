@@ -69,7 +69,7 @@ const findOrCreateUser = async (userId: string) => {
 
         return user;
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 };
 
@@ -172,7 +172,7 @@ const registerSession = async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 };
 
@@ -463,6 +463,6 @@ emitter.on('start', async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });

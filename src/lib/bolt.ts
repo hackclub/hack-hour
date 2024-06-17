@@ -30,9 +30,10 @@ express.use(bodyParser.json());
 
 app.error(async (error) => {
     if (!error.original) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     } else {
-        emitter.emit('error', error.original);
+        emitter.emit('error', {error});
+        emitter.emit('error', {error: error.original});
     }
 });
 
@@ -92,7 +93,7 @@ export const Slack = {
                 })
                 commandHandler(payload);
             } catch(error) {
-                emitter.emit('error', error)
+                emitter.emit('error', {error})
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
@@ -151,7 +152,7 @@ export const Slack = {
 
                 listeners.forEach((listener) => listener(payload));
             } catch(error) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
 
  /*               await app.client.chat.postEphemeral({
                     channel: action.channel.id,
@@ -202,7 +203,7 @@ export const Slack = {
 
                 listeners.forEach((listener) => listener(payload));
             } catch (error) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
 
                 await app.client.chat.postEphemeral({
                     channel: body.user.id,
@@ -222,7 +223,7 @@ export const Slack = {
                 // });
                 return assertVal(await app.client.chat.postMessage(options));
             } catch (error) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
             }
         },
 
@@ -234,7 +235,7 @@ export const Slack = {
                 // });                
                 return assertVal(await app.client.chat.postEphemeral(options));
             } catch (error: any) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
                 if (options) {
                     await app.client.chat.postMessage({
                         user: options.user,
@@ -253,7 +254,7 @@ export const Slack = {
                 // });
                 return assertVal(await app.client.chat.update(options));
             } catch (error) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
             }
         }
     },
@@ -267,7 +268,7 @@ export const Slack = {
                 // });
                 return assertVal(await app.client.reactions.add(options));
             } catch (error) {
-                emitter.emit('error', error);
+                emitter.emit('error', {error});
             }
         }
     },

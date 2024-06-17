@@ -24,7 +24,7 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
             view: await Cancel.cancel(thread_ts)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -72,7 +72,7 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             }
         }));
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
                 
@@ -105,6 +105,6 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         await Session.cancel(session);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });

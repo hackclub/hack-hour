@@ -201,7 +201,7 @@ const hack = async ({ command }: CommandHandler) => {
             ts: assertVal(topLevel!.ts)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 };
 
@@ -416,7 +416,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
         await updateController(session);
         await updateTopLevel(session);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
         console.error(error);
     }
 });
@@ -658,8 +658,9 @@ emitter.on('init', async () => {
     }
 });
 
-emitter.on('error', async (error) => {
+emitter.on('error', async (errorRef) => {
     try {
+        const error = errorRef.error;
         if (!error) {
             throw new Error('No error provided!');
         }
@@ -697,7 +698,7 @@ emitter.on('error', async (error) => {
             ]
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -712,6 +713,6 @@ emitter.on('debug', async (message) => {
             text: `${message}`,
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });

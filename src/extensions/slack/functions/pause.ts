@@ -49,7 +49,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -84,7 +84,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -126,7 +126,7 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
 
         informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -167,6 +167,6 @@ Slack.command(Commands.START, async ({ ack, body }) => {
             minutes: updatedSession.time - updatedSession.elapsed
         }), body.channel_id);
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });

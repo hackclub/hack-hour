@@ -266,7 +266,7 @@ export async function reactOnContent(data: {
             }
         }
         catch (error) {
-            emitter.emit('error', error);
+            emitter.emit('error', {error});
         }
     });
 }

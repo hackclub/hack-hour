@@ -85,7 +85,7 @@ emitter.on('minute', async () => {
             }
         }
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -101,7 +101,8 @@ emitter.on('complete', async (session) => {
     console.log(`[${new Date().toISOString()}] 🏁 Session ${session.messageTs} completed by ${session.userId}`);
 });
 
-emitter.on('error', async (error) => {
+emitter.on('error', async (errorRef) => {
+    let error = errorRef.error;
     if (!error) {
         error = {};
     }

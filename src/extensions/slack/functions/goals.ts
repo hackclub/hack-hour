@@ -47,7 +47,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -124,7 +124,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -144,7 +144,7 @@ Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
             view: await Goals.create(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -245,7 +245,7 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -286,7 +286,7 @@ Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
             view: await Goals.delete(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
 
@@ -382,6 +382,6 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', error);
+        emitter.emit('error', {error});
     }
 });
