@@ -38,7 +38,7 @@ export async function updateTopLevel(session: Session) {
         return;
     }
     const blocks = await TopLevel.topLevel(session);
-    console.log("🔥🔥🔥🔥", JSON.stringify(blocks, null, 2))
+
     await Slack.chat.update({
         ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,

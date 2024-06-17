@@ -11,7 +11,7 @@ export class Loading {
             },
             "title": {
                 "type": "plain_text",
-                "text": "Goal Selection",
+                "text": "Loading...",
                 "emoji": true
             },
             blocks: [
