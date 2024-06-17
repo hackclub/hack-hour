@@ -588,7 +588,9 @@ emitter.on('init', async () => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `> _${t('init', {})}_`
+                        "text": `> _${t('init', {
+                            main: Environment.MAIN_CHANNEL
+                        })}_`
                     }
                 },
                 {
@@ -596,7 +598,7 @@ emitter.on('init', async () => {
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": `${new Date().toDateString()}`
+                            "text": `${new Date().toString()} - Release ${releaseVersion}-${buildDesc}`
                         }
                     ]
                 }
@@ -661,7 +663,7 @@ emitter.on('error', async (error) => {
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": `${new Date().toDateString()}`
+                            "text": `${new Date().toString()}`
                         }
                     ]
                 }

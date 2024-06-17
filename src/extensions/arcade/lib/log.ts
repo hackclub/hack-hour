@@ -18,7 +18,7 @@ export async function log(message: string) {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": `${new Date().toDateString()}`
+                        "text": `${new Date().toString()}`
                     }
                 ]
             }

@@ -43,7 +43,7 @@ express.post("/scrapbook/post", async (req, res) => {
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": `${new Date().toDateString()} - view thread to see post body :eyes:`
+                            "text": `${new Date().toString()} - view thread to see post body :eyes:`
                         }
                     ]
                 }

@@ -109,7 +109,7 @@ export class ChooseSessions {
                         options: sessions.map((session) => ({
                             text: {
                                 type: "plain_text",
-                                text: `${session.metadata.work} - ${session.createdAt.toDateString()}`,
+                                text: `${session.metadata.work} - ${session.createdAt.toString()}`,
                                 emoji: true,
                             },
                             value: session.id,
