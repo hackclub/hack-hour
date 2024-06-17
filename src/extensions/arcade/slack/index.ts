@@ -68,10 +68,11 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
+
     await app.client.views.update({
         view_id: view.view?.id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    });
+    }).catch((err) => console.log(err));
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
