@@ -386,24 +386,26 @@ emitter.on('sessionUpdate', async (update: {
         }
 
         // Check if the message exists
-        const message = await app.client.conversations.history({
-            channel: Environment.MAIN_CHANNEL,
-            latest: session.messageTs,
-            limit: 1
-        });
+        // if (updateSlack) {
+        //     const message = await app.client.conversations.history({
+        //         channel: Environment.MAIN_CHANNEL,
+        //         latest: session.messageTs,
+        //         limit: 1
+        //     });
 
-        if (message.messages == undefined || message.messages.length == 0) {
-            console.log(`❌ Session ${session.messageTs} does not exist`);
+        //     if (message.messages == undefined || message.messages.length == 0) {
+        //         console.log(`❌ Session ${session.messageTs} does not exist`);
 
-            // Remove the session
-            await prisma.session.deleteMany({
-                where: {
-                    messageTs: session.messageTs
-                }
-            });
+        //         // Remove the session
+        //         await prisma.session.deleteMany({
+        //             where: {
+        //                 messageTs: session.messageTs
+        //             }
+        //         });
 
-            return;
-        }
+        //         return;
+        //     }
+        // }
 
         if (session.paused) {
             if (updateSlack) {
