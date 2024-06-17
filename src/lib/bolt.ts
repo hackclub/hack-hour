@@ -544,7 +544,7 @@ export const Slack = {
     async slog(message: string) {
         await app.client.chat.postMessage({
             channel: Environment.INTERNAL_CHANNEL,
-            text: message,
+            text: message.slice(0, 3000),
             blocks: [
                 {
                     "type": "section",
