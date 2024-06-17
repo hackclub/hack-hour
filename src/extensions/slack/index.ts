@@ -620,6 +620,34 @@ emitter.on('error', async (error) => {
             token: process.env.SLACK_BOT_TOKEN,
             channel: process.env.LOG_CHANNEL || 'C0P5NE354',
             text: `<!subteam^${process.env.DEV_USERGROUP}> \`${error.message}\`\n\`\`\`${error.stack}\`\`\``,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `<!subteam^${process.env.DEV_USERGROUP}>\n> _Encountered an error: \`${error.message}\`_`
+                    }
+                },
+                {
+                    "type": "divider",
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `\`\`\`${error.stack}\`\`\``
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `${new Date().toDateString()}`
+                        }
+                    ]
+                }
+            ]
         });
     } catch (error) {
         emitter.emit('error', error);

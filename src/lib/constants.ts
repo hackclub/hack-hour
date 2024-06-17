@@ -29,7 +29,6 @@ export const Environment = {
 
   // Arcade Config
   ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
-  ARCADIUS_EXISTING_USER_START: assertEnv('ARCADIUS_EXISTING_USER_START'),
   ARCADIUS_SECRET: assertEnv('ARCADIUS_SECRET'),
   SHOP_URL: assertEnv('SHOP_URL'),
 };

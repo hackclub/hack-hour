@@ -1,6 +1,7 @@
 import { KnownBlock, View } from "@slack/bolt";
 import { Actions, Callbacks } from "../../../lib/constants.js";
 import type { Session } from "@prisma/client";
+import { t } from "../../../lib/templates.js";
 
 export class ChooseSessions {
     public static chooseSessionsButton(scrapbookId: string) {
@@ -9,7 +10,7 @@ export class ChooseSessions {
                 type: "section",
                 text: {
                     type: "plain_text",
-                    text: "Select which sessions should be linked to your scrapbook post!",
+                    text: t('scrapbook.prompt.select_sessions', {}),
                     emoji: true,
                 },
             },
@@ -21,7 +22,7 @@ export class ChooseSessions {
                         type: "button",
                         text: {
                             type: "plain_text",
-                            text: "Choose Sessions",
+                            text: "choose sessions",
                             emoji: true,
                         },
                         value: JSON.stringify({ scrapbookId }),
@@ -39,12 +40,12 @@ export class ChooseSessions {
                 private_metadata: scrapbookId,
                 title: {
                     type: "plain_text" as const,
-                    text: "Choose Sessions",
+                    text: "choose sessions",
                     emoji: true,
                 },
                 close: {
                     type: "plain_text" as const,
-                    text: "Cancel",
+                    text: "cancel",
                     emoji: true,
                 },
                 blocks: [
@@ -52,7 +53,7 @@ export class ChooseSessions {
                         type: "section",
                         text: {
                             type: "plain_text",
-                            text: "No Sessions Found!",
+                            text: t('scrapbook.modal.sessions_not_found', {}),
                             emoji: true,
                         },
                     },
@@ -66,43 +67,43 @@ export class ChooseSessions {
             private_metadata: scrapbookId,
             title: {
                 type: "plain_text" as const,
-                text: "Choose Sessions",
+                text: "choose sessions",
                 emoji: true,
             },
             submit: {
                 type: "plain_text" as const,
-                text: "Submit",
+                text: "submit",
                 emoji: true,
             },
             close: {
                 type: "plain_text" as const,
-                text: "Cancel",
+                text: "cancel",
                 emoji: true,
             },
             blocks: [
-                {
-                    type: "section",
-                    text: {
-                        type: "plain_text",
-                        text: "Choose one or more sessions that are associated with your scrapbook post!",
-                        emoji: true,
-                    },
-                },
-                {
-                    type: "divider",
-                },
+                // {
+                //     type: "section",
+                //     text: {
+                //         type: "plain_text",
+                //         text: t('scrapbook.modal.select_sessions', {}),
+                //         emoji: true,
+                //     },
+                // },
+                // {
+                //     type: "divider",
+                // },
                 {
                     type: "section",
                     block_id: "sessions",
                     text: {
                         type: "mrkdwn",
-                        text: "Select which sessions should be linked to your scrapbook post!",
+                        text: t('scrapbook.modal.select_sessions', {}),
                     },
                     accessory: {
                         type: "multi_static_select",
                         placeholder: {
                             type: "plain_text",
-                            text: "Select sessions to link",
+                            text: "select sessions to link",
                             emoji: true,
                         },
                         options: sessions.map((session) => ({
@@ -126,7 +127,7 @@ export class ChooseSessions {
                 type: "section",
                 text: {
                     type: "plain_text",
-                    text: "Sweet! Your hours are now banked!",
+                    text: t('scrapbook.prompt.complete', {}),
                     emoji: true,
                 },
             },
@@ -143,6 +144,4 @@ export class ChooseSessions {
     }
 }
 
-export class Walkthrough {
-    
-}
+export class Walkthrough {}

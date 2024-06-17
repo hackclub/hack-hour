@@ -153,3 +153,16 @@ firstTime:
 
     complete:
       - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
+
+scrapbook:
+  prompt:
+    select_sessions:
+      - 'select the sessions that are part of your scrapbook!'
+    complete:
+      - 'wow wow, great job!'
+
+  modal:
+    select_sessions:
+      - "choose one or more sessions that are associated with your scrapbook post!"
+    sessions_not_found:
+      - "oh no! i couldn't find any sessions for you!"

@@ -73,13 +73,20 @@ export const Slack = {
                     channel: Environment.INTERNAL_CHANNEL,
                     blocks: [
                         {
-                        type: "context",
-                        elements: [
-                            {
-                            type: "mrkdwn",
-                            text: `${command} ${event.text}`,
-                            },
-                        ],
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": `> _<@${event.user_id}> ran \`${command} ${event.text}\`_`
+                            }
+                        },
+                        {
+                            type: "context",
+                            elements: [
+                                {
+                                    type: "mrkdwn",
+                                    text: `${command} - ran in <#${event.channel_id}>`,
+                                },
+                            ],
                         },
                     ]
                 })
@@ -98,22 +105,40 @@ export const Slack = {
 
     async action(actionId: string | RegExp, ...listeners: Middleware<SlackActionMiddlewareArgs<SlackAction>, StringIndexed>[]) {
         app.action(actionId, async (payload) => {
-            const { action, ack, respond } = payload;
-    
+            const { action, body, ack, respond } = payload;
+
             try {
                 await app.client.chat.postMessage({
                     channel: Environment.INTERNAL_CHANNEL,
                     blocks: [
                         {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": `> _<@${(action as any)?.user?.id}> used ${action.type} ${actionId}_`
+                            }
+                        },
+                        {
                             type: "context",
                             elements: [
                                 {
                                 type: "mrkdwn",
-                                text: `${actionId} ${action.type}`,
+                                text: `${actionId} - ran in <#${body.channel?.id}>`,
                                 },
                             ],
                         },
-                    ]
+                    ]                    
+                    // blocks: [
+                    //     {
+                    //         type: "context",
+                    //         elements: [
+                    //             {
+                    //             type: "mrkdwn",
+                    //             text: `${actionId} ${action.type}`,
+                    //             },
+                    //         ],
+                    //     },
+                    // ]
                 })
 
                 listeners.forEach((listener) => listener(payload));
@@ -132,25 +157,43 @@ export const Slack = {
     async view(callbackId: string | RegExp, ...listeners: Middleware<SlackViewMiddlewareArgs<SlackViewAction>, StringIndexed>[]) {
         app.view(callbackId, async (payload) => {
             const { body, view } = payload;
-    
+
             try {
                 await app.client.chat.postMessage({
                     channel: Environment.INTERNAL_CHANNEL,
                     blocks: [
                         {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": `> _<@${body?.user?.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view ${callbackId}_`
+                            }
+                        },
+                        {
                             type: "context",
                             elements: [
                                 {
                                 type: "mrkdwn",
-                                text: `${callbackId} ${view.callback_id}`,
+                                text: `${callbackId}`,
                                 },
                             ],
                         },
-                    ]
+                    ]                                     
+                    // blocks: [
+                    //     {
+                    //         type: "context",
+                    //         elements: [
+                    //             {
+                    //             type: "mrkdwn",
+                    //             text: `${callbackId} ${view.callback_id}`,
+                    //             },
+                    //         ],
+                    //     },
+                    // ]
                 })
 
                 listeners.forEach((listener) => listener(payload));
-            } catch(error) {
+            } catch (error) {
                 emitter.emit('error', error);
 
                 await app.client.chat.postEphemeral({

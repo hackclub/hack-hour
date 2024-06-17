@@ -50,7 +50,12 @@ type Template =
 
     'firstTime.popup.footer' |
     'firstTime.popup.placeholder' |
-    'firstTime.popup.header' 
+    'firstTime.popup.header' |
+
+    'scrapbook.prompt.select_sessions' |
+    'scrapbook.prompt.complete' |
+    'scrapbook.modal.select_sessions' |
+    'scrapbook.modal.sessions_not_found'
     ;
 
 interface Data {

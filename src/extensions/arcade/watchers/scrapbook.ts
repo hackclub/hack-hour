@@ -6,16 +6,19 @@ import { ChooseSessions } from "../slack/view.js";
 import { log } from "../lib/log.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
+import { t } from "../../../lib/templates.js";
 
 // {
-//     messageText: 'another test',
-//     postTime: '2024-06-12T13:33:04.000Z',
-//     attachments: [
-//       'https://scrapbook-into-the-redwoods.s3.amazonaws.com/b38ad624-7897-47b7-9cb8-3e9aee60247e-image.png'
+//     "messageText": "wait wait",
+//     "postTime": "1718625301.339709",
+//     "attachments": [
+//         "https://scrapbook-into-the-redwoods.s3.amazonaws.com/b4c10aee-e734-4b7c-ba9e-c384a177b682-img_3780.jpg"
 //     ],
-//     userName: 'Josias',
-//     channel: 'C063RPGKRL2',
-//     slackId: `U063RPGKRL2`
+//     "user": {
+//         "slackID": "U04QD71QWS0",
+//         "name": "manitej"
+//     },
+//     "channel": "C063RPGKRL2"
 // }
 
 express.post("/scrapbook/post", async (req, res) => {
@@ -76,7 +79,7 @@ express.post("/scrapbook/post", async (req, res) => {
         if (!flowMsg.ts) {
             await app.client.chat.postMessage({
                 channel: slackId,
-                text: "Something went wrong!\n`Error: Unable to send a message to the user.`",
+                text: t(`error.generic`, {}),
             });
             throw new Error("No ts found for flow message");
         }
@@ -105,7 +108,7 @@ express.post("/scrapbook/post", async (req, res) => {
         await app.client.chat.update({
             channel: flowMsg.channel!,
             ts: flowMsg.ts,
-            text: "Select which sessions should be linked to your scrapbook post.",
+            text: t('scrapbook.prompt.select_sessions', {}),
             blocks: ChooseSessions.chooseSessionsButton(scrapbook.internalId),
         });
 
