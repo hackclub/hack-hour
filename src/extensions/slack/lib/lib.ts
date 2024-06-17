@@ -37,11 +37,12 @@ export async function updateTopLevel(session: Session) {
     if (!session.metadata) {
         return;
     }
-
+    const blocks = await TopLevel.topLevel(session);
+    console.log("🔥🔥🔥🔥", blocks)
     await Slack.chat.update({
         ts: session.messageTs,
         channel: Environment.MAIN_CHANNEL,
-        blocks: await TopLevel.topLevel(session),
+        blocks: blocks,
         text: `${(session.metadata as any).work}` // TODO: Replace with accessibility friendly text
     });
 }
