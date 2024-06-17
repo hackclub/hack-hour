@@ -6,20 +6,25 @@ import { Loading } from "../../slack/views/loading.js";
 import { AirtableAPI } from "../lib/airtable.js";
 
 app.command(Commands.SHOP, async ({ command, ack }) => {
-    const airtableUser = await AirtableAPI.User.lookupBySlack(command.user_id);
-
-    if (!airtableUser) {
-        await ack();
-        informUser(command.user_id, t('error.first_time', {}), command.channel_id);
-        return;
-    }
-
     await ack();
 
     const view = await app.client.views.open({
         trigger_id: command.trigger_id,
         view: await Loading.loading()
     });
+
+    const airtableUser = await AirtableAPI.User.lookupBySlack(command.user_id);
+
+    if (!airtableUser) {
+        // await ack();
+        // informUser(command.user_id, t('error.first_time', {}), command.channel_id);
+        await app.client.views.update({
+            view_id: view.view?.id,
+            view: Loading.error(t('error.first_time', {}))
+        });
+
+        return;
+    }
 
     const blocks = [];
 
@@ -65,7 +70,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
             "block_id": "actions",
         });
 
-    app.client.views.update({
+    await app.client.views.update({
         view_id: view.view?.id,
         "view": {
             "type": "modal",
