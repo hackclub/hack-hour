@@ -36,7 +36,7 @@ export const Environment = {
 
 // Constants
 export const Constants = {
-  MIN_MS: 10 * 1000,
+  MIN_MS: 60 * 1000,
 //  MIN_MS: 1 * 1000,
   HOUR_MS: 60 * 60 * 1000,
 

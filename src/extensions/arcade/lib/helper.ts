@@ -3,6 +3,7 @@ import { app } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { updateTopLevel } from "../../slack/lib/lib.js";
+import { randomChoice } from "../../../lib/templates.js";
 
 export const fetchEvidence = async (messageTs: string, slackId: string) => {
     // Check if the user posted anything in the thread
@@ -33,7 +34,7 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
 
     if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
 
-    const image = evidence.messages.find(message => message.user === slackId && (message.files ? message.files.length > 0 : false))
+    const image = (evidence.messages.filter(message => message.user === slackId && (message.files ? message.files.length > 0 : false))).at(-1);
 
     // attach the evidence to the session
     if (image?.files && image.files.length > 0) {
@@ -43,7 +44,8 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
-        session.metadata.slack.attachment = image.files.at(-1)?.thumb_480;
+        console.log(image.files[0]);
+        session.metadata.slack.attachment = image.files[0]?.thumb_480;
 
         const updatedSession = await prisma.session.update({
             where: {
@@ -54,7 +56,7 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
-        console.log(`woah, pretty picture! ${image.files.at(-1)?.thumb_480}`)
+        console.log(`woah, pretty picture! ${image.files[0]?.thumb_480}`)
 
         await updateTopLevel(updatedSession);
     }

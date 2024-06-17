@@ -75,7 +75,7 @@ export class Controller {
                                 "type": "button",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": "click click",
+                                    "text": "continue...",
                                     "emoji": true
                                 },
                                 "action_id": Actions.TUTORIAL_ADVANCE
