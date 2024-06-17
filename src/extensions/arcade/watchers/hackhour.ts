@@ -20,7 +20,7 @@ const findOrCreateUser = async (userId: string) => {
                 slackUser: true
             }
         });
-
+        console.log({user})
         if (!user.slackUser) { throw new Error(`Slack user not found for ${user.id}`); }
 
         if (!user.metadata.airtable) {
@@ -434,6 +434,8 @@ emitter.on('start', async (session: Session) => {
                 }
             }
         });
+
+        await findOrCreateUser(user.id);
 
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
