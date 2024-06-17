@@ -18,6 +18,28 @@ express.post('/airtable/session/update', async (req, res) => {
 
         console.log(`Received session ${record} from Airtable`);
 
+        const logData = await app.client.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `> _oh haii scrappy!_ :scrappy:`
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `view thread to see post body :eyes:\n${new Date().toString()}`
+                        }
+                    ]
+                }
+            ]
+        });
+
         const session = await prisma.session.findFirstOrThrow({
             where: {
                 metadata: {
@@ -74,6 +96,34 @@ express.post('/airtable/session/update', async (req, res) => {
                 slackId: true
             }
         });
+
+        const permalink = await app.client.chat.getPermalink({
+            channel: Environment.MAIN_CHANNEL,
+            message_ts: session.messageTs
+        });
+
+        await app.client.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            thread_ts: logData.ts!,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\``
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `<${permalink.permalink}|session> of <@${slackUser.slackId}>`
+                        }
+                    ]
+                }
+            ]
+        });        
 
         // Send a message in that thread saying it was updated
         if (session.metadata.airtable!.status === "Approved") {

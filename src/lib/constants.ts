@@ -27,6 +27,8 @@ export const Environment = {
   PROD: (process.env.PROD === 'true'),
   ARCADE: (process.env.ARCADE === 'true'),
 
+  MAINTAINANCE_MODE: (process.env.MAINTAINANCE_MODE === 'true'),
+
   // Arcade Config
   ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
   ARCADIUS_SECRET: assertEnv('ARCADIUS_SECRET'),

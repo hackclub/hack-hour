@@ -36,6 +36,23 @@ app.error(async (error) => {
     }
 });
 
+// while working on the bot, only allow the dev team to use the bot
+const approvedUsers = [
+    'U0C7B14Q3',
+    'U04QD71QWS0',
+    'UDK5M9Y13',
+    'U078MRX71TJ',
+    'U0777CCQQCF',
+    'U05NX48GL3T',
+    'U078ACL01S7',
+    'U078ZCAHCNL',
+    'U078ZDVC7CY',
+    'U078D5YH5NG',
+    'U0787QYQM53',
+    'U078BK769BL',
+    'U077XBJ3YPR',
+]
+
 export const Slack = {
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
         app.command(command, async (payload) => {
@@ -43,30 +60,13 @@ export const Slack = {
     
             await ack();
 
-            // while working on the bot, only allow the dev team to use the bot
-            // const approvedUsers = [
-            //     'U0C7B14Q3',
-            //     'U04QD71QWS0',
-            //     'UDK5M9Y13',
-            //     'U078MRX71TJ',
-            //     'U0777CCQQCF',
-            //     'U05NX48GL3T',
-            //     'U078ACL01S7',
-            //     'U078ZCAHCNL',
-            //     'U078ZDVC7CY',
-            //     'U078D5YH5NG',
-            //     'U0787QYQM53',
-            //     'U078BK769BL',
-            //     'U077XBJ3YPR',
-            // ]
-
             const user = await app.client.users.info({
                 user: event.user_id
             });
 
-            // if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
-            //     return respond(t('maintanenceMode', {}))
-            // }
+            if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                return respond(t('maintanenceMode', {}))
+            }
 
             try {
                 await app.client.chat.postMessage({
@@ -107,6 +107,14 @@ export const Slack = {
         app.action(actionId, async (payload) => {
             const { action, body, ack, respond } = payload;
 
+            const user = await app.client.users.info({
+                user: body.user.id
+            });
+
+            if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                return respond(t('maintanenceMode', {}))
+            }
+
             try {
                 await app.client.chat.postMessage({
                     channel: Environment.INTERNAL_CHANNEL,
@@ -115,7 +123,7 @@ export const Slack = {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `> _<@${(action as any)?.user?.id}> used ${action.type} ${actionId}_`
+                                "text": `> _<@${body.user.id}> used ${action.type} "${actionId}"_`
                             }
                         },
                         {
