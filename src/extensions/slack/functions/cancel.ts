@@ -19,7 +19,7 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
 
         const thread_ts = (body as any).message.thread_ts;
 
-        await app.client.views.open({
+        await Slack.views.open({
             trigger_id: (body as any).trigger_id,
             view: await Cancel.cancel(thread_ts)
         });

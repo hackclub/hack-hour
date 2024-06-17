@@ -1,6 +1,6 @@
-import { express } from "../../../lib/bolt.js";
+import { express, Slack } from "../../../lib/bolt.js";
 import { prisma, uid } from "../../../lib/prisma.js";
-import { AirtableAPI } from "../lib/airtable.js";
+import { AirtableAPI } from "../../../lib/airtable.js";
 import { app } from "../../../lib/bolt.js";
 import { ChooseSessions } from "../slack/view.js";
 import { log } from "../lib/log.js";
@@ -55,10 +55,12 @@ express.post("/scrapbook/post", async (req, res) => {
         const attachments: string[] = req.body.attachments;
         const channel: string = req.body.channel;
 
-        const scrapbookUrl = await app.client.chat.getPermalink({
+        const scrapbookUrl = await Slack.chat.getPermalink({
             channel,
             message_ts: postTime,
         });
+
+        if (!scrapbookUrl || !scrapbookUrl.permalink) { throw new Error(`No permalink found for ${postTime}`); }
 
         await app.client.chat.postMessage({
             channel: Environment.INTERNAL_CHANNEL,
@@ -113,13 +115,13 @@ express.post("/scrapbook/post", async (req, res) => {
             Text: req.body.messageText
         });
 
-        const flowMsg = await app.client.chat.postMessage({
+        const flowMsg = await Slack.chat.postMessage({
             channel: slackId,
             text: "Initializing... :spin-loading:",
         });
 
-        if (!flowMsg.ts) {
-            await app.client.chat.postMessage({
+        if (!flowMsg || !flowMsg.ts) {
+            await Slack.chat.postMessage({
                 channel: slackId,
                 text: t(`error.generic`, {}),
             });

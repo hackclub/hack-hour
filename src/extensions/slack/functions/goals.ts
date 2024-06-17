@@ -15,7 +15,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id
         
-        const view = await client.views.open({
+        const view = await Slack.views.open({
             trigger_id: trigger_id,
             view: Loading.loading()
         });
@@ -45,7 +45,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
 
             // informUser(slackId, t('error.not_yours', {}), body.channel.id, (body as any).message.ts);
             await client.views.update({
-                view_id: view.view?.id,
+                view_id: view?.view?.id,
                 view: Loading.error(t('error.not_yours', {}))
             });
 
@@ -57,7 +57,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         //     view: await Goals.main(session.id)
         // });
         await client.views.update({
-            view_id: view.view?.id,
+            view_id: view?.view?.id,
             view: await Goals.main(session.id)
         });
     } catch (error) {

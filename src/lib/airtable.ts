@@ -4,7 +4,7 @@ dotenv.config();
 // A typed wrapper over airtable API
 
 import Airtable from "airtable";
-import { emitter } from '../../../lib/emitter.js';
+import { emitter } from './emitter.js';
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -25,6 +25,8 @@ type AirtableUserWrite = {
     "Slack ID": string,
     "Initial Banked Minutes"?: number,
     "Inital Order Refunded Minutes"?: number,
+
+    "/shop"? : string,
 };
 
 /*
@@ -54,6 +56,7 @@ type AirtableUserRead = {
     "Spent (Incl. Pending)": number,
     "Balance (Minutes)": number,
     "dmChannel": string,
+    "Minutes (Pending Approval)": number
     // "Preexisting": boolean,
 };
 

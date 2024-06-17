@@ -2,7 +2,7 @@ import { Slack, app, approvedUsers } from "../../../lib/bolt.js";
 import { Actions, Callbacks, Commands, Constants } from "../../../lib/constants.js";
 import { ChooseSessions } from "./view.js";
 import { prisma } from "../../../lib/prisma.js";
-import { AirtableAPI } from "../lib/airtable.js";
+import { AirtableAPI } from "../../../lib/airtable.js";
 import { log } from "../lib/log.js";
 import { pfps } from "../../../lib/templates.js";
 import { Hack } from "../../slack/views/hack.js";
@@ -16,7 +16,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     if (body.type !== "block_actions") return;
 
-    const view = await app.client.views.open({         
+    const view = await Slack.views.open({         
         trigger_id: body.trigger_id,         
         view: Loading.loading()     
     }); 
@@ -70,8 +70,8 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
 
-    await app.client.views.update({
-        view_id: view.view?.id,
+    await Slack.views.update({
+        view_id: view?.view?.id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
     }).catch((err) => console.log(err));
 } catch (error) {
@@ -95,7 +95,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         );
 
     if (!selectedSessionIds) {
-        await app.client.chat.postEphemeral({
+        await Slack.chat.postEphemeral({
             user: body.user.id,
             channel: body.user.id,
             text: "No sessions selected. Please try again.",
@@ -141,14 +141,14 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         bankedSessions++;
     }
 
-    await app.client.chat.update({
+    await Slack.chat.update({
         channel: scrapbook.flowChannel,
         ts: scrapbook.flowTs,
         text: "🎉 Sessions linked!",
         blocks: ChooseSessions.completedSessions(selectedSessions),
     });
 
-    await app.client.chat.postMessage({
+    await Slack.chat.postMessage({
         channel: scrapbook.flowChannel,
         text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
             } been marked as banked.`,

@@ -17,7 +17,7 @@ import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
-import { AirtableAPI } from "../arcade/lib/airtable.js";
+import { AirtableAPI } from "../../lib/airtable.js";
 
 /*
 Session Creation

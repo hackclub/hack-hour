@@ -1,5 +1,5 @@
-import { app, express } from "../../../lib/bolt.js";
-import { AirtableAPI } from "../lib/airtable.js";
+import { app, express, Slack } from "../../../lib/bolt.js";
+import { AirtableAPI } from "../../../lib/airtable.js";
 import { prisma } from "../../../lib/prisma.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
@@ -97,10 +97,12 @@ express.post('/airtable/session/update', async (req, res) => {
             }
         });
 
-        const permalink = await app.client.chat.getPermalink({
+        const permalink = await Slack.chat.getPermalink({
             channel: Environment.MAIN_CHANNEL,
             message_ts: session.messageTs
         });
+
+        if (!permalink || !permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
 
         await app.client.chat.postMessage({
             channel: Environment.INTERNAL_CHANNEL,
@@ -127,7 +129,7 @@ express.post('/airtable/session/update', async (req, res) => {
 
         // Send a message in that thread saying it was updated
         if (session.metadata.airtable!.status === "Approved") {
-            await app.client.chat.postMessage({
+            await Slack.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
                 text: t('airtable.approved', {
@@ -135,7 +137,7 @@ express.post('/airtable/session/update', async (req, res) => {
                 })
             });
         } else if (session.metadata.airtable!.status === "Rejected") {
-            await app.client.chat.postMessage({
+            await Slack.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
                 text: t('airtable.rejected', {

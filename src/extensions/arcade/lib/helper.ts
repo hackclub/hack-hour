@@ -1,5 +1,5 @@
 import getUrls from "get-urls";
-import { app } from "../../../lib/bolt.js";
+import { app, Slack } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { updateTopLevel } from "../../slack/lib/lib.js";
@@ -7,12 +7,12 @@ import { randomChoice } from "../../../lib/templates.js";
 
 export const fetchEvidence = async (messageTs: string, slackId: string) => {
     // Check if the user posted anything in the thread
-    const evidence = await app.client.conversations.replies({
+    const evidence = await Slack.conversations.replies({
         channel: Environment.MAIN_CHANNEL,
         ts: messageTs
     });
 
-    if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
+    if (!evidence || !evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
 
     const activity = evidence.messages.filter(message => message.user === slackId).length > 0;
 
@@ -27,12 +27,12 @@ export const fetchEvidence = async (messageTs: string, slackId: string) => {
 
 // Take any media sent in the thread and attach it to the session
 export const surfaceEvidence = async (messageTs: string, slackId: string) => {
-    const evidence = await app.client.conversations.replies({
+    const evidence = await Slack.conversations.replies({
         channel: Environment.MAIN_CHANNEL,
         ts: messageTs
     });
 
-    if (!evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
+    if (!evidence || !evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
 
     const image = (evidence.messages.filter(message => message.user === slackId && (message.files ? message.files.length > 0 : false))).at(-1);
 

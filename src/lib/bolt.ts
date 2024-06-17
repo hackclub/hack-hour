@@ -4,10 +4,11 @@ import bodyParser from 'body-parser';
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
 import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
-import { Environment } from './constants.js';
+import { Commands, Environment } from './constants.js';
 import { emitter } from './emitter.js';
 import { assertVal } from './assert.js';
 import { t } from './templates.js';
+import { AirtableAPI } from './airtable.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -54,6 +55,10 @@ export const approvedUsers = [
     'U077XBJ3YPR',
 ]
 
+export const recordCommands = [
+    Commands.SHOP,
+]
+
 export const Slack = {
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
         app.command(command, async (payload) => {
@@ -66,12 +71,24 @@ export const Slack = {
     
             await ack();
 
-            const user = await app.client.users.info({
-                user: event.user_id
-            });
+            if (Environment.MAINTAINANCE_MODE) {
+                const user = await app.client.users.info({
+                    user: event.user_id
+                });
 
-            if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
-                return respond(t('maintanenceMode', {}))
+                if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
+                    return respond(t('maintanenceMode', {}))
+                }
+            }
+
+            if (recordCommands.includes(command)) {
+                const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
+
+                if (airtableUser) {
+                    await AirtableAPI.User.update(airtableUser.id, {
+                        [command]: true
+                    });
+                }
             }
 
             try {
@@ -116,7 +133,12 @@ export const Slack = {
 
     async action(actionId: string | RegExp, ...listeners: Middleware<SlackActionMiddlewareArgs<SlackAction>, StringIndexed>[]) {
         app.action(actionId, async (payload) => {
+            const now = new Date();
+            let verb = ""
+
             const { action, body, ack, respond } = payload;
+
+            console.log(`[${now.toISOString()}] <@${body.user.id}> used ${action.type} "${actionId}"`)
 
             const user = await app.client.users.info({
                 user: body.user.id
@@ -160,22 +182,38 @@ export const Slack = {
                     // ]
                 })
 
-                listeners.forEach((listener) => listener(payload));
+                verb = "succeeded"
+                listeners.forEach((listener) => { 
+                    try {
+                        listener(payload) 
+                    } catch (error) {
+                        verb = "failed"
+                        emitter.emit('error', {error});
+                    }
+                });
             } catch(error) {
+                verb = "failed"
                 emitter.emit('error', {error});
-
  /*               await app.client.chat.postEphemeral({
                     channel: action.channel.id,
                     user: action.user.id,
                     text: `An error occurred while processing your action!`
                 });*/
             }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
         })
     },
 
     async view(callbackId: string | RegExp, ...listeners: Middleware<SlackViewMiddlewareArgs<SlackViewAction>, StringIndexed>[]) {
         app.view(callbackId, async (payload) => {
+            const now = new Date();
+            let verb = "";
+
             const { body, view } = payload;
+
+            console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
 
             try {
                 await app.client.chat.postMessage({
@@ -211,8 +249,17 @@ export const Slack = {
                     // ]
                 })
 
-                listeners.forEach((listener) => listener(payload));
+                verb = "succeeded"
+                listeners.forEach((listener) => {
+                    try {
+                        listener(payload)
+                    } catch (error) {
+                        verb = "failed"
+                        emitter.emit('error', {error});
+                    }
+                });                
             } catch (error) {
+                verb = "failed"
                 emitter.emit('error', {error});
 
                 await app.client.chat.postEphemeral({
@@ -221,12 +268,17 @@ export const Slack = {
                     text: `An error occurred while processing your view!`
                 });
             }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)            
         })
     },
 
     chat: {
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             try {
+                const now = new Date();
+
                 if (options?.blocks) {
                     await app.client.chat.postMessage({
                         channel: Environment.INTERNAL_CHANNEL,
@@ -258,18 +310,25 @@ export const Slack = {
                     });
                 }
 
-                return assertVal(await app.client.chat.postMessage(options));
+                const result = assertVal(await app.client.chat.postMessage(options));
+
+                const duration = new Date().getTime() - now.getTime();
+                console.log(`[${now.toISOString()}] posted message after ${duration}ms`)
+
+                return result;
             } catch (error) {
                 emitter.emit('error', {error});
             }
         },
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
-            try {
+            try {                
                 // await app.client.chat.postMessage({
                 //     ...options,
                 //     channel: Environment.INTERNAL_CHANNEL
                 // });                
+                const now = new Date();
+
                 if (options?.blocks) {
                     await app.client.chat.postMessage({
                         channel: Environment.INTERNAL_CHANNEL,
@@ -301,9 +360,17 @@ export const Slack = {
                     });
                 }
 
-                return assertVal(await app.client.chat.postEphemeral(options));
+                const result = assertVal(await app.client.chat.postEphemeral(options));
+
+                const duration = new Date().getTime() - now.getTime();
+                console.log(`[${now.toISOString()}] posted ephemeral after ${duration}ms`)
+
+                return result;
             } catch (error: any) {
                 emitter.emit('error', {error});
+
+                console.log(`[${new Date().toISOString()}] failed to post message`)                
+
                 if (options) {
                     await app.client.chat.postMessage({
                         user: options.user,
@@ -320,6 +387,10 @@ export const Slack = {
                 //     text: `Updating message ${options.channel} ${options.ts}`,
                 //     channel: Environment.INTERNAL_CHANNEL
                 // });
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] updating message`)
+
                 if (options?.blocks) {
                     await app.client.chat.postMessage({
                         channel: Environment.INTERNAL_CHANNEL,
@@ -351,7 +422,69 @@ export const Slack = {
                     });
                 }
 
-                return assertVal(await app.client.chat.update(options));
+                const result = assertVal(await app.client.chat.update(options));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] updated message in ${diff}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', {error});
+            }
+        },
+
+        async getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
+            try {
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] getting permalink`)
+
+                const result = assertVal(await app.client.chat.getPermalink(options));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] got permalink in ${diff}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', {error});
+            }
+        }        
+    },
+
+    views: {
+        async open(options: Parameters<typeof app.client.views.open>[0]) {
+            try {
+                const now = new Date();
+
+                if (!options) { throw new Error('No options provided!') }
+
+                console.log(`[${now.toISOString()}] <@${options.trigger_id}> opened view "${options.view.callback_id}"`)
+
+                const result = await app.client.views.open(options);
+
+                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', {error});
+            }
+        },
+
+        async update(options: Parameters<typeof app.client.views.update>[0]) {
+            try {
+                const now = new Date();
+
+                if (!options) { throw new Error('No options provided!') }
+
+                console.log(`[${now.toISOString()}] <@${options.trigger_id}> updated view "${options.view.callback_id}"`)
+
+                const result = await app.client.views.update(options);
+
+                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+
+                return result;
             } catch (error) {
                 emitter.emit('error', {error});
             }
@@ -361,11 +494,37 @@ export const Slack = {
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
             try {
-                // await app.client.chat.postMessage({
-                //     text: `Adding reaction to message ${options.channel} ${options.timestamp}`,
-                //     channel: Environment.INTERNAL_CHANNEL
-                // });
-                return assertVal(await app.client.reactions.add(options));
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] adding reaction`);
+
+                const result = assertVal(await app.client.reactions.add(options));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] added reaction in ${diff}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', {error});
+            }
+        }
+    },
+
+    conversations: {
+        async replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
+            try {
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] fetching replies`);
+
+                const result = assertVal(await app.client.conversations.replies(options));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] fetched replies in ${diff}ms`)
+
+                return result;
             } catch (error) {
                 emitter.emit('error', {error});
             }

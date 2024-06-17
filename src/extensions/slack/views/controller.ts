@@ -2,7 +2,7 @@ import { Session } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js"
 import { t, formatHour, t_format, templates } from "../../../lib/templates.js";
 import { Constants, Actions, Environment } from "../../../lib/constants.js";
-import { app } from "../../../lib/bolt.js";
+import { app, Slack } from "../../../lib/bolt.js";
 import { Button, KnownBlock } from "@slack/bolt";
 
 export class Controller {
@@ -245,7 +245,7 @@ export class Controller {
             info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
         }
 
-        const permalink = await app.client.chat.getPermalink({
+        const permalink = await Slack.chat.getPermalink({
             channel: Environment.MAIN_CHANNEL,
             message_ts: session.controlTs
         });

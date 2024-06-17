@@ -1,14 +1,14 @@
-import { app } from "../../../lib/bolt.js";
+import { app, Slack } from "../../../lib/bolt.js";
 import { Actions, Commands, Environment } from "../../../lib/constants.js";
 import { t } from "../../../lib/templates.js";
 import { informUser } from "../../slack/lib/lib.js";
 import { Loading } from "../../slack/views/loading.js";
-import { AirtableAPI } from "../lib/airtable.js";
+import { AirtableAPI } from "../../../lib/airtable.js";
 
 app.command(Commands.SHOP, async ({ command, ack }) => {
     await ack();
 
-    const view = await app.client.views.open({
+    const view = await Slack.views.open({
         trigger_id: command.trigger_id,
         view: Loading.loading()
     });
@@ -18,8 +18,8 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
     if (!airtableUser) {
         // await ack();
         // informUser(command.user_id, t('error.first_time', {}), command.channel_id);
-        await app.client.views.update({
-            view_id: view.view?.id,
+        await Slack.views.update({
+            view_id: view?.view?.id,
             view: Loading.error(t('error.first_time', {}))
         });
 
@@ -29,12 +29,13 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
     const blocks = [];
 
     const remaining = Math.floor(airtableUser.fields["Balance (Minutes)"] / 60);
+    const pending = Math.floor(airtableUser.fields["Minutes (Pending Approval)"] / 60);
 
     blocks.push({
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": `Available to spend: ${remaining} :zap:`
+            "text": `Available to spend: ${remaining} :tw_admission_tickets:  _(Pending Approval: ${pending})_`
         }
     });
 
@@ -43,7 +44,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `Total banked hours: ${Math.floor(airtableUser.fields["Minutes (Banked)"] / 60)} :zap:`
+                "text": `Total banked hours: ${Math.floor(airtableUser.fields["Minutes (Banked)"] / 60)} :tw_admission_tickets: `
             }
         });
     }
@@ -70,8 +71,8 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
             "block_id": "actions",
         });
 
-    await app.client.views.update({
-        view_id: view.view?.id,
+    await Slack.views.update({
+        view_id: view?.view?.id,
         "view": {
             "type": "modal",
             "title": {

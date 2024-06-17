@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma.js";
 import { Session, User } from "@prisma/client";
-import { AirtableAPI } from "../lib/airtable.js";
+import { AirtableAPI } from "../../../lib/airtable.js";
 import { app, Slack } from "../../../lib/bolt.js";
 import { Constants, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
@@ -110,16 +110,16 @@ const registerSession = async (session: Session) => {
 
         const { activity, evidenced } = await fetchEvidence(session.messageTs, user.slackUser!.slackId);
 
-        const permalink = await app.client.chat.getPermalink({
+        const permalink = await Slack.chat.getPermalink({
             channel: Environment.MAIN_CHANNEL,
             message_ts: session.messageTs
         });
 
-        if (!permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
+        if (!permalink || !permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
 
         // Create a new session
         const { id: sid, fields: sfields } = await AirtableAPI.Session.create({
-            "Code URL": permalink.permalink,
+            "Code URL": permalink?.permalink,
             "Session ID": session.id,
             "Message TS": session.messageTs,
             "Control TS": session.controlTs,
@@ -162,7 +162,7 @@ const registerSession = async (session: Session) => {
         if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
         if (airtableUser.fields['Minutes (Approved)'] < Constants.PROMOTION_THRESH && !evidenced && !session.metadata.firstTime) {
-            await app.client.chat.postMessage({
+            await Slack.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 user: user.slackUser!.slackId,
                 text: t('evidence_reminder', {
@@ -214,7 +214,7 @@ app.event("message", async ({ event }) => {
                 // Use this as an alternative flow - the user is learning how hack hour works
                 const airtableUser = await AirtableAPI.User.find(session.user.metadata.airtable.id);
 
-                await app.client.chat.postMessage({
+                await Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     thread_ts: session.messageTs,
                     blocks: [
@@ -262,10 +262,10 @@ app.event("message", async ({ event }) => {
             const airtableSession = await AirtableAPI.Session.find(session.metadata.airtable.id);
  
             if (!airtableSession) {
-                const permalink = (await app.client.chat.getPermalink({
+                const permalink = (await Slack.chat.getPermalink({
                     channel: Environment.MAIN_CHANNEL,
                     message_ts: session.messageTs
-                })).permalink;
+                }))?.permalink;
 
                 console.log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
                 log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
@@ -285,14 +285,14 @@ app.event("message", async ({ event }) => {
             const { activity, evidenced } = await fetchEvidence(session.messageTs, user.slackUser!.slackId);
 
             if (!airtableSession.fields["Evidenced"] && evidenced) {
-                await app.client.chat.postMessage({
+                await Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
                     text: t('detect.evidence', {})
                 });
             } else if (!airtableSession.fields["Activity"] && activity) {
-                await app.client.chat.postMessage({
+                await Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
@@ -447,16 +447,16 @@ emitter.on('start', async (session: Session) => {
 
             const dmChannel = airtableUser.fields['dmChannel'];
 
-            const permalink = await app.client.chat.getPermalink({
+            const permalink = await Slack.chat.getPermalink({
                 channel: Environment.MAIN_CHANNEL,
                 message_ts: session.messageTs
             });
 
-            await app.client.chat.postMessage({
+            await Slack.chat.postMessage({
                 channel: dmChannel,
                 text: t('firstTime.start', {
                     slackId: user.slackUser!.slackId,
-                    url: permalink.permalink
+                    url: permalink?.permalink
                 }),
                 // username: Constants.USERNAME,
                 // icon_emoji: pfps['woah']
