@@ -97,6 +97,9 @@ error:
   already_resumed:
     - you've already started your arcade session! keep going! and `/pause` if ya need a break!
 
+  first_time:
+    - hey hey! you need to finish your first arcade session before you can do that!
+
 action:
   paused:
     - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left

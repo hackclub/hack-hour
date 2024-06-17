@@ -99,6 +99,10 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
             return;
         }
 
+        if (session.metadata.firstTime) {
+            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
+        }
+
         await Session.cancel(session);
     } catch (error) {
         emitter.emit('error', error);

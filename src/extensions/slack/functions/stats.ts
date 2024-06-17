@@ -25,6 +25,10 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
             return;
         }
 
+        if (user.metadata.firstTime) {
+            informUser(slackId, t('error.first_time', {}), Environment.MAIN_CHANNEL);
+        }        
+
         await app.client.views.open({
             trigger_id: (body as any).trigger_id,
             view: await Stats.stats(user.id),
@@ -50,6 +54,10 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
     if (!user) {
         informUser(slackId, t('error.not_a_user', {}), channelId);
         return;
+    }
+
+    if (user.metadata.firstTime) {
+        informUser(slackId, t('error.first_time', {}), body.channel_id);
     }
 
     await client.views.open({

@@ -33,6 +33,7 @@ type Template =
     'error.already_resumed' |
     'error.not_yours' |
     'error.generic' |
+    'error.first_time' |
 
     'airtable.approved' |
     'airtable.rejected' |

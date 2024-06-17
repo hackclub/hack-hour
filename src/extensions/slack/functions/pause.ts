@@ -110,6 +110,10 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
             return;
         }
 
+        if (session.metadata.firstTime) {
+            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
+        }
+
         const updatedSession = await Session.pause(session);
 
         const toggleMessage = updatedSession.paused ?
@@ -146,6 +150,10 @@ Slack.command(Commands.START, async ({ ack, body }) => {
         if (!session) {
             informUser(slackId, t('error.not_hacking', {}), body.channel_id, undefined, pfps['question']);
             return;
+        }
+
+        if (session.metadata.firstTime) {
+            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
         }
 
         if (!session.paused) {
