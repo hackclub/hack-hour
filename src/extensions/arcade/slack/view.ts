@@ -142,3 +142,7 @@ export class ChooseSessions {
         })));
     }
 }
+
+export class Walkthrough {
+    
+}

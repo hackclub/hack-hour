@@ -108,6 +108,11 @@ export const Actions = {
   CHOOSE_SESSIONS: 'choosesessions',
 
   HACK: 'hack',
+
+  TUTORIAL_ADVANCE: 'tutorialadvance',
+  TUTORIAL_BACK: 'tutorialback',
+
+  OPEN_SHOP: 'openshop',
 };
 
 export const Callbacks = {

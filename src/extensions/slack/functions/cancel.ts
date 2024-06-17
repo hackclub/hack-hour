@@ -40,16 +40,37 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
                 messageTs,
                 completed: false,
                 cancelled: false,
+            },
+            select: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                },
             }
         });
- 
-        if (!session || slackId !== await fetchSlackId(session.userId)) {
+
+        console.log(session);
+        console.log(slackId);
+        console.log(session?.user.slackUser?.slackId);
+
+        if (!session || slackId !== session.user.slackUser?.slackId) {
             informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
 
             return;
         }
 
-        await Session.cancel(session);
+        await Session.cancel(await prisma.session.findFirstOrThrow({
+            where: {
+                messageTs,
+                completed: false,
+                cancelled: false,
+            }
+        }));
     } catch (error) {
         emitter.emit('error', error);
     }

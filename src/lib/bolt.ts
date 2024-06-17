@@ -44,27 +44,29 @@ export const Slack = {
             await ack();
 
             // while working on the bot, only allow the dev team to use the bot
-            const approvedUsers = [
-                'U04QD71QWS0',
-                'UDK5M9Y13',
-                'U078MRX71TJ',
-                'U0777CCQQCF',
-                'U05NX48GL3T',
-                'U078ACL01S7',
-                'U078ZCAHCNL',
-                'U078ZDVC7CY',
-                'U078D5YH5NG',
-                'U0787QYQM53',
-                'U078BK769BL'
-            ]
+            // const approvedUsers = [
+            //     'U0C7B14Q3',
+            //     'U04QD71QWS0',
+            //     'UDK5M9Y13',
+            //     'U078MRX71TJ',
+            //     'U0777CCQQCF',
+            //     'U05NX48GL3T',
+            //     'U078ACL01S7',
+            //     'U078ZCAHCNL',
+            //     'U078ZDVC7CY',
+            //     'U078D5YH5NG',
+            //     'U0787QYQM53',
+            //     'U078BK769BL',
+            //     'U077XBJ3YPR',
+            // ]
 
             const user = await app.client.users.info({
                 user: event.user_id
             });
 
-            if (!approvedUsers.includes(event.user_id) && !(user.user!.profile!.real_name!.startsWith('test'))) {
-                return respond(t('maintanenceMode', {}))
-            }
+            // if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
+            //     return respond(t('maintanenceMode', {}))
+            // }
 
             try {
                 await app.client.chat.postMessage({
@@ -87,7 +89,7 @@ export const Slack = {
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
-                    user: event.user_id,
+                    user: event.user_id,                    
                     text: `An error occurred while processing your command!`
                 })
             }

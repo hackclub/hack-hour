@@ -4,6 +4,7 @@ dotenv.config();
 // A typed wrapper over airtable API
 
 import Airtable from "airtable";
+import { emitter } from '../../../lib/emitter.js';
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -151,6 +152,14 @@ export const AirtableAPI = {
             const records = await users.select().all();
 
             return records.map(record => ({id: record.id, fields: record.fields as AirtableUserRead}));
+        },
+
+        async delete(id: AirtableRecordID): Promise<void> {
+            try {
+                await users.destroy([id]);
+            } catch (error) {
+                emitter.emit("error", error);
+            }
         }
     },
     Session: {

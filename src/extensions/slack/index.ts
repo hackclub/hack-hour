@@ -142,10 +142,12 @@ const hack = async ({ command }: CommandHandler) => {
                 metadata: {
                     work: command.text,
                     slack: {
-                        template: t_fetch('toplevel.main'),
-                        controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                        template: slackUser.user.metadata.firstTime ? t_fetch('firstTime.toplevel.main') : t_fetch('toplevel.main'),
+                        controllerTemplate: slackUser.user.metadata.firstTime ? '' : t_fetch('encouragement'),
                     },
-                    onboarding: slackUser.user.metadata.firstTime,
+                    firstTime: slackUser.user.metadata.firstTime ? {
+                        step: 0
+                    } : undefined,
                     banked: false
                 },
 
@@ -297,10 +299,12 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
             metadata: {
                 work: text,
                 slack: {
-                    template: t_fetch('toplevel.main'),
-                    controllerTemplate: slackUser.user.metadata.firstTime ? t_fetch('onboarding.encouragement') : t_fetch('encouragement')
+                    template: slackUser.user.metadata.firstTime ? t_fetch('firstTime.toplevel.main') : t_fetch('toplevel.main'),
+                    controllerTemplate: slackUser.user.metadata.firstTime ? '' : t_fetch('encouragement'),
                 },
-                onboarding: slackUser.user.metadata.firstTime,
+                firstTime: slackUser.user.metadata.firstTime ? {
+                    step: 0
+                } : undefined,
                 banked: false
             },
 
@@ -370,7 +374,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
             await updateController(session);
 
             return;
-        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.onboarding) {
+        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.firstTime) {
             // Send a reminder every 15 minutes
             await Slack.chat.postMessage({
                 thread_ts: session.messageTs,
@@ -402,36 +406,38 @@ emitter.on('complete', async (session: Session) => {
         return;
     }
 
-    await Slack.chat.postMessage({
-        thread_ts: session.messageTs,
-        channel: Environment.MAIN_CHANNEL,
-        text: session.metadata.onboarding ? t('onboarding.complete', {
+    if (!session.metadata.firstTime) {
+        await Slack.chat.postMessage({
+            thread_ts: session.messageTs,
+            channel: Environment.MAIN_CHANNEL,
+            text: /*session.metadata.firstTime ? t('onboarding.complete', {
             slackId: slackUser.slackId
-        }) : t('complete', {
-            slackId: slackUser.slackId
-        }),
-        blocks: [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": session.metadata.onboarding ? t('onboarding.complete', {
-                        slackId: slackUser.slackId
-                    }) : t('complete', {
-                        slackId: slackUser.slackId
-                    })
-                },
-                "accessory": {
-                    "type": "button",
+        }) :*/ t('complete', {
+                slackId: slackUser.slackId
+            }),
+            blocks: [
+                {
+                    "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": "View Stats"
+                        "type": "mrkdwn",
+                        "text": /*session.metadata.firstTime ? t('onboarding.complete', {
+                        slackId: slackUser.slackId
+                    }) : */t('complete', {
+                            slackId: slackUser.slackId
+                        })
                     },
-                    "action_id": Actions.VIEW_STATS,
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "View Stats"
+                        },
+                        "action_id": Actions.VIEW_STATS,
+                    }
                 }
-            }
-        ]
-    });
+            ]
+        });
+    }
 
     await Slack.reactions.add({
         name: "tada",
@@ -484,44 +490,46 @@ emitter.on('cancel', async (session: Session) => {
         return;
     }
 
-    await Slack.chat.postMessage({
-        thread_ts: session.messageTs,
-        channel: Environment.MAIN_CHANNEL,
-        text: session.metadata.onboarding ? t('onboarding.complete', {
-            slackId: slackUser.slackId,
-            minutes: session.elapsed
-        }) : t('cancel', {
-            slackId: slackUser.slackId,
-            minutes: session.elapsed
-        }),        
-        // text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
-        //     slackId: slackUser.slackId,
-        //     minutes: session.elapsed
-        // }),
-        blocks: [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": session.metadata.onboarding ? t('onboarding.complete', {
-                        slackId: slackUser.slackId,
-                        minutes: session.elapsed
-                    }) : t('cancel', {
-                        slackId: slackUser.slackId,
-                        minutes: session.elapsed
-                    })
-                },
-                "accessory": {
-                    "type": "button",
+    if (!session.metadata.firstTime) {
+        await Slack.chat.postMessage({
+            thread_ts: session.messageTs,
+            channel: Environment.MAIN_CHANNEL,
+            text: /*session.metadata.firstTime ? t('onboarding.complete', {
+                slackId: slackUser.slackId,
+                minutes: session.elapsed
+            }) :*/t('cancel', {
+                slackId: slackUser.slackId,
+                minutes: session.elapsed
+            }),
+            // text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
+            //     slackId: slackUser.slackId,
+            //     minutes: session.elapsed
+            // }),
+            blocks: [
+                {
+                    "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": "View Stats"
+                        "type": "mrkdwn",
+                        "text": /*session.metadata.firstTime ? t('onboarding.complete', {
+                            slackId: slackUser.slackId,
+                            minutes: session.elapsed
+                        }) :*/ t('cancel', {
+                            slackId: slackUser.slackId,
+                            minutes: session.elapsed
+                        })
                     },
-                    "action_id": Actions.VIEW_STATS,
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "View Stats"
+                        },
+                        "action_id": Actions.VIEW_STATS,
+                    }
                 }
-            }
-        ]
-    });
+            ]
+        });
+    }
 
     // Increment minutes in goals
     await prisma.goal.update({

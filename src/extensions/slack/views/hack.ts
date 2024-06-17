@@ -3,7 +3,7 @@ import { Actions } from "../../../lib/constants.js";
 import { t } from "../../../lib/templates.js";
 
 export class Hack {
-    public static hack(onboarding: boolean): KnownBlock[] {
+    public static hack(firstTime: boolean): KnownBlock[] {
         // Are you sure you want to hack this session?
         return [
             {
@@ -13,12 +13,12 @@ export class Hack {
                     "action_id": "hack",
                     "placeholder": {
                         "type": "plain_text",
-                        "text":  onboarding ? t('popup.onboarding.placeholder', {}) : t('popup.placeholder', {})
+                        "text":  firstTime ? t('firstTime.popup.placeholder', {}) : t('popup.placeholder', {})
                     }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text":  onboarding ? t('popup.onboarding.header', {}) : t('popup.header', {}),
+                    "text":  firstTime ? t('firstTime.popup.header', {}) : t('popup.header', {}),
                     "emoji": true
                 },
                 "block_id": "hack"
@@ -42,7 +42,7 @@ export class Hack {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": onboarding ? t('popup.onboarding.footer', {}) : t('popup.footer', {})
+                        "text": firstTime ? t('firstTime.popup.footer', {}) : t('popup.footer', {})
                     }
                 ]
             }

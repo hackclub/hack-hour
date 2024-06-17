@@ -3,12 +3,12 @@ import fs from 'fs';
 import { prisma } from './prisma.js';
 
 type Template = 
-    'update' | 
     'complete' | 
     'cancel' | 
     'pause' | 
     'encouragement' | 
     'init' |
+    'update' |
 
     'toplevel.main' |
     'toplevel.pause' |
@@ -18,18 +18,10 @@ type Template =
     'popup.placeholder' |
     'popup.header' |
 
-    'popup.onboarding.footer' |
-    'popup.onboarding.placeholder' |
-    'popup.onboarding.header' |
-
     'action.paused' |
     'action.resumed' |
 
-    'onboarding.init' |
-    'onboarding.encouragement' |
-    'onboarding.update' |
-    'onboarding.complete' |
-    'onboarding.evidence_reminder' |
+    'evidence_reminder' |
 
     'detect.activity' |
     'detect.evidence' |
@@ -45,9 +37,21 @@ type Template =
     'airtable.approved' |
     'airtable.rejected' |
 
-    'arcade.start' |
- 
-    'maintanenceMode';
+    'maintanenceMode' |
+
+    'firstTime.start' |
+    'firstTime.toplevel.main' |
+    
+    'firstTime.controller' |
+    'firstTime.tutorial_step_2' |
+
+    'firstTime.walkthrough.no_evidence' |
+    'firstTime.walkthrough.complete' |
+
+    'firstTime.popup.footer' |
+    'firstTime.popup.placeholder' |
+    'firstTime.popup.header' 
+    ;
 
 interface Data {
     slackId?: string,
@@ -80,7 +84,9 @@ function flatten(obj: any, prefix: string = '') {
     return result;
 }
 
-const templates = flatten(templatesRaw);
+export const templates: {
+    [key in Template]: string[]
+} = flatten(templatesRaw);
 
 export const pfps = {
     question: ":rac_question:",
@@ -97,18 +103,19 @@ export const pfps = {
 
 export function t(template: Template, data: Data) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
-    return t_format(t_fetch(template), {
-        ...data,
-        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
-    });
+    return t_format(t_fetch(template), data);
 }
 
 export function t_fetch(template: Template) {
     return (randomChoice(templates[template]) as string);
 }
 
-export function t_format(template: string, data: ExtendedData) {
-    return template.replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
+export function t_format(template: string, data: Data) {
+    const extendedData = {
+        ...data,
+        minutes_units: data.minutes == 1 ? 'minute' : 'minutes',
+    }
+    return template.replace(/\${(.*?)}/g, (_, key) => (extendedData as any)[key])
 }
 
 export function randomChoice<T>(arr: T[]): T {

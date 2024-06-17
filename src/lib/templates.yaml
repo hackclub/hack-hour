@@ -1,4 +1,14 @@
-hack:
+init:
+  - '∗twitch∗ <#${main}>'
+  - '∗yawns∗ <#${main}>'
+  - '∗snuffle∗ <#${main}>'
+  - '∗giggles∗ <#${main}>'
+  - '∗rustles through garbage∗ <#${main}>'
+  - '∗rustles through trash∗ <#${main}>'
+  - '∗rustles through rubbish∗ <#${main}>'
+  - '∗rustles through scraps∗ <#${main}>'
+
+update:
   - _\*twitch\*_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
   - _tap tap_ hey <@${slackId}>, looks like you got `${minutes}` minutes left!
   - you have `${minutes}` minutes left <@${slackId}>!! keep it up!
@@ -8,19 +18,12 @@ hack:
   - impressive work! just `${minutes}` minutes left <@${slackId}>!
 
 popup:
-    onboarding:
-        footer:
-            - "looks like you're new around here :eyes:"
-        placeholder:
-            - what are you working on? (onboarding)
-        header:
-            - what are you gonna work on for the next hour? (onboarding)
-    footer:
-        - tick tock i'm a clock
-    placeholder:
-        - what are you working on?
-    header:
-        - what are you gonna work on for the next hour?
+  footer:
+    - tick tock i'm a clock
+  placeholder:
+    - today i'm working on…
+  header:
+    - 'what are you working on?'
 
 complete:
   - WOO WOO!! YOU DID IT <@${slackId}>!!
@@ -46,57 +49,26 @@ pause:
   - <@${slackId}> is getting coffee!! _coffee!!_
 
 encouragement:
-    - "You have `${minutes}` ${minutes_units} remaining! Keep it up!"
-    - "You have `${minutes}` ${minutes_units} remaining! You're doing great!"
-    - "You have `${minutes}` ${minutes_units} remaining! You've got this!"
-    - "You have `${minutes}` ${minutes_units} remaining! You are ducktastic!"
-    - "You have `${minutes}` ${minutes_units} remaining! Wizard!"
+  - 'You have `${minutes}` ${minutes_units} remaining! Keep it up!'
+  - "You have `${minutes}` ${minutes_units} remaining! You're doing great!"
+  - "You have `${minutes}` ${minutes_units} remaining! You've got this!"
+  - 'You have `${minutes}` ${minutes_units} remaining! You are ducktastic!'
+  - 'You have `${minutes}` ${minutes_units} remaining! Wizard!'
 
 toplevel:
-    main:
-        - "it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:"
-        - "<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` ${minutes_units} remaining to work on:"
-        - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
-    cancel:
-        - "it looks like <@${slackId}> ended their hour early"
-    pause:
-        - <@${slackId}> is taking five!
-        - <@${slackId}> is catching a break!
-        - <@${slackId}> is drinking some coffee!
+  main:
+    - 'it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:'
+    - '<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` ${minutes_units} remaining to work on:'
+    - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
+  cancel:
+    - 'it looks like <@${slackId}> ended their hour early'
+  pause:
+    - <@${slackId}> is taking five!
+    - <@${slackId}> is catching a break!
+    - <@${slackId}> is drinking some coffee!
 
-init:
-  - "tick tock tick tock, it looks like <${repo}|I'm> the clock! <#${main}>"
-  - "watching time is a daunting task. but <${repo}|I'm> up for the task! <#${main}>"
-  - 'new formula, same great taste! <#${main}>'
-  - 'every hour more power…<#${main}>'
-  - 'if scrapbook is the past and ship is the future, then <${repo}|I> am the present...<#${main}>'
-  - 'watching for new hours in <#${main}>'
-  - 'no, I am not hack minute. <${repo}|I am> <#${main}>!'
-  - 'I am the hour. or more aptly, <${repo}|the hour is me>...<#${main}>'
-  - "time travelling in <#${main}> like there's no tomorrow!"
-  - 'perhaps time would make all the wishes in <#C07443MC9UP> come true...<#${main}>'
-
-# welcome:
-#     - "welcome to hack hour, <@${slackId}>! :wave:"
-
-
-onboarding:
-    encouragement:
-        - "You have `${minutes}` ${minutes_units} remaining! Onboarding text goes here!"
-#        - "aaaaa"
-        - "hey friend! welcome to the arcade! as you can see there are a lot of button to click, so click away"
-
-  init:
-    - 'check out all this <https://hack.club.com/arcade-shop|cool trash> I just found! I’ll give you some scraps once you’re through your project'
-
-  update:
-    - nice work <@${slackId}>!! `${minutes}` minutes done nice work!! let’s keep going. make sure to post a screenshot of your progress or a commit link.
-
-  complete:
-    - great work <@${slackId}>, you banked `${minutes}` minutes!! here’s those 3 free tickets i promised you…
-
-  evidence_reminder:
-    - show me some scraps!! pics or commits, whatever you got!!
+evidence_reminder:
+  - show me some scraps!! pics or commits, whatever you got!!
 
 error:
   #context: attempting to start a new session while already in one
@@ -126,11 +98,11 @@ error:
     - you've already started your hack hour! keep going! and `/pause` if ya need a break1
 
 action:
-    paused:
-        - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
+  paused:
+    - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
 
-    resumed:
-        - ready? you have `${minutes}` ${minutes_units} left!
+  resumed:
+    - ready? you have `${minutes}` ${minutes_units} left!
 
 detect:
   activity:
@@ -150,6 +122,34 @@ airtable:
 maintanenceMode:
   - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
-arcade:
+firstTime:
   start:
     - woah, you started your first <${url}|hack hour>!
+
+  toplevel:
+    main:
+      - 'wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:'
+
+  controller: 
+    # Note: instead of being randomly shuffled, these are displayed in order [0->n]
+    - "welcome to your first arcade session!! today we'll just learn how this works. 
+        
+      when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
+
+  tutorial_step_2: # i had no clue what to name this
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!*"
+
+  popup:
+    footer:
+      - (every session begins with this question)
+    placeholder:
+      - 'hint: "the arcade tutorial" is a good answer for this session!!'
+    header: # ARCADIUS_REMOVED_DEPENDENCY
+      - 'what are you working on? (production demo - tutorial start)'
+ 
+  walkthrough:
+    no_evidence:
+      - 'hey hey! you need to show me some scraps!! pics or commits, whatever you got!!'
+
+    complete:
+      - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
