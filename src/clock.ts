@@ -47,8 +47,14 @@ emitter.on('minute', async () => {
 
                     emitter.emit('cancel', updatedSession);
                 } else {
-                    if (updateWithRatelimit && updatedSession.elapsed % 15 == 0) {
-                        emitter.emit('sessionUpdate', updatedSession);
+                    if (updateWithRatelimit) {
+                        if (updatedSession.elapsedSincePause % 5 === 0) {
+                            emitter.emit('sessionUpdate', {updatedSession, updateSlack: true });
+                        } else {
+                            emitter.emit('sessionUpdate', {updatedSession, updateSlack: false });
+                        }
+                    } else {
+                        emitter.emit('sessionUpdate', {updatedSession, updateSlack: true });
                     }
                 }
 
@@ -89,7 +95,7 @@ emitter.on('minute', async () => {
 
                 emitter.emit('complete', updatedSession);
             } else {
-                emitter.emit('sessionUpdate', updatedSession);
+                emitter.emit('sessionUpdate', {updatedSession, updateSlack: false});
             }
         }
     } catch (error) {

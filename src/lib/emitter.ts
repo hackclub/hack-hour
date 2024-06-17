@@ -13,7 +13,10 @@ type EventMap = {
     setFlag: (flag: string, value: any) => void,
 
     minute: () => void,
-    sessionUpdate: (session: Session) => void,
+    sessionUpdate: (update: {
+        updatedSession: Session,
+        updateSlack: boolean
+    }) => void,
     hour: () => void,
 
     start: (session: Session) => void,

@@ -362,8 +362,13 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 /*
 Minute tracker
 */
-emitter.on('sessionUpdate', async (session: Session) => {
+emitter.on('sessionUpdate', async (update: {
+    updatedSession: Session,
+    updateSlack: boolean
+}) => {
     try {
+        const { updatedSession: session, updateSlack } = update;
+
         // Check if the prisma user has a slack component
         const slackUser = await prisma.slackUser.findUnique({
             where: {
