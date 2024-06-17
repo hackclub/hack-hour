@@ -598,7 +598,7 @@ emitter.on('init', async () => {
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": `${new Date().toString()} - Release ${releaseVersion}-${buildDesc}`
+                            "text": `Release ${releaseVersion}-${buildDesc}\n${new Date().toString()}`
                         }
                     ]
                 }

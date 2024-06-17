@@ -174,7 +174,7 @@ export const Slack = {
                             elements: [
                                 {
                                 type: "mrkdwn",
-                                text: `${callbackId} - ${new Date().toString()}`,
+                                text: `${callbackId}\n${new Date().toString()} `,
                                 },
                             ],
                         },
