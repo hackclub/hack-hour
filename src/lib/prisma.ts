@@ -39,7 +39,18 @@ declare global {
     }
 }
 
+export const prisma = new PrismaClient().$extends({
+    query: {
+        async $allOperations({ model, operation, args, query }) {
+            const before = Date.now()
+            const result = await query(args)
+            const after = Date.now()
+            console.log(`Query ${model}.${operation} took ${after - before}ms`)
+            return result
+        },
+    },
+});
+
 cuid2.init();
 
-export const prisma = new PrismaClient();
 export const uid = () => { return cuid2.createId() };
