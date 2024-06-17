@@ -1,7 +1,7 @@
 import { View } from "@slack/bolt";
 
 export class Loading {
-    public static async loading(): Promise<View> {
+    public static loading(): View {
         return {
             "type": "modal",
             "close": {

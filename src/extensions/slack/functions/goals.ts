@@ -17,7 +17,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         
         const view = await client.views.open({
             trigger_id: trigger_id,
-            view: await Loading.loading()
+            view: Loading.loading()
         });
 
         const session = await prisma.session.findFirstOrThrow({//findUnique({
@@ -43,7 +43,11 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
                 throw new Error(`Channel not found`);
             }
 
-            informUser(slackId, t('error.not_yours', {}), body.channel.id, (body as any).message.ts);
+            // informUser(slackId, t('error.not_yours', {}), body.channel.id, (body as any).message.ts);
+            await client.views.update({
+                view_id: view.view?.id,
+                view: Loading.error(t('error.not_yours', {}))
+            });
 
             return;
         }
