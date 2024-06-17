@@ -51,7 +51,14 @@ class Emitter {
         if (!this.listeners[event]) {
             return;
         }
-        this.listeners[event]!.forEach(listener => listener(...args));
+        this.listeners[event]!.forEach(listener => { 
+            try {
+                listener(...args) 
+            } catch (error) {
+                this.emit("error", error);
+                console.error(error);
+            }
+        });
     }
 }
 

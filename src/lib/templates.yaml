@@ -57,7 +57,7 @@ encouragement:
 
 toplevel:
   main:
-    - 'it looks like <@${slackId}> is getting more power this ! `${minutes}` ${minutes_units} remaining to work on:'
+    - 'it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:'
     - '<@${slackId}> is keeping the doctor away with this arcade session! `${minutes}` ${minutes_units} remaining to work on:'
     - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
   cancel:
