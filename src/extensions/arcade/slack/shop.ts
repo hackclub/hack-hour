@@ -9,7 +9,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     if (!airtableUser) {
         await ack();
-        informUser(command.user_id, t('error.generic', {}), command.channel_id);
+        informUser(command.user_id, t('error.first_time', {}), command.channel_id);
         return;
     }
 
