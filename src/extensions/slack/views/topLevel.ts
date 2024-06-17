@@ -50,7 +50,7 @@ export class TopLevel {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: metadata.work
+                text: `_${metadata.work}_`
             }
         });
 
@@ -98,7 +98,7 @@ export class TopLevel {
             }
         });
 
-        if (session.metadata.slack.attachment) {
+        if (session.metadata.slack.attachment && !session.metadata.firstTime) {
             blocks.push({
                 type: "image",
                 image_url: session.metadata.slack.attachment,

@@ -44,8 +44,12 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
+        if (session.cancelled || session.completed) {
+            return;
+        }
+
         console.log(image.files[0]);
-        session.metadata.slack.attachment = image.files[0]?.thumb_480;
+        session.metadata.slack.attachment = image.files[0]?.permalink;
 
         const updatedSession = await prisma.session.update({
             where: {
@@ -56,7 +60,7 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
-        console.log(`woah, pretty picture! ${image.files[0]?.thumb_480}`)
+        console.log(`woah, pretty picture! ${image.files[0]?.permalink}`)
 
         await updateTopLevel(updatedSession);
     }
