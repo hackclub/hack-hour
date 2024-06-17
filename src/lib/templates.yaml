@@ -144,9 +144,9 @@ firstTime:
       - (every session begins with this question)
     placeholder:
       - 'hint: "the arcade tutorial" is a good answer for this session!!'
-    header:
-      - 'what are you working on?'
-
+    header: # ARCADIUS_REMOVED_DEPENDENCY
+      - 'what are you working on? (production demo - tutorial start)'
+ 
   walkthrough:
     no_evidence:
       - 'hey hey! you need to show me some scraps!! pics or commits, whatever you got!!'
