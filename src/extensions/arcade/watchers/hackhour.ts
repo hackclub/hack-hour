@@ -209,11 +209,9 @@ app.event("message", async ({ event }) => {
         await surfaceEvidence(thread_ts, session.user.slackUser!.slackId);
 
         if (!session.metadata.airtable) { 
-                            // ARCADIUS_REMOVED_DEPENDENCY
-
-            if (session.metadata.firstTime /*&& session.user.metadata.airtable*/) {
+            if (session.metadata.firstTime && session.user.metadata.airtable) {
                 // Use this as an alternative flow - the user is learning how hack hour works
-                // const airtableUser = await AirtableAPI.User.find(session.user.metadata.airtable.id);
+                const airtableUser = await AirtableAPI.User.find(session.user.metadata.airtable.id);
 
                 await app.client.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
@@ -227,17 +225,15 @@ app.event("message", async ({ event }) => {
                                     slackId: session.user.slackUser!.slackId,
                                     minutes: session.elapsed
                                 })
-                                + "\n\nThanks for completing the tutorial and beta testing the opening flow for hack hour! Run `/arcade` for the future."
                             },
-                            // ARCADIUS_REMOVED_DEPENDENCY
-                            // "accessory": {
-                            //     "type": "button",
-                            //     "text": {
-                            //         "type": "plain_text",
-                            //         "text": "continue..."
-                            //     },
-                            //     "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`
-                            // }
+                            "accessory": {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "continue..."
+                                },
+                                "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`
+                            }
                         }
                     ]
                 });
@@ -343,8 +339,6 @@ app.event("message", async ({ event }) => {
 //     }
 // });
 
-//ARCADIUS_REMOVED_DEPENDENCY
-
 export const firstTime = async (user: User) => {
     // /*
     // Check if arcadius made an entry in the airtable,
@@ -425,48 +419,46 @@ export const firstTime = async (user: User) => {
     return false;   
 };
 
-// ARCADIUS_REMOVED_DEPENDENCY
+emitter.on('start', async (session: Session) => {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: session.userId
+            },
+            include: {
+                slackUser: {
+                    select: {
+                        slackId: true
+                    }
+                }
+            }
+        });
 
-// emitter.on('start', async (session: Session) => {
-//     try {
-//         const user = await prisma.user.findUniqueOrThrow({
-//             where: {
-//                 id: session.userId
-//             },
-//             include: {
-//                 slackUser: {
-//                     select: {
-//                         slackId: true
-//                     }
-//                 }
-//             }
-//         });
+        if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-//         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
+        if (user.metadata.firstTime) {
+            const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
 
-//         if (user.metadata.firstTime) {
-//             const airtableUser = await AirtableAPI.User.find(user.metadata.airtable.id);
+            if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-//             if (!airtableUser) { throw new Error(`Airtable user not found for ${user.id}`); }
+            const dmChannel = airtableUser.fields['dmChannel'];
 
-//             const dmChannel = airtableUser.fields['dmChannel'];
+            const permalink = await app.client.chat.getPermalink({
+                channel: Environment.MAIN_CHANNEL,
+                message_ts: session.messageTs
+            });
 
-//             const permalink = await app.client.chat.getPermalink({
-//                 channel: Environment.MAIN_CHANNEL,
-//                 message_ts: session.messageTs
-//             });
-
-//             await app.client.chat.postMessage({
-//                 channel: dmChannel,
-//                 text: t('firstTime.start', {
-//                     slackId: user.slackUser!.slackId,
-//                     url: permalink.permalink
-//                 }),
-//                 // username: Constants.USERNAME,
-//                 // icon_emoji: pfps['woah']
-//             });
-//         }
-//     } catch (error) {
-//         emitter.emit('error', error);
-//     }
-// });
+            await app.client.chat.postMessage({
+                channel: dmChannel,
+                text: t('firstTime.start', {
+                    slackId: user.slackUser!.slackId,
+                    url: permalink.permalink
+                }),
+                // username: Constants.USERNAME,
+                // icon_emoji: pfps['woah']
+            });
+        }
+    } catch (error) {
+        emitter.emit('error', error);
+    }
+});
