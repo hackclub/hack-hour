@@ -5,6 +5,9 @@ import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../lib/airtable.js";
 import { log } from "../lib/log.js";
 import { pfps } from "../../../lib/templates.js";
+import { Hack } from "../../slack/views/hack.js";
+import { emitter } from "../../../lib/emitter.js";
+import { firstTime } from "../watchers/hackhour.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     await ack();
@@ -305,7 +308,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             channel: command.channel_id,
             text: `Pfp set to ${pfp}`,
         });
-    } else if (subCommand === 'clearme') {
+    } else if (subCommand === 'hack') {
         const slackUser = await prisma.slackUser.findUnique({
             where: {
                 slackId: command.user_id,
@@ -324,6 +327,14 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             return;
         }
 
+        if (slackUser.user.metadata.airtable) {
+            const airtableUser = await AirtableAPI.User.lookupBySlack(slackUser.slackId);
+
+            if (airtableUser) {
+                await AirtableAPI.User.delete(airtableUser.id);
+            }
+        }
+
         slackUser.user.metadata.firstTime = true;
         slackUser.user.metadata.airtable = undefined;
 
@@ -336,11 +347,19 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             }
         });
 
+        await prisma.session.deleteMany({
+            where: {
+                userId: slackUser.user.id,
+            }
+        });
+
         await Slack.chat.postEphemeral({
             user: command.user_id,
             channel: command.channel_id,
             text: "i have no recollection of who you are...",
         });
+
+        await firstTime(slackUser.user);
     } else {
         Slack.chat.postEphemeral({
             user: command.user_id,
@@ -349,3 +368,8 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
         });
     }
 });
+
+// Slack.action(Actions.OPEN_SHOP, async ({ ack, body }) => {
+//     // Close the modal
+//     await ack();
+// });

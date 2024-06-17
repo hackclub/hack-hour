@@ -137,7 +137,7 @@ firstTime:
       when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
 
   tutorial_step_2: # i had no clue what to name this
-    - "here's the catch: to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!*"
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!*"
 
   popup:
     footer:

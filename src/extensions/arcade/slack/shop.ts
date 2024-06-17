@@ -17,7 +17,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     const blocks = [];
 
-    const remaining = Math.floor(airtableUser.fields["Balance (Minutes)"]/60);
+    const remaining = Math.floor(airtableUser.fields["Balance (Minutes)"] / 60);
 
     blocks.push({
         "type": "section",
@@ -27,44 +27,44 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
         }
     });
 
-    if (Math.floor(airtableUser.fields["Spent (Incl. Pending)"]/60) !== 0) {
+    if (Math.floor(airtableUser.fields["Spent (Incl. Pending)"] / 60) !== 0) {
         blocks.push({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `Total banked hours: ${Math.floor(airtableUser.fields["Minutes (Banked)"]/60)} :zap:`
+                "text": `Total banked hours: ${Math.floor(airtableUser.fields["Minutes (Banked)"] / 60)} :zap:`
             }
         });
     }
 
     blocks.push({
-        "type": "divider"
-    },
-    {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": `<${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/|Open The Shop>`
-        }
-    },
-{
-    "type": "actions",
-    "elements": [
+            "type": "divider"
+        },
         {
-            "type": "button",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": "V",
-                "emoji": true
-            },
-            'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
-//            "url": `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
-            "action_id": Actions.OPEN_SHOP
-        }
-    ],
-    "block_id": "actions",
-});
-    
+                "type": "mrkdwn",
+                "text": `<${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/|Open The Shop>`
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Open the Shop",
+                        "emoji": true
+                    },
+                    'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
+                    //            "url": `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
+                    // "action_id": Actions.OPEN_SHOP
+                }
+            ],
+            "block_id": "actions",
+        });
+
     app.client.views.open({
         "trigger_id": command.trigger_id,
         "view": {
