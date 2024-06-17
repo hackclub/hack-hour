@@ -8,11 +8,17 @@ import { pfps } from "../../../lib/templates.js";
 import { Hack } from "../../slack/views/hack.js";
 import { emitter } from "../../../lib/emitter.js";
 import { firstTime } from "../watchers/hackhour.js";
+import { Loading } from "../../slack/views/loading.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     await ack();
 
     if (body.type !== "block_actions") return;
+
+    const view = await app.client.views.open({         
+        trigger_id: body.trigger_id,         
+        view: await Loading.loading()     
+    }); 
 
     const flowTs = body.message!.ts;
 
@@ -62,8 +68,8 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
-    await app.client.views.open({
-        trigger_id: body.trigger_id,
+    await app.client.views.update({
+        view_id: view.view?.id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
     });
 });

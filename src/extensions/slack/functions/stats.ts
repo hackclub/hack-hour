@@ -23,7 +23,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
         if (!user) {
             informUser(slackId, t('error.not_a_user', {}), Environment.MAIN_CHANNEL, (body as any).message.ts);
             return;
-        }
+        }        
 
         if (user.metadata.firstTime) {
             informUser(slackId, t('error.first_time', {}), Environment.MAIN_CHANNEL);

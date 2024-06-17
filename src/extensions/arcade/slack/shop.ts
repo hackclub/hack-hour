@@ -2,6 +2,7 @@ import { app } from "../../../lib/bolt.js";
 import { Actions, Commands, Environment } from "../../../lib/constants.js";
 import { t } from "../../../lib/templates.js";
 import { informUser } from "../../slack/lib/lib.js";
+import { Loading } from "../../slack/views/loading.js";
 import { AirtableAPI } from "../lib/airtable.js";
 
 app.command(Commands.SHOP, async ({ command, ack }) => {
@@ -14,6 +15,11 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
     }
 
     await ack();
+
+    const view = await app.client.views.open({
+        trigger_id: command.trigger_id,
+        view: await Loading.loading()
+    });
 
     const blocks = [];
 
@@ -59,8 +65,8 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
             "block_id": "actions",
         });
 
-    app.client.views.open({
-        "trigger_id": command.trigger_id,
+    app.client.views.update({
+        view_id: view.view?.id,
         "view": {
             "type": "modal",
             "title": {

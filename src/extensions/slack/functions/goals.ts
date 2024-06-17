@@ -6,6 +6,7 @@ import { Actions, Callbacks } from "../../../lib/constants.js";
 import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
 import { t } from "../../../lib/templates.js";
+import { Loading } from "../views/loading.js";
 
 Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
@@ -13,6 +14,11 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
 
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id
+        
+        const view = await client.views.open({
+            trigger_id: trigger_id,
+            view: await Loading.loading()
+        });
 
         const session = await prisma.session.findFirstOrThrow({//findUnique({
             where: {
@@ -42,8 +48,12 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
             return;
         }
 
-        await client.views.open({
-            trigger_id: trigger_id,
+        // await client.views.open({
+        //     trigger_id: trigger_id,
+        //     view: await Goals.main(session.id)
+        // });
+        await client.views.update({
+            view_id: view.view?.id,
             view: await Goals.main(session.id)
         });
     } catch (error) {
