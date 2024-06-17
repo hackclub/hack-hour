@@ -39,7 +39,7 @@ complete:
   - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
 
 cancel:
-  - <@${slackId}> ended their hack hour early!
+  - <@${slackId}> ended their arcade session early!
   - <@${slackId}> cut their session short!!
   - it looks like <@${slackId}> is already done! done already!!
 
@@ -57,11 +57,11 @@ encouragement:
 
 toplevel:
   main:
-    - 'it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:'
-    - '<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` ${minutes_units} remaining to work on:'
+    - 'it looks like <@${slackId}> is getting more power this ! `${minutes}` ${minutes_units} remaining to work on:'
+    - '<@${slackId}> is keeping the doctor away with this arcade session! `${minutes}` ${minutes_units} remaining to work on:'
     - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
   cancel:
-    - 'it looks like <@${slackId}> ended their hour early'
+    - 'it looks like <@${slackId}> ended their session early'
   pause:
     - <@${slackId}> is taking five!
     - <@${slackId}> is catching a break!
@@ -73,7 +73,7 @@ evidence_reminder:
 error:
   #context: attempting to start a new session while already in one
   already_hacking:
-    - hey hey!! you're already in a hack hour session! you can't start another one until you finish the one you're in!
+    - hey hey!! you're already in a arcade session! you can't start another one until you finish the one you're in!
 
   not_hacking:
     - hmph, whatcha doin? want some garbage? run `/hack`!
@@ -95,7 +95,7 @@ error:
 
   #context: trying to resume a session that hasn't been paused
   already_resumed:
-    - you've already started your hack hour! keep going! and `/pause` if ya need a break1
+    - you've already started your arcade session! keep going! and `/pause` if ya need a break!
 
 action:
   paused:
@@ -115,16 +115,16 @@ detect:
 
 airtable:
   approved:
-    - great work <@${slackId}>! you've got a hack hour! this hour is now approved!
+    - great work <@${slackId}>! you've got a arcade session! this session is now approved!
   rejected:
-    - womp womp <@${slackId}>! this hour is now rejected! i wunder why
+    - womp womp <@${slackId}>! this session is now rejected! i wunder why
 
 maintanenceMode:
   - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
 firstTime:
   start:
-    - woah, you started your first <${url}|hack hour>!
+    - woah, you started your first <${url}|arcade session>!
 
   existing_user:
     - you hear some scurrying in an adjacent alley. perhaps you should check your dms...
