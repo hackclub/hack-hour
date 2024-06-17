@@ -126,6 +126,9 @@ firstTime:
   start:
     - woah, you started your first <${url}|hack hour>!
 
+  existing_user:
+    - you hear some scurrying in an adjacent alley. perhaps you should check your dms...
+
   toplevel:
     main:
       - 'wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:'

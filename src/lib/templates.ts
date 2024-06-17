@@ -40,6 +40,8 @@ type Template =
     'maintanenceMode' |
 
     'firstTime.start' |
+    'firstTime.existing_user' |
+
     'firstTime.toplevel.main' |
     
     'firstTime.controller' |

@@ -17,6 +17,7 @@ import "./functions/stats.js"
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
+import { AirtableAPI } from "../arcade/lib/airtable.js";
 
 /*
 Session Creation
@@ -85,6 +86,29 @@ const hack = async ({ command }: CommandHandler) => {
         if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
             // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
             if (await firstTime(slackUser.user)) {
+                const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
+                
+                await informUserBlocks(slackId, [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": /*session.metadata.firstTime ? t('onboarding.complete', {
+                            slackId: slackUser.slackId
+                        }) : */t('firstTime.existing_user', {})
+                        },
+                        "accessory": {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "continue..."
+                            },
+                            "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`,
+                            "action_id": Actions.EXISTING_USER_FIRST_TIME,
+                        }
+                    }
+                ], command.channel_id);
+
                 return;
             }
         }

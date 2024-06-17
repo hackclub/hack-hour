@@ -114,6 +114,8 @@ export const Actions = {
   TUTORIAL_BACK: 'tutorialback',
 
   OPEN_SHOP: 'openshop',
+
+  EXISTING_USER_FIRST_TIME: 'existinguserfirsttime',
 };
 
 export const Callbacks = {
