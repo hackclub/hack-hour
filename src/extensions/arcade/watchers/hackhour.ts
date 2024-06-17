@@ -422,7 +422,8 @@ export const firstTime = async (user: User) => {
 
 emitter.on('start', async (session: Session) => {
     try {
-        const user = await prisma.user.findUniqueOrThrow({
+        await findOrCreateUser(session.userId);
+        let user = await prisma.user.findUniqueOrThrow({
             where: {
                 id: session.userId
             },
@@ -435,7 +436,7 @@ emitter.on('start', async (session: Session) => {
             }
         });
 
-        await findOrCreateUser(user.id);
+        
 
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
