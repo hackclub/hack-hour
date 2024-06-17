@@ -265,6 +265,11 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
 let pfp: string = "none";
 Slack.command(Commands.ADMIN, async ({ command }) => {
     if (approvedUsers.includes(command.user_id) === false) {
+        await Slack.chat.postEphemeral({
+            user: command.user_id,
+            channel: command.channel_id,
+            text: "You are not authorized to use this command",
+        });
         return;
     }
     
