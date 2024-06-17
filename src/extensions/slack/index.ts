@@ -88,6 +88,8 @@ const hack = async ({ command }: CommandHandler) => {
             if (await firstTime(slackUser.user)) { // firstTime returns true if the user is existing, meaning I can redirect them through the arcadius flow
                 const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
 
+                console.log(airtableUser);
+
                 if (airtableUser) {
                     await informUserBlocks(slackId, [
                         {

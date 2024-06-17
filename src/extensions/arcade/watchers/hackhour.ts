@@ -379,7 +379,7 @@ export const firstTime = async (user: User) => {
 
         const data = await response.json();
 
-        const channelId = data.channelId;
+        // const channelId = data.channelId;
         const airtableRecId = data.airtableRecId;
 
         await AirtableAPI.User.update(airtableRecId, {
@@ -418,6 +418,7 @@ export const firstTime = async (user: User) => {
             metadata: user.metadata
         }
     });
+
     return false;
 };
 
