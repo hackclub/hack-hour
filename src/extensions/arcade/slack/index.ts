@@ -11,6 +11,7 @@ import { firstTime } from "../watchers/hackhour.js";
 import { Loading } from "../../slack/views/loading.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
+    try {
     await ack();
 
     if (body.type !== "block_actions") return;
@@ -73,6 +74,10 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         view_id: view.view?.id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
     }).catch((err) => console.log(err));
+} catch (error) {
+    console.log(error);
+    emitter.emit("error", error);
+}
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
