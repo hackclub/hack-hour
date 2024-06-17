@@ -84,7 +84,7 @@ export const Slack = {
                             elements: [
                                 {
                                     type: "mrkdwn",
-                                    text: `${command} - ran in <#${event.channel_id}> - ${new Date().toString()}`,
+                                    text: `${command} - ran in <#${event.channel_id}>\n${new Date().toString()}`,
                                 },
                             ],
                         },
@@ -123,7 +123,7 @@ export const Slack = {
                             elements: [
                                 {
                                 type: "mrkdwn",
-                                text: `${actionId} - ran in <#${body.channel?.id}> - ${new Date().toString()}`,
+                                text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
                                 },
                             ],
                         },
