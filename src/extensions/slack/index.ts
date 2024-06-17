@@ -37,6 +37,25 @@ const hack = async ({ command }: CommandHandler) => {
     try {
         const slackId = command.user_id;
 
+        const aggregation = await prisma.session.aggregate({
+            where: {
+                user: {
+                    slackUser: {
+                        slackId: slackId
+                    }
+                },
+                completed: false,
+                cancelled: false
+            },
+            _count: true
+        });
+        
+        if (aggregation._count > 0) {
+            await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
+
+            return;
+        }
+
         let slackUser = await prisma.slackUser.upsert(
             {
                 where: {
@@ -69,16 +88,7 @@ const hack = async ({ command }: CommandHandler) => {
                 },
                 update: {},
                 include: {
-                    user: {
-                        include: {
-                            sessions: {
-                                where: {
-                                    completed: false,
-                                    cancelled: false
-                                }
-                            }
-                        }
-                    }
+                    user: true
                 }
             }
         );
@@ -113,12 +123,6 @@ const hack = async ({ command }: CommandHandler) => {
 
                 return;
             }
-        }
-
-        if (slackUser.user.sessions.length > 0) {
-            await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
-
-            return;
         }
 
         if (!command.text || command.text.length == 0) {

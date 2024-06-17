@@ -30,7 +30,6 @@ try {
     const server = await app.start(process.env.PORT || 3000);
 
     emitter.emit("init", server);
-    emitter.emit("minute");
 
     console.log(`⏳ Let the Hack Houring Begin! Running on port ${process.env.PORT || 3000}...`);
 } catch (error) {
