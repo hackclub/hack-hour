@@ -416,6 +416,7 @@ emitter.on('sessionUpdate', async (session: Session) => {
         await updateController(session);
         await updateTopLevel(session);
     } catch (error) {
+        emitter.emit('error', error);
         console.error(error);
     }
 });
