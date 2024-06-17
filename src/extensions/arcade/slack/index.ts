@@ -317,7 +317,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             channel: command.channel_id,
             text: `Pfp set to ${pfp}`,
         });
-    } else if (subCommand === 'hack') {
+    } else if (subCommand === 'hack' || subCommand === 'clearme') {
         const slackUser = await prisma.slackUser.findUnique({
             where: {
                 slackId: command.user_id,
@@ -368,7 +368,9 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             text: "i have no recollection of who you are...",
         });
 
-        await firstTime(slackUser.user);
+        if (subCommand === 'hack') {
+            await firstTime(slackUser.user);
+        }
     } else {
         Slack.chat.postEphemeral({
             user: command.user_id,
