@@ -79,11 +79,6 @@ export class Stats {
                 "text": "My Stats",
                 "emoji": true
             },
-            "submit": {
-                "type": "plain_text",
-                "text": "Done",
-                "emoji": true
-            },
             "close": {
                 "type": "plain_text",
                 "text": "Close",
