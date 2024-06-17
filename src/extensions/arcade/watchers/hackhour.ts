@@ -340,83 +340,82 @@ app.event("message", async ({ event }) => {
 // });
 
 export const firstTime = async (user: User) => {
-    // /*
-    // Check if arcadius made an entry in the airtable,
-    //     - YES: just grab the conversation ID and DM the user
-    //     - NO: create a new entry in the airtable, grab the conversation ID and DM the user
-    // */
-    // const slackUser = await prisma.slackUser.findUniqueOrThrow({
-    //     where: {
-    //         userId: user.id
-    //     }
-    // });
+    /*
+    Check if arcadius made an entry in the airtable,
+        - YES: just grab the conversation ID and DM the user
+        - NO: create a new entry in the airtable, grab the conversation ID and DM the user
+    */
+    const slackUser = await prisma.slackUser.findUniqueOrThrow({
+        where: {
+            userId: user.id
+        }
+    });
 
-    // let airtableUser: Awaited<ReturnType<typeof AirtableAPI.User.lookupBySlack>> = null;
+    let airtableUser: Awaited<ReturnType<typeof AirtableAPI.User.lookupBySlack>> = null;
 
-    // try {
-    //     airtableUser = await AirtableAPI.User.lookupBySlack(slackUser.slackId);
-    // } catch (error) {
-    //     airtableUser = null;
-    // }
+    try {
+        airtableUser = await AirtableAPI.User.lookupBySlack(slackUser.slackId);
+    } catch (error) {
+        airtableUser = null;
+    }
 
-    // if (!airtableUser) {
-    //     const response = await fetch(
-    //         Environment.ARCADIUS_URL + Environment.ARCADIUS_EXISTING_USER_START,
-    //         {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'Authorization': `Bearer ${Environment.ARCADIUS_SECRET}`
-    //             },
-    //             body: JSON.stringify({
-    //                 userId: slackUser.slackId
-    //             })
-    //         }
-    //     )
+    if (!airtableUser) {
+        const response = await fetch(
+            Environment.ARCADIUS_URL + Environment.ARCADIUS_EXISTING_USER_START,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Environment.ARCADIUS_SECRET}`
+                },
+                body: JSON.stringify({
+                    userId: slackUser.slackId
+                })
+            }
+        )
 
-    //     const data = await response.json();
+        const data = await response.json();
 
-    //     const channelId = data.channelId;
-    //     const airtableRecId = data.airtableRecId;
+        const channelId = data.channelId;
+        const airtableRecId = data.airtableRecId;
 
-    //     await AirtableAPI.User.update(airtableRecId, {
-    //         "Internal ID": user.id,
-    //     });
+        await AirtableAPI.User.update(airtableRecId, {
+            "Internal ID": user.id,
+        });
 
-    //     user.metadata.airtable = {
-    //         id: airtableRecId,
-    //     };
+        user.metadata.airtable = {
+            id: airtableRecId,
+        };
 
-    //     await prisma.user.update({
-    //         where: {
-    //             id: user.id
-    //         },
-    //         data: {
-    //             metadata: user.metadata
-    //         }
-    //     });
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                metadata: user.metadata
+            }
+        });
 
-    //     return true;
-    // } else if (!airtableUser.fields['Internal ID']) {
-    //     await AirtableAPI.User.update(airtableUser.id, {
-    //         "Internal ID": user.id,
-    //     });
-    // }
+        return true;
+    } else if (!airtableUser.fields['Internal ID']) {
+        await AirtableAPI.User.update(airtableUser.id, {
+            "Internal ID": user.id,
+        });
+    }
 
-    // user.metadata.airtable = {
-    //     id: airtableUser.id,
-    // };
+    user.metadata.airtable = {
+        id: airtableUser.id,
+    };
 
-    // await prisma.user.update({
-    //     where: {
-    //         id: user.id
-    //     },
-    //     data: {
-    //         metadata: user.metadata
-    //     }
-    // });
-    // return false;
-    return false;   
+    await prisma.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
+            metadata: user.metadata
+        }
+    });
+    return false;
 };
 
 emitter.on('start', async (session: Session) => {
