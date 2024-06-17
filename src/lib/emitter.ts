@@ -13,7 +13,10 @@ type EventMap = {
     setFlag: (flag: string, value: any) => void,
 
     minute: () => void,
-    sessionUpdate: (session: Session) => void,
+    sessionUpdate: (update: {
+        updatedSession: Session,
+        updateSlack: boolean
+    }) => void,
     hour: () => void,
 
     start: (session: Session) => void,
@@ -55,9 +58,9 @@ class Emitter {
 export const emitter = new Emitter();
 
 emitter.on("init", async () => {
-    if (!Environment.PROD) {
-        emitter.emit("minute");
-    }
+    // if (!Environment.PROD) {
+    //     emitter.emit("minute");
+    // }
 
     setInterval(async () => {
         emitter.emit("minute");

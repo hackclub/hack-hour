@@ -205,7 +205,7 @@ const hack = async ({ command }: CommandHandler) => {
             ts: assertVal(topLevel!.ts)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 };
 
@@ -366,8 +366,13 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 /*
 Minute tracker
 */
-emitter.on('sessionUpdate', async (session: Session) => {
+emitter.on('sessionUpdate', async (update: {
+    updatedSession: Session,
+    updateSlack: boolean
+}) => {
     try {
+        const { updatedSession: session, updateSlack } = update;
+
         // Check if the prisma user has a slack component
         const slackUser = await prisma.slackUser.findUnique({
             where: {
@@ -401,7 +406,9 @@ emitter.on('sessionUpdate', async (session: Session) => {
         }
 
         if (session.paused) {
-            await updateController(session);
+            if (updateSlack) {
+                await updateController(session);
+            }
 
             return;
         } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.firstTime) {
@@ -415,12 +422,15 @@ emitter.on('sessionUpdate', async (session: Session) => {
                     minutes: session.time - session.elapsed
                 })
             });
+
         }
 
-        await updateController(session);
-        await updateTopLevel(session);
+        if (updateSlack) {
+            await updateController(session);
+            await updateTopLevel(session);
+        }
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
         console.error(error);
     }
 });
@@ -702,7 +712,7 @@ emitter.on('error', async (errorRef) => {
             ]
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -717,6 +727,6 @@ emitter.on('debug', async (message) => {
             text: `${message}`,
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
