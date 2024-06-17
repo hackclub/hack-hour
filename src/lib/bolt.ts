@@ -550,7 +550,7 @@ export const Slack = {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `> ${message}`
+                        "text": `> ${message.slice(0, 3000)}`
                     }
                 },
                 {
