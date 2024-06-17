@@ -22,25 +22,67 @@ import { t } from "../../../lib/templates.js";
 // }
 
 express.post("/scrapbook/post", async (req, res) => {
-    // 1. Send a DM to the user so they can select which sessions go to their scrapbook post
-    // 2. Add an entry to the airtable to represent the scrapbook post
-    // 3. Mark sessions associated with the scrapbook post (& are approved) as "banked"
-    // 4. Send a confirmation message to the user
-
-    console.log(`Recieved request from scrapbook:\n\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\`\nThanks scrappy!`);
-    log(`Recieved request from scrapbook:\n\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\`\nThanks scrappy!`);
-
-    const slackId: string = req.body.user.slackID;
-    const postTime: string = req.body.postTime;
-    const attachments: string[] = req.body.attachments;
-    const channel: string = req.body.channel;
-
-    const scrapbookUrl = await app.client.chat.getPermalink({
-        channel,
-        message_ts: postTime,
-    });
-
     try {
+        // 1. Send a DM to the user so they can select which sessions go to their scrapbook post
+        // 2. Add an entry to the airtable to represent the scrapbook post
+        // 3. Mark sessions associated with the scrapbook post (& are approved) as "banked"
+        // 4. Send a confirmation message to the user
+
+        const logData = await app.client.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `> _oh haii scrappy!_ :scrappy:`
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `${new Date().toDateString()} - view thread to see post body :eyes:`
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const slackId: string = req.body.user.slackID;
+        const postTime: string = req.body.postTime;
+        const attachments: string[] = req.body.attachments;
+        const channel: string = req.body.channel;
+
+        const scrapbookUrl = await app.client.chat.getPermalink({
+            channel,
+            message_ts: postTime,
+        });
+
+        await app.client.chat.postMessage({
+            channel: Environment.INTERNAL_CHANNEL,
+            thread_ts: logData.ts!,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\``
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `<${scrapbookUrl.permalink}|post> by <@${slackId}> in <#${channel}>`
+                        }
+                    ]
+                }
+            ]
+        });
+
         const user = await prisma.user.findFirst({
             where: {
                 slackUser: {

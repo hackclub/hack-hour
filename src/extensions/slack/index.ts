@@ -583,6 +583,24 @@ emitter.on('init', async () => {
             token: process.env.SLACK_BOT_TOKEN,
             channel: Environment.INTERNAL_CHANNEL,
             text: `_yawnns_`,
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `> _${t('init', {})}_`
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": `${new Date().toDateString()}`
+                        }
+                    ]
+                }
+            ]
         });
 
         await Slack.chat.postMessage({
