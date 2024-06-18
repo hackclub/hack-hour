@@ -61,8 +61,8 @@ export class ChooseSessions {
             };
         }
 
-        let work = session.metadata.work.substring(0, 30);
-        work = work.substring(0, work.includes(' ') ? work.lastIndexOf(' ') : work.length);
+        let work = session.metadata.work.substring(0, 27);
+        work = work.substring(0, work.includes(' ') ? work.lastIndexOf(' ') : work.length) + "...";
         
         return {
             type: "modal" as const,
