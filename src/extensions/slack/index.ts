@@ -52,7 +52,26 @@ const hack = async ({ command }: CommandHandler) => {
         });
         
         if (aggregation._count > 0) {
-            await informUser(slackId, t('error.already_hacking', {}), command.channel_id);
+            const sesh = await prisma.session.findFirst({
+                where: {
+                    user: {
+                        slackUser: {
+                            slackId: slackId
+                        }
+                    },
+                    completed: false,
+                    cancelled: false
+                }
+            });
+
+            const url = await Slack.chat.getPermalink({
+                channel: Environment.MAIN_CHANNEL,
+                message_ts: sesh!.messageTs
+            });
+
+            await informUser(slackId, t('error.already_hacking', {
+                url: url?.permalink
+            }), command.channel_id);
 
             return;
         }
@@ -279,7 +298,26 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
     );
 
     if (slackUser.user.sessions.length > 0) {
-        await informUser(slackId, t('error.already_hacking', {}), channel);
+        const sesh = await prisma.session.findFirst({
+            where: {
+                user: {
+                    slackUser: {
+                        slackId: slackId
+                    }
+                },
+                completed: false,
+                cancelled: false
+            }
+        });
+
+        const url = await Slack.chat.getPermalink({
+            channel: Environment.MAIN_CHANNEL,
+            message_ts: sesh!.messageTs
+        });
+
+        await informUser(slackId, t('error.already_hacking', {
+            url: url?.permalink
+        }), channel);
         return;
     }
 
