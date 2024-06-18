@@ -73,7 +73,7 @@ evidence_reminder:
 error:
   #context: attempting to start a new session while already in one
   already_hacking:
-    - hey hey!! you're already in a arcade session! you can't start another one until you finish the one you're in!
+    - hey hey!! you're already in a <${url}|arcade session>! you can't start another one until you finish the one you're in!
 
   not_hacking:
     - hmph, whatcha doin? want some garbage? run `/hack`!
