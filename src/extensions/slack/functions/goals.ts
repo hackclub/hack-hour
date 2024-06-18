@@ -17,7 +17,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
         
         const view = await Slack.views.open({
             trigger_id: trigger_id,
-            view: Loading.loading()
+            view: Loading.view()
         });
 
         const session = await prisma.session.findFirstOrThrow({//findUnique({

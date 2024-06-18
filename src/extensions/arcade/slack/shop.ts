@@ -10,7 +10,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
 
     const view = await Slack.views.open({
         trigger_id: command.trigger_id,
-        view: Loading.loading()
+        view: Loading.view()
     });
 
     const airtableUser = await AirtableAPI.User.lookupBySlack(command.user_id);

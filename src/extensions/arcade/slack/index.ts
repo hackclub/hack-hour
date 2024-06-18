@@ -18,7 +18,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     const view = await Slack.views.open({         
         trigger_id: body.trigger_id,         
-        view: Loading.loading()     
+        view: Loading.view()     
     }); 
 
     const flowTs = body.message!.ts;

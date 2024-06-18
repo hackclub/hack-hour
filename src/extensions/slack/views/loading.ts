@@ -1,7 +1,19 @@
-import { View } from "@slack/bolt";
+import { KnownBlock, View } from "@slack/bolt";
 
 export class Loading {
-    public static loading(): View {
+    public static message(): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Loading... :spin-loading:`
+                }
+            }
+        ]
+    }
+
+    public static view(): View {
         return {
             "type": "modal",
             "close": {

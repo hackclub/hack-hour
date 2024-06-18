@@ -18,6 +18,7 @@ import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
+import { Loading } from "./views/loading.js";
 
 /*
 Session Creation
@@ -137,14 +138,14 @@ const hack = async ({ command }: CommandHandler) => {
 
         const topLevel = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
-            text: "initializing... :spin-loading:" // Leave it empty, for initialization
+            blocks: Loading.message(),
         });
 
         // Create a controller message in the thread
         const controller = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: topLevel!.ts,
-            text: "initializing... :spin-loading:" // Leave it empty, for initialization
+            blocks: Loading.message(),
         })
 
         if (!controller || !controller.ts) {
@@ -313,14 +314,14 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 
     const topLevel = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
-        text: "initializing... :spin-loading:" // Leave it empty, for initialization
+        blocks: Loading.message(),
     });
 
     // Create a controller message in the thread
     const controller = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
         thread_ts: topLevel!.ts,
-        text: "initializing... :spin-loading:" // Leave it empty, for initialization
+        blocks: Loading.message(),
     })
 
     if (!controller || !controller.ts) {

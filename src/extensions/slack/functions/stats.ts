@@ -13,7 +13,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
 
         const view = await Slack.views.open({
             trigger_id: (body as any).trigger_id,
-            view: Loading.loading(),
+            view: Loading.view(),
         });
 
         const slackId = body.user.id;
@@ -60,7 +60,7 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
 
     const view = await Slack.views.open({
         trigger_id: triggerId,
-        view: Loading.loading(),
+        view: Loading.view(),
     });
 
     const user = await prisma.user.findFirst({

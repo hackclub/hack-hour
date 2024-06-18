@@ -7,6 +7,7 @@ import { log } from "../lib/log.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 import { t } from "../../../lib/templates.js";
+import { Loading } from "../../slack/views/loading.js";
 
 // {
 //     "messageText": "wait wait",
@@ -117,7 +118,7 @@ express.post("/scrapbook/post", async (req, res) => {
 
         const flowMsg = await Slack.chat.postMessage({
             channel: slackId,
-            text: "Initializing... :spin-loading:",
+            blocks: Loading.message(),
         });
 
         if (!flowMsg || !flowMsg.ts) {
