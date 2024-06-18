@@ -115,19 +115,19 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     });
     
     for (const session of selectedSessions) {        
-        if (session.metadata?.airtable?.status === "Approved") {
-            session.metadata.airtable.status = "Banked";
+        // if (session.metadata?.airtable?.status === "Approved") {
+        //     session.metadata.airtable.status = "Banked";
 
-            await AirtableAPI.Session.update(session.metadata?.airtable?.id, {
-                "Scrapbook": [scrapbook.data.record],
-                "Status": "Banked",
-            });
-        } else {
+        //     await AirtableAPI.Session.update(session.metadata?.airtable?.id, {
+        //         "Scrapbook": [scrapbook.data.record],
+        //         "Status": "Banked",
+        //     });
+        // } else {
             await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
                 "Scrapbook": [scrapbook.data.record],
             });
-        }
-
+        // }
+ 
         session.metadata.banked = true;
 
         await prisma.session.update({
