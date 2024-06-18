@@ -2,9 +2,9 @@ import { app, express, Slack } from "../../../lib/bolt.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { prisma } from "../../../lib/prisma.js";
 import { Environment } from "../../../lib/constants.js";
-import { emitter } from "../../../lib/emitter.js";
 import { log } from "../lib/log.js";
 import { t } from "../../../lib/templates.js";
+import { handleError } from "../../../lib/handleError.js";
 
 express.post('/airtable/session/update', async (req, res) => {
     try {
@@ -151,7 +151,8 @@ express.post('/airtable/session/update', async (req, res) => {
 
         res.sendStatus(200);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error);
+        res.sendStatus(500);
     }
 });
 

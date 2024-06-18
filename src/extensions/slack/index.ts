@@ -18,6 +18,7 @@ import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
+import { handleError } from "../../lib/handleError.js";
 
 /*
 Session Creation
@@ -209,7 +210,7 @@ const hack = async ({ command }: CommandHandler) => {
             ts: assertVal(topLevel!.ts)
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        handleError(error)
     }
 };
 
@@ -455,7 +456,6 @@ emitter.on('sessionUpdate', async (update: {
             await updateTopLevel(session);
         }
     } catch (error) {
-        emitter.emit('error', { error });
         console.error(error);
     }
 });
@@ -737,7 +737,7 @@ emitter.on('error', async (errorRef) => {
             ]
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        handleError(error)
     }
 });
 
@@ -752,6 +752,6 @@ emitter.on('debug', async (message) => {
             text: `${message}`,
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        handleError(error)
     }
 });

@@ -4,11 +4,11 @@ Pause Management
 import { Slack } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { emitter } from "../../../lib/emitter.js";
 import { Session } from "../../../lib/corelib.js";
 
 import { fetchSlackId, informUser } from "../lib/lib.js";
 import { pfps, t } from "../../../lib/templates.js";
+import { handleError } from "../../../lib/handleError.js";
 
 // TODO: Move to a standard library
 
@@ -49,7 +49,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -84,7 +84,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -126,7 +126,7 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
 
         informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -167,6 +167,6 @@ Slack.command(Commands.START, async ({ ack, body }) => {
             minutes: updatedSession.time - updatedSession.elapsed
         }), body.channel_id);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });

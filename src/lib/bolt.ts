@@ -1,19 +1,26 @@
 import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt'; 
+
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
 import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
 import { Commands, Environment } from './constants.js';
-import { emitter } from './emitter.js';
 import { assertVal } from './assert.js';
 import { t } from './templates.js';
 import { AirtableAPI } from './airtable.js';
+import { handleError } from './handleError.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
     endpoints: '/slack/events',
     processBeforeResponse: true,
+    
+    unhandledRequestHandler(args) {
+        const diff = Date.now() - (args.request as any).context.start;
+
+        console.log(`[WARN] [${new Date().toISOString()}] Took ${diff}ms to respond\nUnhandled request: ${JSON.stringify(args.request)}`)
+    }
 });
 
 export const express = expressReceiver.app;
@@ -27,14 +34,38 @@ export const app = new bolt.App({
     receiver: expressReceiver,
 });
 
+declare global {
+    namespace Express {
+        interface Request {
+            context: { start: number } 
+        }
+    }
+}
+
+  // Time response 
+express.use((req, res, next) => {
+    const start = Date.now();
+
+    // Add context to the response
+    req.context = {
+        start,
+    }
+
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[${new Date().toISOString()}] Request to ${req.path} took ${duration}ms`);
+    });
+
+    next();
+});
+
 express.use(bodyParser.json());
 
 app.error(async (error) => {
-    if (!error.original) {
-        emitter.emit('error', {error});
+    if (error?.original) {
+        handleError(error.original)
     } else {
-        emitter.emit('error', {error});
-        emitter.emit('error', {error: error.original});
+        handleError(error)
     }
 });
 
@@ -117,7 +148,7 @@ export const Slack = {
                 verb = "succeeded"
             } catch(error) {
                 verb = "failed"
-                emitter.emit('error', {error})
+                handleError(error)
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
@@ -188,12 +219,12 @@ export const Slack = {
                         listener(payload) 
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', {error});
+                        handleError(error)
                     }
                 });
             } catch(error) {
                 verb = "failed"
-                emitter.emit('error', {error});
+                handleError(error)
  /*               await app.client.chat.postEphemeral({
                     channel: action.channel.id,
                     user: action.user.id,
@@ -255,12 +286,12 @@ export const Slack = {
                         listener(payload)
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', {error});
+                        handleError(error)
                     }
                 });                
             } catch (error) {
                 verb = "failed"
-                emitter.emit('error', {error});
+                handleError(error)
 
                 await app.client.chat.postEphemeral({
                     channel: body.user.id,
@@ -317,7 +348,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         },
 
@@ -367,7 +398,7 @@ export const Slack = {
 
                 return result;
             } catch (error: any) {
-                emitter.emit('error', {error});
+                handleError(error)
 
                 console.log(`[${new Date().toISOString()}] failed to post message`)                
 
@@ -430,7 +461,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         },
 
@@ -448,7 +479,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         }        
     },
@@ -468,7 +499,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         },
 
@@ -486,7 +517,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         }
     },
@@ -506,7 +537,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         }
     },
@@ -526,7 +557,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                handleError(error)
             }
         }
     },

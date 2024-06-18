@@ -4,7 +4,6 @@ Cancellation
 import { app } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands, Callbacks } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { emitter } from "../../../lib/emitter.js";
 
 import { fetchSlackId, informUser } from "../lib/lib.js";
 import { Cancel } from "../views/cancel.js";
@@ -12,6 +11,7 @@ import { Cancel } from "../views/cancel.js";
 import { Session } from "../../../lib/corelib.js";
 import { Slack } from "../../../lib/bolt.js";
 import { pfps, t } from "../../../lib/templates.js";
+import { handleError } from "../../../lib/handleError.js";
 
 Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     try {
@@ -24,7 +24,7 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
             view: await Cancel.cancel(thread_ts)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error);
     }
 });
 
@@ -72,7 +72,7 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
             }
         }));
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
                 
@@ -105,6 +105,6 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         await Session.cancel(session);
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });

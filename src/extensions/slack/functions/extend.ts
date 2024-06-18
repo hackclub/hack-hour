@@ -1,7 +1,6 @@
 import { Slack } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
-import { emitter } from "../../../lib/emitter.js";
 
 import { updateController, updateTopLevel, informUser } from "../lib/lib.js";
 import { Session } from "../../../lib/corelib.js";
@@ -66,6 +65,6 @@ Slack.command(Commands.EXTEND, async ({ ack, body }) => {
         await updateController(updatedSession);
         await updateTopLevel(updatedSession);*/
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error);
     }
 });

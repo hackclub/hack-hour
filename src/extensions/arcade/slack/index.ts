@@ -9,6 +9,7 @@ import { Hack } from "../../slack/views/hack.js";
 import { emitter } from "../../../lib/emitter.js";
 import { firstTime } from "../watchers/hackhour.js";
 import { Loading } from "../../slack/views/loading.js";
+import { openModal } from "../../slack/lib/open-modal.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     try {
@@ -16,10 +17,10 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     if (body.type !== "block_actions") return;
 
-    const view = await Slack.views.open({         
-        trigger_id: body.trigger_id,         
-        view: Loading.loading()     
-    }); 
+    // const view = await Slack.views.open({         
+    //     trigger_id: body.trigger_id,         
+    //     view: Loading.loading()     
+    // }); 
 
     const flowTs = body.message!.ts;
 
@@ -69,11 +70,15 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
+    // await Slack.views.update({
+    //     view_id: view?.view?.id,
+    //     view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+    // }).catch((err) => console.log(err));
 
-    await Slack.views.update({
-        view_id: view?.view?.id,
+    await openModal({
+        triggerId: body.trigger_id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    }).catch((err) => console.log(err));
+    });
 } catch (error) {
     console.log(error);
     emitter.emit("error", error);
