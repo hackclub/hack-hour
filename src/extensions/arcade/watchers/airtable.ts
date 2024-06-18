@@ -73,7 +73,7 @@ express.post('/airtable/session/update', async (req, res) => {
                 "Status": "Banked"
             });
 
-            session.metadata.airtable!.status = "Banked";
+            // session.metadata.airtable!.status = "Banked";
 
             await prisma.session.update({
                 where: {
@@ -136,7 +136,10 @@ express.post('/airtable/session/update', async (req, res) => {
                     slackId: slackUser.slackId
                 })
             });
-        } else if (session.metadata.airtable!.status === "Rejected") {
+        } else if (
+            session.metadata.airtable!.status === "Rejected" ||
+            session.metadata.airtable!.status === "Rejected Locked"
+        ) {
             await Slack.chat.postMessage({
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
