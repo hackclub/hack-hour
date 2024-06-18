@@ -5,7 +5,7 @@ import { app, express } from "../../lib/bolt.js";
 import { WebSocket, WebSocketServer } from 'ws';
 import { Event } from "../../lib/emitter.js";
 import { Session } from "@prisma/client";
-import { AirtableAPI } from "../arcade/lib/airtable.js";
+import { AirtableAPI } from "../../lib/airtable.js";
 
 express.get('/', async (req, res) => {
     await res.send('Hello World!');
