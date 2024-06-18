@@ -25,6 +25,13 @@ export const fetchEvidence = async (messageTs: string, slackId: string) => {
     return { activity, evidenced };
 }
 
+const acceptedImageTypes = [
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/jpg"
+]
+
 // Take any media sent in the thread and attach it to the session
 export const surfaceEvidence = async (messageTs: string, slackId: string) => {
     const evidence = await Slack.conversations.replies({
@@ -49,7 +56,10 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
         }
 
         console.log(image.files[0]);
-        session.metadata.slack.attachment = image.files[0]?.permalink;
+
+        if (acceptedImageTypes.includes(image.files[0]?.mimetype ?? "")) {
+            session.metadata.slack.attachment = image.files[0]?.permalink;
+        }
 
         const updatedSession = await prisma.session.update({
             where: {
