@@ -1,5 +1,5 @@
 import { KnownBlock, View } from "@slack/bolt";
-import { Actions, Callbacks } from "../../../lib/constants.js";
+import { Actions, Callbacks, Environment } from "../../../lib/constants.js";
 import type { Session } from "@prisma/client";
 import { t } from "../../../lib/templates.js";
 
@@ -110,7 +110,7 @@ export class ChooseSessions {
                             {
                                 text: {
                                     type: "plain_text",
-                                    text: `${session.metadata.work.substring(0,30)} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
+                                    text: `${session.metadata.work.substring(0, 30)} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
                                     emoji: true,
                                 },
                                 value: session.id,
@@ -146,12 +146,12 @@ export class ChooseSessions {
     }
 }
 
-export class Walkthrough {}
+export class Walkthrough { }
 
 export class Shop {
-    public static shop(remaining: number, pending: number, airtableUser: any) {
+    public static shop(remaining: number, pending: number, airtableUser: any): View {
         const blocks = [];
-    
+
         blocks.push({
             "type": "section",
             "text": {
@@ -159,7 +159,7 @@ export class Shop {
                 "text": `Available to spend: ${remaining} :tw_admission_tickets:  _(Pending Approval: ${pending})_`
             }
         });
-    
+
         if (Math.floor(airtableUser.fields["Spent (Incl. Pending)"] / 60) !== 0) {
             blocks.push({
                 "type": "section",
@@ -169,10 +169,10 @@ export class Shop {
                 }
             });
         }
-    
+
         blocks.push({
-                "type": "divider"
-            },
+            "type": "divider"
+        },
             {
                 "type": "actions",
                 "elements": [
@@ -191,24 +191,21 @@ export class Shop {
                 ],
                 "block_id": "actions",
             });
-    
 
-        {
-            view_id: view?.view?.id,
-            "view": {
-                "type": "modal",
-                "title": {
-                    "type": "plain_text",
-                    "text": "The Shop",
-                    "emoji": true
-                },
-                "close": {
-                    "type": "plain_text",
-                    "text": "Close",
-                    "emoji": true
-                },
-                "blocks": blocks
-            }
+
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "The Shop",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": blocks
         }
     }
 }

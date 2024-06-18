@@ -55,8 +55,6 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             return;
         }
 
-        console.log(image.files[0]);
-
         if (acceptedImageTypes.includes(image.files[0]?.mimetype ?? "")) {
             session.metadata.slack.attachment = image.files[0]?.permalink;
         }

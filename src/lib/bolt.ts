@@ -17,8 +17,6 @@ const expressReceiver = new bolt.ExpressReceiver({
     processBeforeResponse: true,
     
     unhandledRequestHandler(args) {
-        const diff = Date.now() - (args.request as any).context.start;
-
         console.log(`[WARN] [${new Date().toISOString()}] Took ${diff}ms to respond\nUnhandled request: ${JSON.stringify(args.request)}`)
     }
 });
@@ -53,7 +51,7 @@ express.use((req, res, next) => {
 
     res.on('finish', () => {
         const duration = Date.now() - start;
-        console.log(`[${new Date().toISOString()}] Request to ${req.path} took ${duration}ms`);
+        console.log(`[${new Date().toISOString()}] [${req.path}] Request to ${req.path} took ${duration}ms`);
     });
 
     next();
@@ -99,7 +97,7 @@ export const Slack = {
             const { command: event, ack, respond } = payload;
 
             console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
-    
+   
             await ack();
 
             if (Environment.MAINTAINANCE_MODE) {
@@ -245,6 +243,8 @@ export const Slack = {
             const { body, view } = payload;
 
             console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
+
+            await payload.ack();
 
             try {
                 await app.client.chat.postMessage({

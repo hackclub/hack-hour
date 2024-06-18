@@ -68,13 +68,13 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         },
     });
 
-    log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
+    // log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
     // await Slack.views.update({
     //     view_id: view?.view?.id,
     //     view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
     // }).catch((err) => console.log(err));
-
+        
     await openModal({
         triggerId: body.trigger_id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
@@ -86,8 +86,6 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
-    await ack();
-
     const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
         where: {
             internalId: view.private_metadata,

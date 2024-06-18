@@ -33,6 +33,6 @@ Slack.command(Commands.SHOP, async ({ command, ack }) => {
 
     await openModal({
         triggerId: command.trigger_id,
-        view: Shop.shop(remaining, pending)
+        view: Shop.shop(remaining, pending, airtableUser)
     });
 });

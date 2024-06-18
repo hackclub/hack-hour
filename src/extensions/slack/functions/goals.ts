@@ -143,7 +143,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
 });
 
 Slack.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
-    await ack();
+    // await ack();
 });
 
 Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
@@ -164,8 +164,6 @@ Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
 
 Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
 
         const sessionId = body.view.private_metadata;
@@ -306,8 +304,6 @@ Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
 
 Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
     try {
-        await ack();
-
         const sessionId = body.view.private_metadata;
 
          // Mark the goal as complete

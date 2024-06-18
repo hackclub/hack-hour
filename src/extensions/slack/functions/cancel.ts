@@ -30,8 +30,6 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
 
 Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
         const messageTs = view.private_metadata;
 

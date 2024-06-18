@@ -301,7 +301,7 @@ app.event("message", async ({ event }) => {
                 });
             }
 
-            if ((airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") && activity) {
+            if ((airtableSession.fields["Status"] === "Rejected" || airtableSession.fields["Status"] === "Requested Re-review") && evidenced) {
                 await AirtableAPI.Session.update(session.metadata.airtable.id, {
                     "Status": "Requested Re-review",
                     "Activity": activity,
