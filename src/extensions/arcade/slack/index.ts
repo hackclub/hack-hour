@@ -9,6 +9,7 @@ import { Hack } from "../../slack/views/hack.js";
 import { emitter } from "../../../lib/emitter.js";
 import { firstTime } from "../watchers/hackhour.js";
 import { Loading } from "../../slack/views/loading.js";
+import { openModal } from "../../slack/lib/open-modal.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     try {
@@ -69,7 +70,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
-
+    await openModal({triggerId})
     await Slack.views.update({
         view_id: view?.view?.id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
