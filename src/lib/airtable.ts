@@ -244,7 +244,7 @@ export const AirtableAPI = {
             const records = await sessions.update([{
                 "id": id,
                 "fields": session
-            }]);
+            }]).catch(error => { console.error(error); return []});
 
             console.log(`[AirtableAPI.Session.update] Took ${Date.now() - now}ms`);
 
