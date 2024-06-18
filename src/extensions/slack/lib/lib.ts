@@ -7,9 +7,9 @@ import { t } from "../../../lib/templates.js";
 
 import { Controller } from "../views/controller.js";
 import { TopLevel } from "../views/topLevel.js";
-import { emitter } from "../../../lib/emitter.js";
 import { AllMiddlewareArgs, Middleware, SlackCommandMiddlewareArgs } from "@slack/bolt";
 import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
+import { handleError } from "../../../lib/handleError.js";
 
 export type Session = Prisma.SessionGetPayload<{}>;
 
@@ -88,7 +88,7 @@ export async function informUser(slackId: string, message: string, channel: stri
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', {error});
+            handleError(error)
         }
     }
 }
@@ -115,7 +115,7 @@ export async function informUserBlocks(slackId: string, blocks: any[], channel: 
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', {error});
+            handleError(error)
         }
     }
     

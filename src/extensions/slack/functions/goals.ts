@@ -4,9 +4,9 @@ import { prisma, uid } from "../../../lib/prisma.js";
 import { Goals } from "../views/goals.js";
 import { Actions, Callbacks } from "../../../lib/constants.js";
 import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
-import { emitter } from "../../../lib/emitter.js";
 import { t } from "../../../lib/templates.js";
 import { Loading } from "../views/loading.js";
+import { handleError } from "../../../lib/handleError.js";
 
 Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
@@ -61,7 +61,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -138,7 +138,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -158,7 +158,7 @@ Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
             view: await Goals.create(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -259,7 +259,7 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -300,7 +300,7 @@ Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
             view: await Goals.delete(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });
 
@@ -396,6 +396,6 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error)
     }
 });

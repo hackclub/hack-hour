@@ -9,6 +9,7 @@ import { log } from "../lib/log.js";
 import { pfps, t, t_format, templates } from "../../../lib/templates.js";
 import { fetchEvidence, surfaceEvidence } from "../lib/helper.js";
 import { Session as LibSession } from "../../../lib/corelib.js";
+import { handleError } from "../../../lib/handleError.js";
 
 const findOrCreateUser = async (userId: string) => {
     try {
@@ -68,8 +69,8 @@ const findOrCreateUser = async (userId: string) => {
         }
 
         return user;
-    } catch (error) {
-        emitter.emit('error', {error});
+    } catch (e) {
+        handleError(e);
     }
 };
 
@@ -172,7 +173,7 @@ const registerSession = async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error);
     }
 };
 
@@ -463,6 +464,6 @@ emitter.on('start', async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', {error});
+        handleError(error);
     }
 });

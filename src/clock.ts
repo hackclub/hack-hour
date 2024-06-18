@@ -1,6 +1,7 @@
 import { prisma } from "./lib/prisma.js";
 import { emitter } from "./lib/emitter.js";
 import { Constants } from "./lib/constants.js";
+import { handleError } from "./lib/handleError.js";
 
 emitter.on('minute', async () => {
     try {
@@ -109,7 +110,7 @@ emitter.on('minute', async () => {
             }
         }
     } catch (error) {
-        emitter.emit('error', { error });
+        handleError(error)
     }
 });
 
