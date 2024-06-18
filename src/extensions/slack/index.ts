@@ -37,45 +37,7 @@ const log = async (message: string) => {
 const hack = async ({ command }: CommandHandler) => {
     try {
         const slackId = command.user_id;
-
-        const aggregation = await prisma.session.aggregate({
-            where: {
-                user: {
-                    slackUser: {
-                        slackId: slackId
-                    }
-                },
-                completed: false,
-                cancelled: false
-            },
-            _count: true
-        });
         
-        if (aggregation._count > 0) {
-            const sesh = await prisma.session.findFirst({
-                where: {
-                    user: {
-                        slackUser: {
-                            slackId: slackId
-                        }
-                    },
-                    completed: false,
-                    cancelled: false
-                }
-            });
-
-            const url = await Slack.chat.getPermalink({
-                channel: Environment.MAIN_CHANNEL,
-                message_ts: sesh!.messageTs
-            });
-
-            await informUser(slackId, t('error.already_hacking', {
-                url: url?.permalink
-            }), command.channel_id);
-
-            return;
-        }
-
         let slackUser = await prisma.slackUser.upsert(
             {
                 where: {
@@ -108,10 +70,33 @@ const hack = async ({ command }: CommandHandler) => {
                 },
                 update: {},
                 include: {
-                    user: true
+                    user: {
+                        include: {
+                            sessions: {
+                                where: {
+                                    completed: false,
+                                    cancelled: false
+                                }
+                            }
+                        }
+                    }
                 }
             }
         );
+
+        if (slackUser.user.sessions.length > 0) {
+            const url = await Slack.chat.getPermalink({
+                channel: Environment.MAIN_CHANNEL,
+                message_ts: slackUser.user.sessions[0].messageTs
+            });
+
+            await informUser(slackId, t('error.already_hacking', {
+                url: url?.permalink
+            }), command.channel_id);
+
+            return;
+        }
+
 
         if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
             // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
