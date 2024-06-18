@@ -1,14 +1,39 @@
 import { Server } from "http";
 import { prisma } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
-import { express } from "../../lib/bolt.js";
+import { app, express } from "../../lib/bolt.js";
 import { WebSocket, WebSocketServer } from 'ws';
 import { Event } from "../../lib/emitter.js";
 import { Session } from "@prisma/client";
+import { AirtableAPI } from "../arcade/lib/airtable.js";
 
 express.get('/', async (req, res) => {
     await res.send('Hello World!');
 });
+
+express.get('/ping', async (req, res) => {
+    await res.send('pong');
+})
+
+express.get('/status', async (req, res) => {
+    const result = {
+        activeSessions: -1,
+        airtableConnected: false,
+        slackConnected: false,
+    }
+
+    try {
+        await Promise.all([
+            prisma.session.aggregate({where: {completed: false, cancelled: false}, _count: true }).then(r => result['activeSessions'] = r._count),
+            AirtableAPI.User.find('U04QD71QWS0').then(r => result['airtableConnected'] = r != undefined),
+            app.client.auth.test().then(r => result['slackConnected'] = r.ok),
+        ]);
+        await res.status(200).send(result);
+    } catch (e) {
+        await res.status(500).send(result);
+    }
+
+})
 
 express.get('/api/clock/:slackId', async (req, res) => {
     const slackId = req.params.slackId;
