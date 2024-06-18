@@ -147,3 +147,68 @@ export class ChooseSessions {
 }
 
 export class Walkthrough {}
+
+export class Shop {
+    public static shop(remaining: number, pending: number, airtableUser: any) {
+        const blocks = [];
+    
+        blocks.push({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `Available to spend: ${remaining} :tw_admission_tickets:  _(Pending Approval: ${pending})_`
+            }
+        });
+    
+        if (Math.floor(airtableUser.fields["Spent (Incl. Pending)"] / 60) !== 0) {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Total banked hours: ${Math.floor(airtableUser.fields["Minutes (Banked)"] / 60)} :tw_admission_tickets: `
+                }
+            });
+        }
+    
+        blocks.push({
+                "type": "divider"
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Open the Shop",
+                            "emoji": true
+                        },
+                        'url': `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
+                        // 'url': `https://forms.hackclub.com/eligibility?slack_id=${command.user_id}`,
+                        //            "url": `${Environment.SHOP_URL}/arcade/${airtableUser.id}/shop/`,
+                        // "action_id": Actions.OPEN_SHOP
+                    }
+                ],
+                "block_id": "actions",
+            });
+    
+
+        {
+            view_id: view?.view?.id,
+            "view": {
+                "type": "modal",
+                "title": {
+                    "type": "plain_text",
+                    "text": "The Shop",
+                    "emoji": true
+                },
+                "close": {
+                    "type": "plain_text",
+                    "text": "Close",
+                    "emoji": true
+                },
+                "blocks": blocks
+            }
+        }
+    }
+}

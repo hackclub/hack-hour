@@ -17,10 +17,10 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     if (body.type !== "block_actions") return;
 
-    const view = await Slack.views.open({         
-        trigger_id: body.trigger_id,         
-        view: Loading.loading()     
-    }); 
+    // const view = await Slack.views.open({         
+    //     trigger_id: body.trigger_id,         
+    //     view: Loading.loading()     
+    // }); 
 
     const flowTs = body.message!.ts;
 
@@ -70,11 +70,15 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
     log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
 
-    await openModal({triggerId})
-    await Slack.views.update({
-        view_id: view?.view?.id,
+    // await Slack.views.update({
+    //     view_id: view?.view?.id,
+    //     view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+    // }).catch((err) => console.log(err));
+
+    await openModal({
+        triggerId: body.trigger_id,
         view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    }).catch((err) => console.log(err));
+    });
 } catch (error) {
     console.log(error);
     emitter.emit("error", error);
