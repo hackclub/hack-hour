@@ -61,6 +61,9 @@ export class ChooseSessions {
             };
         }
 
+        let work = session.metadata.work.substring(0, 30);
+        work = work.substring(0, work.includes(' ') ? work.lastIndexOf(' ') : work.length);
+        
         return {
             type: "modal" as const,
             callback_id: Callbacks.CHOOSE_SESSIONS,
@@ -110,7 +113,7 @@ export class ChooseSessions {
                             {
                                 text: {
                                     type: "plain_text",
-                                    text: `${session.metadata.work.substring(0,30)} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
+                                    text: `${work} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
                                     emoji: true,
                                 },
                                 value: session.id,
