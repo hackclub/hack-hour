@@ -1,12 +1,13 @@
 import { Slack } from "../../../lib/bolt.js";
 import { handleError } from "../../../lib/handleError.js";
+import { Loading } from "../views/loading.js";
 
 export async function openModal({triggerId, asyncMessageView}) {
     try {
         let viewID
         const loadingDelay = Slack.views.open({
             trigger_id: triggerId,
-            view: loadingMessageView()
+            view: Loading.loading()
         }).then(res => viewID = res?.view?.id);
         const minDelay = new Promise((resolve) => setTimeout(resolve, 400)); // raccoons take their time to wake up!
 
@@ -23,9 +24,4 @@ export async function openModal({triggerId, asyncMessageView}) {
     } catch (error) {
         handleError(error)
     }
-}
-
-async function loadingMessageView() {
-    // todo: make a loading message
-    // preferably from flavor text
 }

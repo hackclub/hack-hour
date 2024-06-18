@@ -1,4 +1,5 @@
 import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt'; 
+
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -14,6 +15,12 @@ const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
     endpoints: '/slack/events',
     processBeforeResponse: true,
+    
+    unhandledRequestHandler(args) {
+        const diff = Date.now() - (args.request as any).context.start;
+
+        console.log(`[WARN] [${new Date().toISOString()}] Took ${diff}ms to respond\nUnhandled request: ${JSON.stringify(args.request)}`)
+    }
 });
 
 export const express = expressReceiver.app;
@@ -25,6 +32,31 @@ export const app = new bolt.App({
     clientSecret: Environment.CLIENT_SECRET,    
 
     receiver: expressReceiver,
+});
+
+declare global {
+    namespace Express {
+        interface Request {
+            context: { start: number } 
+        }
+    }
+}
+
+  // Time response 
+express.use((req, res, next) => {
+    const start = Date.now();
+
+    // Add context to the response
+    req.context = {
+        start,
+    }
+
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[${new Date().toISOString()}] Request to ${req.path} took ${duration}ms`);
+    });
+
+    next();
 });
 
 express.use(bodyParser.json());
