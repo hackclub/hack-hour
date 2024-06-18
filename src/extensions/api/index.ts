@@ -25,8 +25,8 @@ express.get('/status', async (req, res) => {
     try {
         await Promise.all([
             prisma.session.aggregate({where: {completed: false, cancelled: false}, _count: true }).then(r => result['activeSessions'] = r._count),
-            AirtableAPI.User.find('U04QD71QWS0').then(r => result['airtableConnected'] = r != undefined),
-            app.client.auth.test().then(r => result['slackConnected'] = r.ok),
+            AirtableAPI.User.find('U04QD71QWS0').then(r => result['airtableConnected'] = r?.id != null),
+            app.client.auth.test().then(r => result['slackConnected'] = r?.ok),
         ]);
         await res.status(200).send(result);
     } catch (e) {
