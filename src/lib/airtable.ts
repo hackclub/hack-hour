@@ -237,8 +237,8 @@ export const AirtableAPI = {
         },
 
         async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite}> {
-            console.log(`[AirtableAPI.Session.update] Updating ${id} with ${session}`)
-            
+            console.log(`[AirtableAPI.Session.update] Updating ${id} with ${JSON.stringify(session)}`)
+
             const now = Date.now();
 
             const records = await sessions.update([{
