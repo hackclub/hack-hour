@@ -104,6 +104,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     }
 
     let bankedSessions = 0;
+    let pendingReview = 0;
 
     const selectedSessions = await prisma.session.findMany({
         where: {
@@ -138,7 +139,13 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             },
         });
 
-        bankedSessions++;
+        if((await AirtableAPI.Session.find(session.metadata?.airtable?.id!))?.fields.Status != "Rejected") {
+            bankedSessions++;
+        }
+
+        if((await AirtableAPI.Session.find(session.metadata?.airtable?.id!))?.fields.Status == "Unreviewed" || (await AirtableAPI.Session.find(session.metadata?.airtable?.id!))?.fields.Status == "Requested Re-review") {
+            pendingReview++
+        }
     }
 
     await Slack.chat.update({
@@ -148,11 +155,26 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         blocks: ChooseSessions.completedSessions(selectedSessions),
     });
 
-    await Slack.chat.postMessage({
-        channel: scrapbook.flowChannel,
-        text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
-            } been marked as banked.`,
-    });
+    if(pendingReview == 0) { // all reviewed
+        await Slack.chat.postMessage({
+            channel: scrapbook.flowChannel,
+            text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
+                } been marked as banked.`,
+        });
+    } else if((bankedSessions - pendingReview) == 0) { // none reviewed yet
+        await Slack.chat.postMessage({
+            channel: scrapbook.flowChannel,
+            text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${pendingReview} session${pendingReview === 1 ? "" : "s"
+                } will be marked as banked pending review.`,
+        });
+    } else { // mixed scenario
+        await Slack.chat.postMessage({
+            channel: scrapbook.flowChannel,
+            text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions - pendingReview} session${(bankedSessions - pendingReview) === 1 ? " has" : "s have"
+                } been marked as banked. There are ${pendingReview} session${(pendingReview === 1) ? "" : "s"} that will be banked pending successful review.`,
+        });
+    } 
+    
 });
 
 // app.command(Commands.SESSIONS, async ({ command, ack }) => {
