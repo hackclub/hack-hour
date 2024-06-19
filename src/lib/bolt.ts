@@ -10,6 +10,7 @@ import { assertVal } from './assert.js';
 import { t } from './templates.js';
 import { AirtableAPI } from './airtable.js';
 import { handleError } from './handleError.js';
+import util from 'util';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -17,11 +18,19 @@ const expressReceiver = new bolt.ExpressReceiver({
     processBeforeResponse: true,
     
     unhandledRequestHandler(args) {
-        console.log(`[WARN] [${new Date().toISOString()}] Took ${diff}ms to respond\nUnhandled request: ${JSON.stringify(args.request)}`)
+        console.log(JSON.stringify(Object.keys(args.request)));
+        console.log(`[WARN] [${new Date().toISOString()}] Unhandled request detected - did not acknowledge to slack, acking manually`)
+
+        console.log(`Context for failed request: ${util.inspect(args.request)}`)
+
+        args.response.writeHead(200); // (:<
+        args.response.end();
     }
 });
 
 export const express = expressReceiver.app;
+ 
+express.use(bodyParser.json());
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
@@ -32,32 +41,13 @@ export const app = new bolt.App({
     receiver: expressReceiver,
 });
 
-declare global {
-    namespace Express {
-        interface Request {
-            context: { start: number } 
-        }
-    }
-}
+// Time response
+app.use(async ({ next, payload }) => {
+    const now = new Date();
 
-  // Time response 
-express.use((req, res, next) => {
-    const start = Date.now();
-
-    // Add context to the response
-    req.context = {
-        start,
-    }
-
-    res.on('finish', () => {
-        const duration = Date.now() - start;
-        console.log(`[${new Date().toISOString()}] [${req.path}] Request to ${req.path} took ${duration}ms`);
-    });
-
-    next();
+    await next();
+    console.log(`[${now.toISOString()}] Took ${new Date().getTime() - now.getTime()}ms to respond to ${payload.type} event`)
 });
-
-express.use(bodyParser.json());
 
 app.error(async (error) => {
     if (error?.original) {
@@ -97,8 +87,8 @@ export const Slack = {
             const { command: event, ack, respond } = payload;
 
             console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
-   
-            await ack();
+
+            // await ack();
 
             if (Environment.MAINTAINANCE_MODE) {
                 const user = await app.client.users.info({

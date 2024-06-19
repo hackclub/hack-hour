@@ -283,7 +283,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
         await Slack.chat.postEphemeral({
             user: command.user_id,
             channel: command.channel_id,
-            text: "You are not authorized to use this command",
+            text: "here's a cookie :cookie:"
         });
         return;
     }
