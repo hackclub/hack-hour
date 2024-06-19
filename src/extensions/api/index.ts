@@ -8,7 +8,7 @@ import { Session } from "@prisma/client";
 import { AirtableAPI } from "../../lib/airtable.js";
 
 express.get('/', async (req, res) => {
-    await res.send('Hello World!');
+    await res.redirect("https://github.com/hackclub/hack-hour");
 });
 
 express.get('/ping', async (req, res) => {
