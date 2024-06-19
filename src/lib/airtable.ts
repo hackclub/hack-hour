@@ -236,7 +236,7 @@ export const AirtableAPI = {
             return {id: record[0].id, fields: record[0].fields as AirtableSessionWrite};
         },
 
-        async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite}> {
+        async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite} | null> {
             console.log(`[AirtableAPI.Session.update] Updating ${id} with ${JSON.stringify(session)}`)
 
             const now = Date.now();
@@ -244,11 +244,11 @@ export const AirtableAPI = {
             const records = await sessions.update([{
                 "id": id,
                 "fields": session
-            }]).catch(error => { console.error(error); return []});
+            }]).catch(error => { console.error(error); return null});
 
             console.log(`[AirtableAPI.Session.update] Took ${Date.now() - now}ms`);
 
-            return {id: records[0].id, fields: records[0].fields as AirtableSessionWrite};
+            return records ? {id: records[0].id, fields: records[0].fields as AirtableSessionWrite} : null;
         },
         
         async findAll(): Promise<{id: AirtableRecordID, fields: AirtableSessionRead}[]> {
@@ -292,14 +292,14 @@ export const AirtableAPI = {
             return {id: record[0].id, fields: record[0].fields as unknown as AirtableScrapbookWrite};
         },
 
-        async update(id: AirtableRecordID, session: Partial<AirtableScrapbookWrite>): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
-            console.log(`[AirtableAPI.Scrapbook.update] Updating ${id} with ${session}`)
+        async update(id: AirtableRecordID, scrapbook: Partial<AirtableScrapbookWrite>): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
+            console.log(`[AirtableAPI.Scrapbook.update] Updating ${id} with ${scrapbook}`)
 
             const now = Date.now();
 
             const records = await scrapbooks.update([{
                 "id": id,
-                "fields": session as any
+                "fields": scrapbook as any
             }]);
 
             console.log(`[AirtableAPI.Scrapbook.update] Took ${Date.now() - now}ms`)
