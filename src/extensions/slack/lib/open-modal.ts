@@ -20,9 +20,9 @@ export async function openModal({triggerId, view}: {triggerId: string, view: Vie
             throw new Error("View ID not found");
         }
 
-        await Slack.views.update({
+        Slack.views.update({
             view_id: viewID,
-            view
+            view: Loading.loading()
         })
     } catch (error) {
         handleError(error)

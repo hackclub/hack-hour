@@ -13,76 +13,74 @@ import { openModal } from "../../slack/lib/open-modal.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     try {
-    await ack();
+        if (body.type !== "block_actions") return;
 
-    if (body.type !== "block_actions") return;
+        // const view = await Slack.views.open({         
+        //     trigger_id: body.trigger_id,         
+        //     view: Loading.loading()     
+        // }); 
 
-    // const view = await Slack.views.open({         
-    //     trigger_id: body.trigger_id,         
-    //     view: Loading.loading()     
-    // }); 
+        const flowTs = body.message!.ts;
 
-    const flowTs = body.message!.ts;
+        const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
+            where: {
+                flowTs,
+            }
+        });
 
-    const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
-        where: {
-            flowTs,
-        }
-    });
+        // // Get the latest post
+        // const scrapbooks = await prisma.scrapbook.findMany({
+        //     where: {
+        //         userId: scrapbook?.userId,
+        //     },
+        //     select: {
+        //         createdAt: true,
+        //     },
+        //     orderBy: {
+        //         createdAt: "desc",
+        //     },
+        // });
 
-    // // Get the latest post
-    // const scrapbooks = await prisma.scrapbook.findMany({
-    //     where: {
-    //         userId: scrapbook?.userId,
-    //     },
-    //     select: {
-    //         createdAt: true,
-    //     },
-    //     orderBy: {
-    //         createdAt: "desc",
-    //     },
-    // });
-
-    const sessions = await prisma.session.findMany({
-        where: {
-            userId: scrapbook?.userId,
-            // createdAt: {
-            //     // Before today & after the last post  
-            //     // Assuming the latest post is the last post (scrapbook)
-            //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
-            //     lte: scrapbook?.createdAt,
-            // },
-            metadata: {
-                path: ["banked"],
-                equals: false,
-            },
-
-            OR: [
-                {
-                    completed: true
+        const sessions = await prisma.session.findMany({
+            where: {
+                userId: scrapbook?.userId,
+                // createdAt: {
+                //     // Before today & after the last post  
+                //     // Assuming the latest post is the last post (scrapbook)
+                //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
+                //     lte: scrapbook?.createdAt,
+                // },
+                metadata: {
+                    path: ["banked"],
+                    equals: false,
                 },
-                {
-                    cancelled: true
-                }
-            ]
-        },
-    });
 
-    // log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
+                OR: [
+                    {
+                        completed: true
+                    },
+                    {
+                        cancelled: true
+                    }
+                ]
+            },
+        });
 
-    // await Slack.views.update({
-    //     view_id: view?.view?.id,
-    //     view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    // }).catch((err) => console.log(err));
-        
-    await openModal({
-        triggerId: body.trigger_id,
-        view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    });
-} catch (error) {
-    console.log(error);
-    emitter.emit("error", error);
-}
+        // log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
+
+        // await Slack.views.update({
+        //     view_id: view?.view?.id,
+        //     view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+        // }).catch((err) => console.log(err));
+
+        await openModal({
+            triggerId: body.trigger_id,
+            view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+        });
+    } catch (error) {
+        console.log(error);
+        emitter.emit("error", error);
+    }
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
@@ -115,8 +113,8 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             },
         },
     });
-    
-    for (const session of selectedSessions) {        
+
+    for (const session of selectedSessions) {
         // if (session.metadata?.airtable?.status === "Approved") {
         //     session.metadata.airtable.status = "Banked";
 
@@ -125,11 +123,11 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         //         "Status": "Banked",
         //     });
         // } else {
-            await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
-                "Scrapbook": [scrapbook.data.record],
-            });
+        await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
+            "Scrapbook": [scrapbook.data.record],
+        });
         // }
- 
+
         session.metadata.banked = true;
 
         await prisma.session.update({
@@ -287,7 +285,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
         });
         return;
     }
-    
+
     const subCommand = command.text.split(" ")[0];
     const subArgs = command.text.split(" ").slice(1);
 
@@ -310,7 +308,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
             channel,
             thread_ts: ts,
             text: subArgs.slice(1).join(" "),
-            username: Constants.USERNAME,            
+            username: Constants.USERNAME,
             icon_emoji: pfps[pfp as keyof typeof pfps],
         });
     } else if (subCommand === 'pfp') {
@@ -324,7 +322,7 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
         }
 
         if (Object.keys(pfps).includes(subArgs[0]) || subArgs[0] === "none") {
-            pfp = subArgs[0];           
+            pfp = subArgs[0];
         }
 
         Slack.chat.postEphemeral({

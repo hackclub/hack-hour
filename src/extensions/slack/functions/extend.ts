@@ -4,14 +4,19 @@ import { prisma } from "../../../lib/prisma.js";
 
 import { updateController, updateTopLevel, informUser } from "../lib/lib.js";
 import { Session } from "../../../lib/corelib.js";
+import { handleError } from "../../../lib/handleError.js";
+import { t } from "../../../lib/templates.js";
 /*
 Time Extension
 */
-Slack.action(Actions.EXTEND, async ({ ack, body }) => {
-    await ack();
+Slack.action(Actions.EXTEND, async ({ respond }) => {
     // TODO
 //    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
-    informUser(body.user.id, `This command is disabled for now!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
+    // informUser(body.user.id, `This command is disabled for now!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
+    respond({
+        response_type: 'ephemeral',
+        text: t('error.disabled', {})
+    }); 
 });
 
 Slack.command(Commands.EXTEND, async ({ ack, body }) => {

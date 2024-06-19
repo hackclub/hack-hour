@@ -1,4 +1,4 @@
-import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt'; 
+import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 
 import bodyParser from 'body-parser';
 
@@ -8,20 +8,15 @@ import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 import { Commands, Environment } from './constants.js';
 import { assertVal } from './assert.js';
 import { t } from './templates.js';
-import { AirtableAPI } from './airtable.js';
 import { handleError } from './handleError.js';
-import util from 'util';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
     endpoints: '/slack/events',
     processBeforeResponse: true,
-    
-    unhandledRequestHandler(args) {
-        console.log(JSON.stringify(Object.keys(args.request)));
-        console.log(`[WARN] [${new Date().toISOString()}] Unhandled request detected - did not acknowledge to slack, acking manually`)
 
-        console.log(`Context for failed request: ${util.inspect(args.request)}`)
+    unhandledRequestHandler(args) {
+        console.log(`[${new Date().toISOString()}] [Slack] Unhandled request detected`)
 
         args.response.writeHead(200); // (:<
         args.response.end();
@@ -29,23 +24,30 @@ const expressReceiver = new bolt.ExpressReceiver({
 });
 
 export const express = expressReceiver.app;
- 
+
 express.use(bodyParser.json());
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
     appToken: Environment.SLACK_APP_TOKEN,
     clientId: Environment.CLIENT_ID,
-    clientSecret: Environment.CLIENT_SECRET,    
+    clientSecret: Environment.CLIENT_SECRET,
 
     receiver: expressReceiver,
 });
 
 // Time response
-app.use(async ({ next, payload }) => {
+app.use(async ({ next, payload, ack }) => {
     const now = new Date();
 
+    if (ack) {
+        ack().then(() => {
+            console.log(`[${now.toISOString()}] Acknowledged ${payload.type} event after ${new Date().getTime() - now.getTime()}ms`)
+        });
+    }
+
     await next();
+
     console.log(`[${now.toISOString()}] Took ${new Date().getTime() - now.getTime()}ms to respond to ${payload.type} event`)
 });
 
@@ -86,9 +88,9 @@ export const Slack = {
 
             const { command: event, ack, respond } = payload;
 
-            console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
+            console.log(`[${now.toISOString()}] [Slack.command] <@${event.user_id}> ran \`${command} ${event.text}\``)
 
-            // await ack();
+            // ack();
 
             if (Environment.MAINTAINANCE_MODE) {
                 const user = await app.client.users.info({
@@ -100,15 +102,15 @@ export const Slack = {
                 }
             }
 
-            if (recordCommands.includes(command)) {
-                const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
+            // if (recordCommands.includes(command)) {
+            //     const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
 
-                if (airtableUser) {
-                    await AirtableAPI.User.update(airtableUser.id, {
-                        [command]: true
-                    });
-                }
-            }
+            //     if (airtableUser) {
+            //         await AirtableAPI.User.update(airtableUser.id, {
+            //             [command]: true
+            //         });
+            //     }
+            // }
 
             try {
                 await app.client.chat.postMessage({
@@ -134,19 +136,19 @@ export const Slack = {
                 })
                 await commandHandler(payload);
                 verb = "succeeded"
-            } catch(error) {
+            } catch (error) {
                 verb = "failed"
                 handleError(error)
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
-                    user: event.user_id,                    
+                    user: event.user_id,
                     text: `An error occurred while processing your command!`
                 })
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+            console.log(`[${now.toISOString()}] [Slack.command] running command ${verb} after ${duration}ms`)
         })
     },
 
@@ -182,12 +184,12 @@ export const Slack = {
                             type: "context",
                             elements: [
                                 {
-                                type: "mrkdwn",
-                                text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
+                                    type: "mrkdwn",
+                                    text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
                                 },
                             ],
                         },
-                    ]                    
+                    ]
                     // blocks: [
                     //     {
                     //         type: "context",
@@ -202,26 +204,26 @@ export const Slack = {
                 })
 
                 verb = "succeeded"
-                listeners.forEach((listener) => { 
+                listeners.forEach((listener) => {
                     try {
-                        listener(payload) 
+                        listener(payload)
                     } catch (error) {
                         verb = "failed"
                         handleError(error)
                     }
                 });
-            } catch(error) {
+            } catch (error) {
                 verb = "failed"
                 handleError(error)
- /*               await app.client.chat.postEphemeral({
-                    channel: action.channel.id,
-                    user: action.user.id,
-                    text: `An error occurred while processing your action!`
-                });*/
+                /*               await app.client.chat.postEphemeral({
+                                   channel: action.channel.id,
+                                   user: action.user.id,
+                                   text: `An error occurred while processing your action!`
+                               });*/
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+            console.log(`[${now.toISOString()}] responding to action ${verb} after ${duration}ms`)
         })
     },
 
@@ -232,9 +234,9 @@ export const Slack = {
 
             const { body, view } = payload;
 
-            console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
+            console.log(`[${now.toISOString()}] [Slack.view] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
 
-            await payload.ack();
+            // await payload.ack();
 
             try {
                 await app.client.chat.postMessage({
@@ -251,12 +253,12 @@ export const Slack = {
                             type: "context",
                             elements: [
                                 {
-                                type: "mrkdwn",
-                                text: `${callbackId}\n${new Date().toString()} `,
+                                    type: "mrkdwn",
+                                    text: `${callbackId}\n${new Date().toString()} `,
                                 },
                             ],
                         },
-                    ]                                     
+                    ]
                     // blocks: [
                     //     {
                     //         type: "context",
@@ -278,7 +280,7 @@ export const Slack = {
                         verb = "failed"
                         handleError(error)
                     }
-                });                
+                });
             } catch (error) {
                 verb = "failed"
                 handleError(error)
@@ -291,7 +293,7 @@ export const Slack = {
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)            
+            console.log(`[${now.toISOString()}] [Slack.view] response to view event ${verb} after ${duration}ms`)
         })
     },
 
@@ -343,7 +345,7 @@ export const Slack = {
         },
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
-            try {                
+            try {
                 // await app.client.chat.postMessage({
                 //     ...options,
                 //     channel: Environment.INTERNAL_CHANNEL
@@ -390,7 +392,7 @@ export const Slack = {
             } catch (error: any) {
                 handleError(error)
 
-                console.log(`[${new Date().toISOString()}] failed to post message`)                
+                console.log(`[${new Date().toISOString()}] failed to post message`)
 
                 if (options) {
                     await app.client.chat.postMessage({
@@ -471,7 +473,7 @@ export const Slack = {
             } catch (error) {
                 handleError(error)
             }
-        }        
+        }
     },
 
     views: {
@@ -481,11 +483,11 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] opening view"`)
+                console.log(`[${now.toISOString()}] [views.open] opening view`)
 
                 const result = await app.client.views.open(options);
 
-                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+                console.log(`[${now.toISOString()}] [views.open] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
                 return result;
             } catch (error) {
@@ -499,11 +501,11 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] updating view`)
+                console.log(`[${now.toISOString()}] [views.update] updating view`)
 
                 const result = await app.client.views.update(options);
 
-                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+                console.log(`[${now.toISOString()}] [views.update] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
                 return result;
             } catch (error) {
@@ -558,7 +560,7 @@ export const Slack = {
                 channel: Environment.MAIN_CHANNEL
             });
 
-            return;            
+            return;
         }
     },
 

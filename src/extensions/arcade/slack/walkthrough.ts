@@ -5,9 +5,7 @@ import { updateController } from "../../slack/lib/lib.js";
 import { fetchEvidence } from "../lib/helper.js";
 import { t } from "../../../lib/templates.js";
 
-Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
-    await ack();
-
+Slack.action(Actions.TUTORIAL_ADVANCE, async ({ respond, body, client }) => {
     const session = await prisma.session.findFirstOrThrow({
         where: {
             messageTs: (body as any).message.thread_ts,
@@ -27,12 +25,11 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
 
     // Make sure the user is the one who started the tutorial
     if (session.user.slackUser.slackId !== (body as any).user.id) {
-        await Slack.chat.postEphemeral({
-            channel: Environment.MAIN_CHANNEL,
+        respond({
+            response_type: 'ephemeral',
             text: t('error.not_yours', {}),
-            thread_ts: session.messageTs,
-            user: (body as any).user.id
-        });
+            thread_ts: session.messageTs,                                    
+        })
 
         return;
     }
@@ -93,50 +90,48 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
     await updateController(updatedSession);
 });
 
-Slack.action(Actions.TUTORIAL_BACK, async ({ ack, body, client }) => {
-    await ack();
+// Slack.action(Actions.TUTORIAL_BACK, async ({ ack, body, client }) => {
+//     const session = await prisma.session.findFirstOrThrow({//findUnique({
+//         where: {
+//             messageTs: (body as any).message.thread_ts,
+//         },
+//         include: {
+//             user: {
+//                 include: {
+//                     slackUser: true
+//                 }
+//             }
+//         }
+//     });
 
-    const session = await prisma.session.findFirstOrThrow({//findUnique({
-        where: {
-            messageTs: (body as any).message.thread_ts,
-        },
-        include: {
-            user: {
-                include: {
-                    slackUser: true
-                }
-            }
-        }
-    });
+//     if (!session.user.slackUser) {
+//         throw new Error('No slack user found for session user');
+//     }
 
-    if (!session.user.slackUser) {
-        throw new Error('No slack user found for session user');
-    }
+//     // Make sure the user is the one who started the tutorial
+//     if (session.user.slackUser.slackId !== (body as any).user.id) {
+//         await Slack.chat.postEphemeral({
+//             channel: Environment.MAIN_CHANNEL,
+//             text: t('error.not_yours', {}),
+//             thread_ts: session.messageTs,
+//             user: (body as any).user.id
+//         });
 
-    // Make sure the user is the one who started the tutorial
-    if (session.user.slackUser.slackId !== (body as any).user.id) {
-        await Slack.chat.postEphemeral({
-            channel: Environment.MAIN_CHANNEL,
-            text: t('error.not_yours', {}),
-            thread_ts: session.messageTs,
-            user: (body as any).user.id
-        });
+//         return;
+//     }
 
-        return;
-    }
+//     if (session.metadata.firstTime) {
+//         session.metadata.firstTime.step--;
+//     }
 
-    if (session.metadata.firstTime) {
-        session.metadata.firstTime.step--;
-    }
+//     const updatedSession = await prisma.session.update({
+//         where: {
+//             id: session.id
+//         },
+//         data: {
+//             metadata: session.metadata
+//         }
+//     });
 
-    const updatedSession = await prisma.session.update({
-        where: {
-            id: session.id
-        },
-        data: {
-            metadata: session.metadata
-        }
-    });
-
-    await updateController(updatedSession);
-});
+//     await updateController(updatedSession);
+// });

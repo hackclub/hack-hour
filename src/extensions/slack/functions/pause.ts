@@ -55,8 +55,6 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
 
 Slack.action(Actions.RESUME, async ({ ack, body }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
 
         const session = await prisma.session.findFirst({

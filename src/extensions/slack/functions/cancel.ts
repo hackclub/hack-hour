@@ -13,10 +13,8 @@ import { Slack } from "../../../lib/bolt.js";
 import { pfps, t } from "../../../lib/templates.js";
 import { handleError } from "../../../lib/handleError.js";
 
-Slack.action(Actions.CANCEL, async ({ ack, body }) => {
+Slack.action(Actions.CANCEL, async ({ body }) => {
     try {
-        await ack();
-
         const thread_ts = (body as any).message.thread_ts;
 
         await Slack.views.open({
@@ -28,7 +26,7 @@ Slack.action(Actions.CANCEL, async ({ ack, body }) => {
     }
 });
 
-Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
+Slack.view(Callbacks.CANCEL, async ({ respond, body, view }) => {
     try {
         const slackId = body.user.id;
         const messageTs = view.private_metadata;
@@ -57,7 +55,12 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
         console.log(session?.user.slackUser?.slackId);
 
         if (!session || slackId !== session.user.slackUser?.slackId) {
-            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
+            respond({
+                response_type: 'ephemeral',
+                text: t('error.not_yours', {}),
+                thread_ts: messageTs,
+                icon_emoji: pfps['threat']
+            });
 
             return;
         }

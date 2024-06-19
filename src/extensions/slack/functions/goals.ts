@@ -10,8 +10,6 @@ import { handleError } from "../../../lib/handleError.js";
 
 Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     try {
-        await ack();
-
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id
         
@@ -67,8 +65,6 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
 
 Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     try {
-        await ack();
-
         const goalId = (body as any).actions[0].selected_option.value;
         const sessionId = (body as any).view.private_metadata
 
@@ -148,8 +144,6 @@ Slack.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
 
 Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
     try {
-        await ack();
-
         const sessionId = (body as any).view.private_metadata;
         const trigger_id: string = (body as any).trigger_id;
 
@@ -263,7 +257,6 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
 
 Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
     try {
-
         const sessionId = (body as any).view.private_metadata;
 
         const trigger_id: string = (body as any).trigger_id;

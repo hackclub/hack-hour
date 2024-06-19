@@ -219,7 +219,6 @@ Slack.command(Commands.HOUR, hack);
 Slack.command(Commands.ARCADE, hack);
 
 Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
-    await ack();
     await respond({
         delete_original: true
     });

@@ -7,10 +7,8 @@ import { informUser } from "../lib/lib.js";
 import { Loading } from "../views/loading.js";
 import { Stats } from "../views/stats.js";
 
-Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
+Slack.action(Actions.VIEW_STATS, async ({ respond, body }) => {
     try {
-        await ack();
-
         const view = await Slack.views.open({
             trigger_id: (body as any).trigger_id,
             view: Loading.loading(),
@@ -28,10 +26,10 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
 
         if (!user) {
             // informUser(slackId, t('error.not_a_user', {}), Environment.MAIN_CHANNEL, (body as any).message.ts);
-            await Slack.views.update({
-                view_id: view?.view?.id,
-                view: Loading.error(t('error.not_a_user', {}))
-            });
+            // await Slack.views.update({
+            //     view_id: view?.view?.id,
+            //     view: Loading.error(t('error.not_a_user', {}))
+            // });
             return;
         }        
 
@@ -41,6 +39,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
                 view_id: view?.view?.id,
                 view: Loading.error(t('error.first_time', {}))
             });
+
             return;
         }        
 
@@ -53,7 +52,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     }
 });
 
-Slack.command(Commands.STATS, async ({ ack, body, client }) => {
+Slack.command(Commands.STATS, async ({ body, client }) => {
     const slackId = body.user_id;
     const channelId = body.channel_id;
     const triggerId = body.trigger_id;
