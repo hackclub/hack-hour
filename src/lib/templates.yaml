@@ -165,12 +165,12 @@ firstTime:
 scrapbook:
   prompt:
     select_sessions:
-      - 'select the sessions that are part of your scrapbook!'
+      - 'select the sessions that are part of your scrapbook! you can select as many as you want, and most scrapbook posts will have 2+ sessions.'
     complete:
       - 'wow wow, great job!'
 
   modal:
     select_sessions:
-      - "choose one or more sessions that are associated with your scrapbook post!"
+      - "choose the sessions that are associated with your scrapbook post!"
     sessions_not_found:
       - "oh no! i couldn't find any sessions for you!"
