@@ -76,7 +76,7 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `_*Lifetime Hours:* ${lifetime} hours (:tw_admission_tickets: ${lifetimeTickets} earned)_`
+                        "text": `_*Lifetime Hours:* ${lifetime} hours (:tw_admission_tickets: ${lifetimeTickets + 3} earned)_`
                     }
                 },                
                 {
