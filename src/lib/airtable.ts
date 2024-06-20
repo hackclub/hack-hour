@@ -61,6 +61,8 @@ type AirtableUserRead = {
 
     "Balance (Hours)": number,
     "In Pending (Minutes)": number,
+
+    "Minutes (All)": number,
     // "Preexisting": boolean,
 };
 

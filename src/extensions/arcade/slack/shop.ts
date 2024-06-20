@@ -1,9 +1,10 @@
-import { app, Slack } from "../../../lib/bolt.js";
+import { Slack } from "../../../lib/bolt.js";
 import { Commands } from "../../../lib/constants.js";
-import { t } from "../../../lib/templates.js";
+import { formatHour, t } from "../../../lib/templates.js";
 import { Loading } from "../../slack/views/loading.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { Shop } from "./views/shop.js";
+import { prisma } from "../../../lib/prisma.js";
 
 // app.command(Commands.SHOP, async ({ command, ack }) => {
 //     await ack();
@@ -98,7 +99,15 @@ Slack.command(Commands.SHOP, async ({ command }) => {
 
     const airtableUser = await AirtableAPI.User.lookupBySlack(command.user_id);
 
-    if (!airtableUser) {
+    const user = await prisma.user.findFirst({
+        where: {
+            slackUser: {
+                slackId: command.user_id
+            }
+        }
+    });
+
+    if (!airtableUser || !user) {
         // await ack();
         // informUser(command.user_id, t('error.first_time', {}), command.channel_id);
         await Slack.views.update({
@@ -116,7 +125,9 @@ Slack.command(Commands.SHOP, async ({ command }) => {
             spendable: airtableUser.fields["Balance (Hours)"],
             awaitingApproval: Math.floor(airtableUser.fields["Minutes (Pending Approval)"] / 60),
             inOrders: Math.floor(airtableUser.fields["In Pending (Minutes)"] / 60),
-            spent: Math.floor(airtableUser.fields["Spent Fulfilled (Minutes)"] / 60)
+            spent: Math.floor(airtableUser.fields["Spent Fulfilled (Minutes)"] / 60),
+            lifetime: formatHour(user.lifetimeMinutes),
+            lifetimeTickets: Math.floor(airtableUser.fields["Minutes (All)"] / 60)
         })
     })
 });

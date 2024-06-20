@@ -7,13 +7,17 @@ export class Shop {
         spendable,
         awaitingApproval,
         inOrders,
-        spent
+        spent,
+        lifetime,
+        lifetimeTickets
     }: {
         recordId: string,
         spendable: number,
         awaitingApproval: number,
         inOrders: number,
-        spent: number
+        spent: number,
+        lifetime: string,
+        lifetimeTickets: number
     }): View {
         return {
             "type": "modal",
@@ -41,7 +45,7 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     "accessory": {
                         "type": "image",
                         "image_url": "https://ca.slack-edge.com/T0266FRGM-U078MRX71TJ-3d58d506d2ee-512",
-                        "alt_text": "cute cat"
+                        "alt_text": "arcadius"
                     }
                 },
                 {
@@ -69,6 +73,13 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     }
                 },
                 {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `_*Lifetime Hours:* ${lifetime} hours (:tw_admission_tickets: ${lifetimeTickets})_`
+                    }
+                },                
+                {
                     "type": "divider"
                 },
                 {
@@ -81,24 +92,24 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                                 "text": "open the shop!",
                                 "emoji": true
                             },
-                            "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`
+                            "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`,
+                            "style": "primary"
                         }
                     ]
                 },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "image",
-                            "image_url": "https://ca.slack-edge.com/T0266FRGM-U078MRX71TJ-3d58d506d2ee-512",
-                            "alt_text": "cute cat"
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": "_it's your one stop shop!_"
-                        }
-                    ]
-                }
+                // {
+                //     "type": "context",
+                //     "elements": [
+                //         {
+                //             "type": "image",
+                //             "image_url": "https://ca.slack-edge.com/T0266FRGM-U078MRX71TJ-3d58d506d2ee-512",
+                //         },
+                //         {
+                //             "type": "mrkdwn",
+                //             "text": "_it's your one stop shop!_"
+                //         }
+                //     ]
+                // }
             ]
         };
     }
