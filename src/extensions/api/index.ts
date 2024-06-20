@@ -6,6 +6,15 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { Event } from "../../lib/emitter.js";
 import { Session } from "@prisma/client";
 import { AirtableAPI } from "../../lib/airtable.js";
+import rateLimit from "express-rate-limit";
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: "Too many requests, please try again later.",
+})
+
+express.use("/", limiter);
 
 express.get('/', async (req, res) => {
     await res.redirect("https://github.com/hackclub/hack-hour");
@@ -67,6 +76,86 @@ express.get('/api/clock/:slackId', async (req, res) => {
         return res.status(200).send((-1).toString());
     }
 });
+
+express.get("/api/activity/:slackId", async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+    });
+
+    if (!slackUser) {
+        return res.status(404).send("User not found");
+    }
+
+    const activeSession = await prisma.session.findFirst({
+        where: {
+            userId: slackUser.userId,
+            completed: false,
+            cancelled: true,
+        },
+        include: {
+            goal: true,
+        },
+    });
+
+    if (activeSession) {
+        return res.status(200).send({
+            hasActiveSession: true,
+            goal: activeSession.goal,
+        });
+    } else {
+        return res.status(200).send({
+            hasActiveSession: false,
+        });
+    }
+})
+
+express.get("/api/sessions/:slackId", async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+    });
+
+    if (!slackUser) {
+        return res.status(404).send("User not found");
+    }
+    
+    const sessions = await prisma.session.findMany({
+        where: {
+            userId: slackUser.userId,
+        },
+        include: {
+            goal: true,
+        },
+    });
+
+    return res.status(200).send(sessions);
+})
+
+express.get("/api/hours/:slackId", async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+        include: {
+            user: true,
+        },
+    });
+
+    if (!slackUser) {
+        return res.status(404).send("User not found");
+    }
+
+    const totalMinutes = slackUser.user.lifetimeMinutes;
+    const totalHours = Math.floor(totalMinutes / 60);
+
+    return res.status(200).send({ totalHours });
+})
 
 async function syncEvent(event: Event, session: Session, client: WebSocket) {
     const token = (client as any).meta.token;
