@@ -106,16 +106,18 @@ export class ChooseSessions {
                             text: "select sessions to link",
                             emoji: true,
                         },
-                        options: sessions.map((session) => (
-                            {
+                        options: sessions.map((session) => {
+                            const work = session.metadata.work.length > 50 ? session.metadata.work.substring(0,47) + '...' : session.metadata.work;
+
+                            return {
                                 text: {
                                     type: "plain_text",
-                                    text: `${session.metadata.work.substring(0,30)} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
+                                    text: `${work} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
                                     emoji: true,
                                 },
                                 value: session.id,
                             }
-                        )),
+                        }),
                         action_id: "sessions",
                     },
                 },
