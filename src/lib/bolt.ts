@@ -81,7 +81,7 @@ export const Slack = {
                 }
             }
 
-            if (recordCommands.includes(command)) {
+            if (recordCommands.includes(command) && Environment.PROD) {
                 const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
 
                 if (airtableUser) {
