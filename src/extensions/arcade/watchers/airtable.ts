@@ -25,7 +25,7 @@ express.post('/airtable/session/update', async (req, res) => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `> _oh haii scrappy!_ :scrappy:`
+                        "text": `> _oh haii airtable!_ :airtable:`
                     }
                 },
                 {
