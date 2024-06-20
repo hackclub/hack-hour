@@ -97,19 +97,6 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                         }
                     ]
                 },
-                // {
-                //     "type": "context",
-                //     "elements": [
-                //         {
-                //             "type": "image",
-                //             "image_url": "https://ca.slack-edge.com/T0266FRGM-U078MRX71TJ-3d58d506d2ee-512",
-                //         },
-                //         {
-                //             "type": "mrkdwn",
-                //             "text": "_it's your one stop shop!_"
-                //         }
-                //     ]
-                // }
             ]
         };
     }
