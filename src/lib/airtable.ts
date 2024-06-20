@@ -56,7 +56,11 @@ type AirtableUserRead = {
     "Spent (Incl. Pending)": number,
     "Balance (Minutes)": number,
     "dmChannel": string,
-    "Minutes (Pending Approval)": number
+    "Minutes (Pending Approval)": number,
+    "Spent Fulfilled (Minutes)": number,
+
+    "Balance (Hours)": number,
+    "In Pending (Minutes)": number,
     // "Preexisting": boolean,
 };
 
