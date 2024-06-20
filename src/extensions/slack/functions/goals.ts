@@ -310,7 +310,6 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
 
         const sessionId = body.view.private_metadata;
 
-         // Mark the goal as complete
         let session = await prisma.session.findUniqueOrThrow({
             where: {
                 id: sessionId
@@ -329,6 +328,16 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
                 completed: true
             }
         });
+
+        // if the goal is the default goal, prevent it from being deleted
+        if (oldGoal.default) {
+            await client.views.update({
+                view_id: body.view.root_view_id!,
+                view: await Goals.main(sessionId, 'You cannot delete "No Goal"')
+            });
+
+            return;
+        }
 
         // Update the session with "No Goal"
         const noGoal = await prisma.goal.findFirstOrThrow({
