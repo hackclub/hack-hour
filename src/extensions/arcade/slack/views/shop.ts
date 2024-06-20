@@ -1,12 +1,15 @@
 import { View } from "@slack/bolt";
+import { Environment } from "../../../../lib/constants.js";
 
 export class Shop {
     public static shop({
+        recordId,
         spendable,
         awaitingApproval,
         inOrders,
         spent
     }: {
+        recordId: string,
         spendable: number,
         awaitingApproval: number,
         inOrders: number,
@@ -19,15 +22,10 @@ export class Shop {
                 "text": "the shop :D",
                 "emoji": true
             },
-            "submit": {
-                "type": "plain_text",
-                "text": "Submit",
-                "emoji": true
-            },
             "close": {
                 "type": "plain_text",
-                "text": "Cancel",
-                "emoji": true
+                "text": "see ya later!",
+                "emoji": true,
             },
             "blocks": [
                 {
@@ -82,7 +80,8 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                                 "type": "plain_text",
                                 "text": "open the shop!",
                                 "emoji": true
-                            }
+                            },
+                            "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`
                         }
                     ]
                 },

@@ -1,7 +1,6 @@
 import { app, Slack } from "../../../lib/bolt.js";
-import { Actions, Commands, Environment } from "../../../lib/constants.js";
+import { Commands } from "../../../lib/constants.js";
 import { t } from "../../../lib/templates.js";
-import { informUser } from "../../slack/lib/lib.js";
 import { Loading } from "../../slack/views/loading.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { Shop } from "./views/shop.js";
@@ -91,9 +90,7 @@ import { Shop } from "./views/shop.js";
 //     })
 // });
 
-app.command(Commands.SHOP, async ({ command, ack }) => {
-    await ack();
-
+Slack.command(Commands.SHOP, async ({ command }) => {
     const view = await Slack.views.open({
         trigger_id: command.trigger_id,
         view: Loading.loading()
@@ -115,6 +112,7 @@ app.command(Commands.SHOP, async ({ command, ack }) => {
     await Slack.views.update({
         view_id: view?.view?.id,
         view: Shop.shop({
+            recordId: airtableUser.id,
             spendable: airtableUser.fields["Balance (Hours)"],
             awaitingApproval: Math.floor(airtableUser.fields["Minutes (Pending Approval)"] / 60),
             inOrders: Math.floor(airtableUser.fields["In Pending (Minutes)"] / 60),
