@@ -129,13 +129,15 @@ express.post('/airtable/session/update', async (req, res) => {
 
         // Send a message in that thread saying it was updated
         if (session.metadata.airtable!.status === "Approved") {
-            await Slack.chat.postMessage({
-                channel: Environment.MAIN_CHANNEL,
-                thread_ts: session.messageTs,
-                text: t('airtable.approved', {
-                    slackId: slackUser.slackId
-                })
-            });
+            //  commenting this out while recovering from slack ratelimit
+
+            // await Slack.chat.postMessage({
+            //     channel: Environment.MAIN_CHANNEL,
+            //     thread_ts: session.messageTs,
+            //     text: t('airtable.approved', {
+            //         slackId: slackUser.slackId
+            //     })
+            // });
         } else if (
             session.metadata.airtable!.status === "Rejected" ||
             session.metadata.airtable!.status === "Rejected Locked"
