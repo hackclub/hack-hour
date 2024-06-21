@@ -39,6 +39,7 @@ export class Shop {
 *You have* ${spendable} *ticket${spendable == 1 ? '' : 's'}* :tw_admission_tickets:
 
 _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER0?focus_section_id=temp:C:CFA436b1a9e625e4b40b87a9387b|scraps> for every session.\n- *When your project is complete,* post a demo to <#C01504DCLVD> for review.\n- If your project gets approved, your hours become tickets! Be patient and keep hacking.
+
 *Reviews rejected for reasons covered in the FAQ will cost you one ticket!* So make sure you _post valid scraps_ and _ship_ _completed projects_.`
                     },
                     "accessory": {
