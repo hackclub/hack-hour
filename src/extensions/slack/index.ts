@@ -700,6 +700,8 @@ emitter.on('init', async () => {
 emitter.on('error', async (errorRef) => {
     try {
         const error = errorRef.error;
+        console.log(error)
+        return
         if (!error) {
             throw new Error('No error provided!');
         }
