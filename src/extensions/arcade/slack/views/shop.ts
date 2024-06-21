@@ -54,14 +54,14 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Hours awaiting approval:* :tw_admission_tickets: ${awaitingApproval}`
+                        "text": `*Hours awaiting approval:* ${awaitingApproval}`
                     }
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Tickets spent:* :tw_admission_tickets: ${spent + inOrders}`
+                        "text": `*Tickets spent:* ${spent + inOrders}`
                     }
                 },                
                 {
