@@ -137,14 +137,14 @@ const hack = async ({ command }: CommandHandler) => {
 
         const topLevel = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
-            text: "initializing... :spin-loading:" // Leave it empty, for initialization
+            text: "if you can read this, i'm under a lot of stress... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
         });
 
         // Create a controller message in the thread
         const controller = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: topLevel!.ts,
-            text: "initializing... :spin-loading:" // Leave it empty, for initialization
+            text: "if you can read this, i'm going through a lot right now... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
         })
 
         if (!controller || !controller.ts) {
@@ -313,14 +313,14 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
 
     const topLevel = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
-        text: "initializing... :spin-loading:" // Leave it empty, for initialization
+        text: "if you can read this, i'm dancing as fast as i can... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
     });
 
     // Create a controller message in the thread
     const controller = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
         thread_ts: topLevel!.ts,
-        text: "initializing... :spin-loading:" // Leave it empty, for initialization
+        text: "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
     })
 
     if (!controller || !controller.ts) {
