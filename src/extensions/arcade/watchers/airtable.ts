@@ -18,27 +18,27 @@ express.post('/airtable/session/update', async (req, res) => {
 
         console.log(`Received session ${record} from Airtable`);
 
-        const logData = await app.client.chat.postMessage({
-            channel: Environment.INTERNAL_CHANNEL,
-            blocks: [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `> _oh haii airtable!_ :airtable:`
-                    }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": `view thread to see post body :eyes:\n${new Date().toString()}`
-                        }
-                    ]
-                }
-            ]
-        });
+        // const logData = await app.client.chat.postMessage({
+        //     channel: Environment.INTERNAL_CHANNEL,
+        //     blocks: [
+        //         {
+        //             "type": "section",
+        //             "text": {
+        //                 "type": "mrkdwn",
+        //                 "text": `> _oh haii airtable!_ :airtable:`
+        //             }
+        //         },
+        //         {
+        //             "type": "context",
+        //             "elements": [
+        //                 {
+        //                     "type": "mrkdwn",
+        //                     "text": `view thread to see post body :eyes:\n${new Date().toString()}`
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // });
 
         const session = await prisma.session.findFirstOrThrow({
             where: {
@@ -104,28 +104,28 @@ express.post('/airtable/session/update', async (req, res) => {
 
         if (!permalink || !permalink.permalink) { throw new Error(`No permalink found for ${session.messageTs}`); }
 
-        await app.client.chat.postMessage({
-            channel: Environment.INTERNAL_CHANNEL,
-            thread_ts: logData.ts!,
-            blocks: [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\``
-                    }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": `<${permalink.permalink}|session> of <@${slackUser.slackId}>`
-                        }
-                    ]
-                }
-            ]
-        });        
+        // await app.client.chat.postMessage({
+        //     channel: Environment.INTERNAL_CHANNEL,
+        //     thread_ts: logData.ts!,
+        //     blocks: [
+        //         {
+        //             "type": "section",
+        //             "text": {
+        //                 "type": "mrkdwn",
+        //                 "text": `\`\`\`${JSON.stringify(req.body, null, 4)}\`\`\``
+        //             }
+        //         },
+        //         {
+        //             "type": "context",
+        //             "elements": [
+        //                 {
+        //                     "type": "mrkdwn",
+        //                     "text": `<${permalink.permalink}|session> of <@${slackUser.slackId}>`
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // });        
 
         // Send a message in that thread saying it was updated
         if (session.metadata.airtable!.status === "Approved") {
