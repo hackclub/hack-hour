@@ -737,7 +737,8 @@ emitter.on('error', async (errorRef) => {
             ]
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        // emitter.emit('error', { error });
+        console.log(error)
     }
 });
 
