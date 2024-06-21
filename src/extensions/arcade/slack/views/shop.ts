@@ -62,14 +62,7 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Tickets currently being proccessed for orders:* :tw_admission_tickets: ${inOrders}`
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `*Tickets spent:* :tw_admission_tickets: ${spent}`
+                        "text": `*Tickets spent:* :tw_admission_tickets: ${spent + inOrders}`
                     }
                 },
                 {
