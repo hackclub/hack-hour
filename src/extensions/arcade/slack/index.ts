@@ -67,7 +67,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         },
     });
 
-    log(`\`\`\`${JSON.stringify(sessions, null, 2)}\`\`\``)
+    log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
 
 
     await Slack.views.update({
