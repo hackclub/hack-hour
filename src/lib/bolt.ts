@@ -331,7 +331,7 @@ export const Slack = {
                 const now = new Date();
 
                 if (options?.blocks) {
-                    console.log(JSON.stringify(options.blocks, null, 2)
+                    console.log(JSON.stringify(options.blocks, null, 2))
                     // await app.client.chat.postMessage({
                     //     channel: Environment.INTERNAL_CHANNEL,
                     //     blocks: [
