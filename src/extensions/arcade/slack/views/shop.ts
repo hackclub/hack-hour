@@ -36,9 +36,10 @@ export class Shop {
                         "type": "mrkdwn",
                         "text": `welcome to the shop, fellow hacker! here is where you can find some cool wares, and purchase them in exchange for your tickets and scraps.
                         
-*Tickets you can spend:* :tw_admission_tickets: ${spendable}
+*You have* ${spendable} *ticket${spendable == 1 ? '' : 's'}* :tw_admission_tickets:
 
-_How do I get tickets?_ You can get tickets once your sessions are approved (to prevent abuse) and have an approved scrapbook post attached to them.`
+_How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER0?focus_section_id=temp:C:CFA436b1a9e625e4b40b87a9387b|scraps> for every session.\n- *When your project is complete,* post a demo to <#C01504DCLVD> for review.\n- If your project gets approved, your hours become tickets! Be patient and keep hacking.
+*Reviews rejected for reasons covered in the FAQ will cost you one ticket!* So make sure you _post valid scraps_ and _ship_ _completed projects_.`
                     },
                     "accessory": {
                         "type": "image",
@@ -53,7 +54,7 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Tickets awaiting approval:* :tw_admission_tickets: ${awaitingApproval}`
+                        "text": `*Hours awaiting approval:* :tw_admission_tickets: ${awaitingApproval}`
                     }
                 },
                 {
