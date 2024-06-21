@@ -126,8 +126,6 @@ Slack.command(Commands.SHOP, async ({ command }) => {
             awaitingApproval: Math.floor(airtableUser.fields["Minutes (Pending Approval)"] / 60),
             inOrders: Math.floor(airtableUser.fields["In Pending (Minutes)"] / 60),
             spent: Math.floor(airtableUser.fields["Spent Fulfilled (Minutes)"] / 60),
-            lifetime: formatHour(user.lifetimeMinutes),
-            lifetimeTickets: Math.floor(airtableUser.fields["Minutes (All)"] / 60)
         })
     })
 });

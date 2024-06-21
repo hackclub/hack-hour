@@ -16,8 +16,6 @@ export class Shop {
         awaitingApproval: number,
         inOrders: number,
         spent: number,
-        lifetime: string,
-        lifetimeTickets: number
     }): View {
         return {
             "type": "modal",
@@ -63,13 +61,6 @@ _How do I get tickets?_ You can get tickets once your sessions are approved (to 
                     "text": {
                         "type": "mrkdwn",
                         "text": `*Tickets spent:* :tw_admission_tickets: ${spent + inOrders}`
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `_*Lifetime Hours:* ${lifetime} hours (:tw_admission_tickets: ${lifetimeTickets + 3} earned)_`
                     }
                 },                
                 {
