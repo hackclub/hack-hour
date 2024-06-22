@@ -701,10 +701,13 @@ emitter.on('error', async (errorRef) => {
     try {
         const error = errorRef.error;
         console.log(error)
-        return
+
+        return;
+
         if (!error) {
             throw new Error('No error provided!');
         }
+
         await Slack.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
             channel: process.env.LOG_CHANNEL || 'C0P5NE354',

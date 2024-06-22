@@ -1,4 +1,4 @@
-import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt'; 
+import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -22,7 +22,7 @@ export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
     appToken: Environment.SLACK_APP_TOKEN,
     clientId: Environment.CLIENT_ID,
-    clientSecret: Environment.CLIENT_SECRET,    
+    clientSecret: Environment.CLIENT_SECRET,
 
     receiver: expressReceiver,
 });
@@ -31,10 +31,10 @@ express.use(bodyParser.json());
 
 app.error(async (error) => {
     if (!error.original) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     } else {
-        emitter.emit('error', {error});
-        emitter.emit('error', {error: error.original});
+        emitter.emit('error', { error });
+        emitter.emit('error', { error: error.original });
     }
 });
 
@@ -68,7 +68,7 @@ export const Slack = {
             const { command: event, ack, respond } = payload;
 
             console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
-    
+
             await ack();
 
             if (Environment.MAINTAINANCE_MODE) {
@@ -92,36 +92,39 @@ export const Slack = {
             }
 
             try {
-                await app.client.chat.postMessage({
-                    channel: Environment.INTERNAL_CHANNEL,
-                    blocks: [
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": `> _<@${event.user_id}> ran \`${command} ${event.text}\`_`
-                            }
-                        },
-                        {
-                            type: "context",
-                            elements: [
-                                {
-                                    type: "mrkdwn",
-                                    text: `${command} - ran in <#${event.channel_id}>\n${new Date().toString()}`,
-                                },
-                            ],
-                        },
-                    ]
-                })
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _<@${event.user_id}> ran \`${command} ${event.text}\`_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${command} - ran in <#${event.channel_id}>\n${new Date().toString()}`,
+                                    },
+                                ],
+                            },
+                        ]
+                    });
+                }
+
                 await commandHandler(payload);
                 verb = "succeeded"
-            } catch(error) {
+            } catch (error) {
                 verb = "failed"
-                emitter.emit('error', {error})
+                emitter.emit('error', { error })
 
                 await app.client.chat.postEphemeral({
                     channel: event.channel_id,
-                    user: event.user_id,                    
+                    user: event.user_id,
                     text: `An error occurred while processing your command!`
                 })
             }
@@ -149,56 +152,58 @@ export const Slack = {
             }
 
             try {
-                await app.client.chat.postMessage({
-                    channel: Environment.INTERNAL_CHANNEL,
-                    blocks: [
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": `> _<@${body.user.id}> used ${action.type} "${actionId}"_`
-                            }
-                        },
-                        {
-                            type: "context",
-                            elements: [
-                                {
-                                type: "mrkdwn",
-                                text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
-                                },
-                            ],
-                        },
-                    ]                    
-                    // blocks: [
-                    //     {
-                    //         type: "context",
-                    //         elements: [
-                    //             {
-                    //             type: "mrkdwn",
-                    //             text: `${actionId} ${action.type}`,
-                    //             },
-                    //         ],
-                    //     },
-                    // ]
-                })
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _<@${body.user.id}> used ${action.type} "${actionId}"_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
+                                    },
+                                ],
+                            },
+                        ]
+                        // blocks: [
+                        //     {
+                        //         type: "context",
+                        //         elements: [
+                        //             {
+                        //             type: "mrkdwn",
+                        //             text: `${actionId} ${action.type}`,
+                        //             },
+                        //         ],
+                        //     },
+                        // ]
+                    })
+                }
 
                 verb = "succeeded"
-                listeners.forEach((listener) => { 
+                listeners.forEach((listener) => {
                     try {
-                        listener(payload) 
+                        listener(payload)
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', {error});
+                        emitter.emit('error', { error });
                     }
                 });
-            } catch(error) {
+            } catch (error) {
                 verb = "failed"
-                emitter.emit('error', {error});
- /*               await app.client.chat.postEphemeral({
-                    channel: action.channel.id,
-                    user: action.user.id,
-                    text: `An error occurred while processing your action!`
-                });*/
+                emitter.emit('error', { error });
+                /*               await app.client.chat.postEphemeral({
+                                   channel: action.channel.id,
+                                   user: action.user.id,
+                                   text: `An error occurred while processing your action!`
+                               });*/
             }
 
             const duration = new Date().getTime() - now.getTime();
@@ -216,38 +221,40 @@ export const Slack = {
             console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
 
             try {
-                await app.client.chat.postMessage({
-                    channel: Environment.INTERNAL_CHANNEL,
-                    blocks: [
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": `> _<@${body?.user?.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view ${callbackId}_`
-                            }
-                        },
-                        {
-                            type: "context",
-                            elements: [
-                                {
-                                type: "mrkdwn",
-                                text: `${callbackId}\n${new Date().toString()} `,
-                                },
-                            ],
-                        },
-                    ]                                     
-                    // blocks: [
-                    //     {
-                    //         type: "context",
-                    //         elements: [
-                    //             {
-                    //             type: "mrkdwn",
-                    //             text: `${callbackId} ${view.callback_id}`,
-                    //             },
-                    //         ],
-                    //     },
-                    // ]
-                })
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _<@${body?.user?.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view ${callbackId}_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${callbackId}\n${new Date().toString()} `,
+                                    },
+                                ],
+                            },
+                        ]
+                        // blocks: [
+                        //     {
+                        //         type: "context",
+                        //         elements: [
+                        //             {
+                        //             type: "mrkdwn",
+                        //             text: `${callbackId} ${view.callback_id}`,
+                        //             },
+                        //         ],
+                        //     },
+                        // ]
+                    })
+                }
 
                 verb = "succeeded"
                 listeners.forEach((listener) => {
@@ -255,12 +262,12 @@ export const Slack = {
                         listener(payload)
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', {error});
+                        emitter.emit('error', { error });
                     }
-                });                
+                });
             } catch (error) {
                 verb = "failed"
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
 
                 await app.client.chat.postEphemeral({
                     channel: body.user.id,
@@ -270,7 +277,7 @@ export const Slack = {
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)            
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
         })
     },
 
@@ -318,12 +325,12 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         },
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
-            try {                
+            try {
                 // await app.client.chat.postMessage({
                 //     ...options,
                 //     channel: Environment.INTERNAL_CHANNEL
@@ -369,9 +376,9 @@ export const Slack = {
 
                 return result;
             } catch (error: any) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
 
-                console.log(`[${new Date().toISOString()}] failed to post message`)                
+                console.log(`[${new Date().toISOString()}] failed to post message`)
 
                 // if (options) {
                 //     await app.client.chat.postMessage({
@@ -433,7 +440,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         },
 
@@ -451,9 +458,9 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
-        }        
+        }
     },
 
     views: {
@@ -471,7 +478,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         },
 
@@ -489,7 +496,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         }
     },
@@ -509,7 +516,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         }
     },
@@ -529,7 +536,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', {error});
+                emitter.emit('error', { error });
             }
         }
     },
@@ -540,33 +547,35 @@ export const Slack = {
                 channel: Environment.MAIN_CHANNEL
             });
 
-            return;            
+            return;
         }
     },
 
     async slog(message: string) {
-        await app.client.chat.postMessage({
-            channel: Environment.INTERNAL_CHANNEL,
-            text: message.slice(0, 3000),
-            blocks: [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `> ${message.slice(0, 3000)}`
-                    }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
+        if (Environment.VERBOSE) {
+            await app.client.chat.postMessage({
+                channel: Environment.INTERNAL_CHANNEL,
+                text: message.slice(0, 3000),
+                blocks: [
+                    {
+                        "type": "section",
+                        "text": {
                             "type": "mrkdwn",
-                            "text": `${new Date().toString()}`
+                            "text": `> ${message.slice(0, 3000)}`
                         }
-                    ]
-                }
-            ]
-        });
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": `${new Date().toString()}`
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
     }
 }
 

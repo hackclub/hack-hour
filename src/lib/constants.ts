@@ -33,6 +33,8 @@ export const Environment = {
   ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
   ARCADIUS_SECRET: assertEnv('ARCADIUS_SECRET'),
   SHOP_URL: assertEnv('SHOP_URL'),
+
+  VERBOSE: (process.env.VERBOSE === 'true'),
 };
 
 // Constants
