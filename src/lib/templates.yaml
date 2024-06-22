@@ -165,12 +165,12 @@ firstTime:
 scrapbook:
   prompt:
     select_sessions:
-      - 'select the sessions that are part of your scrapbook! you can select as many as you want, and most scrapbook posts will have 2+ sessions.'
+      - 'oh hey hey i saw your post in scrapbook!! is your project <ready to ship|https://hackclub.slack.com/canvas/C077TSWKER0?focus_section_id=temp:C:CFA8f9112520ff34deaad4130858>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
     complete:
-      - 'wow wow, great job!'
+      - 'wow wow, great job!!'
 
   modal:
     select_sessions:
-      - "choose the sessions that are associated with your scrapbook post!"
+      - "choose the sessions that are associated with your project!!"
     sessions_not_found:
       - "oh no! i couldn't find any sessions for you!"
