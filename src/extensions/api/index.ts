@@ -68,6 +68,92 @@ express.get('/api/clock/:slackId', async (req, res) => {
     }
 });
 
+type ResponseOk = {
+    ok: true;
+    data: any;
+    error?: string;
+}
+
+type ResponseError = {
+    ok: false;
+    data?: any;
+    error: string;
+}
+
+type Response = ResponseOk | ResponseError;
+
+express.get('/api/session/:slackId', async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+    });
+
+    if (!slackUser) {
+        return res.status(404).send('User not found');
+    }
+
+    // Grab the latest session
+    const result = await prisma.session.findFirst({
+        where: {
+            userId: slackUser.userId,
+        },
+        orderBy: {
+            createdAt: 'desc',
+        },
+    });
+
+    if (result) {
+        let response: Response = {} as Response;
+
+        if (result.completed || result.cancelled) {
+            response = {
+                ok: true,
+                data: {
+                    id: slackId,
+                    createdAt: result.createdAt,
+                    time: result.time,
+                    elapsed: result.elapsed,
+                    remaining: result.time - result.elapsed,
+                    endTime: new Date(result.createdAt.getTime() + result.time*60*1000),
+                    paused: result.paused,
+                    completed: true
+                },
+            }     
+        } else {
+            const now = new Date();
+            const endTime = new Date(now.getTime() + result.time-result.elapsed);
+
+            endTime.setMilliseconds(0);
+            endTime.setSeconds(0);
+
+            response = {
+                ok: true,
+                data: {
+                    id: slackId,
+                    createdAt: result.createdAt,
+                    time: result.time,
+                    elapsed: result.elapsed,
+                    remaining: result.time - result.elapsed,
+                    endTime: endTime,
+                    paused: result.paused,
+                    completed: false                    
+                },
+            }
+        }
+
+        return res.status(200).send(response);
+    } else {
+        const response: Response = {
+            ok: false,
+            error: 'No active session found',
+        }
+
+        return res.status(200).send(response);
+    }
+});
+
 // async function syncEvent(event: Event, session: Session, client: WebSocket) {
 //     const token = (client as any).meta.token;
 

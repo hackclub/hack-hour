@@ -69,13 +69,19 @@ emitter.on("init", async () => {
     //     emitter.emit("minute");
     // }
 
-    setInterval(async () => {
-        emitter.emit("minute");
-    }, Constants.MIN_MS);    
+    // setInterval(async () => {
+    //     emitter.emit("minute");
+    // }, Constants.MIN_MS);    
 
     setTimeout(() => {
         setInterval(async () => {
             emitter.emit("minute");
+        }, Constants.MIN_MS);
+    }, Constants.MIN_MS - Date.now() % Constants.MIN_MS);
+
+    setTimeout(() => {
+        setInterval(async () => {
+            emitter.emit("hour");
         }, Constants.HOUR_MS);
     }, Constants.HOUR_MS - Date.now() % Constants.HOUR_MS);
 });
