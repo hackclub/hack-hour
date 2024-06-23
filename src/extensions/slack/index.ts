@@ -496,9 +496,9 @@ emitter.on('complete', async (session: Session) => {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Stats"
+                            "text": "View Shop"
                         },
-                        "action_id": Actions.VIEW_STATS,
+                        "action_id": Actions.OPEN_SHOP,
                     }
                 }
             ]
@@ -588,9 +588,9 @@ emitter.on('cancel', async (session: Session) => {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Stats"
+                            "text": "View Shop"
                         },
-                        "action_id": Actions.VIEW_STATS,
+                        "action_id": Actions.OPEN_SHOP,
                     }
                 }
             ]
