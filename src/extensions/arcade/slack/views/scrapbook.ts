@@ -1,7 +1,7 @@
 import { KnownBlock, View } from "@slack/bolt";
-import { Actions, Callbacks } from "../../../lib/constants.js";
+import { Actions, Callbacks } from "../../../../lib/constants.js";
 import type { Session } from "@prisma/client";
-import { t } from "../../../lib/templates.js";
+import { t } from "../../../../lib/templates.js";
 
 export class ChooseSessions {
     public static chooseSessionsButton(scrapbookId: string) {

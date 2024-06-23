@@ -2,7 +2,7 @@ import { express, Slack } from "../../../lib/bolt.js";
 import { prisma, uid } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { app } from "../../../lib/bolt.js";
-import { ChooseSessions } from "../slack/view.js";
+import { ChooseSessions } from "../slack/views/scrapbook.js";
 import { log } from "../lib/log.js";
 import { Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
