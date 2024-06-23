@@ -1,4 +1,5 @@
 import { View } from "@slack/bolt";
+import { t } from "../../../lib/templates.js";
 
 export class Loading {
     public static loading(): View {
@@ -19,7 +20,7 @@ export class Loading {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Loading... :spin-loading:`
+                        "text": t('loading', {})
                     }
                 }
             ]

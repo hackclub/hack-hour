@@ -10,6 +10,8 @@ type Template =
     'init' |
     'update' |
 
+    'loading' |
+
     'toplevel.main' |
     'toplevel.pause' |
     'toplevel.cancel' |

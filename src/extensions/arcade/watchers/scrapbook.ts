@@ -117,7 +117,7 @@ express.post("/scrapbook/post", async (req, res) => {
 
         const flowMsg = await Slack.chat.postMessage({
             channel: slackId,
-            text: "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:",
+            text: t('loading', {}),
         });
 
         if (!flowMsg || !flowMsg.ts) {
