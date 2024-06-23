@@ -1,5 +1,5 @@
 import { Slack, approvedUsers } from "../../../lib/bolt.js";
-import { Actions, Commands, Constants } from "../../../lib/constants.js";
+import { Commands, Constants } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { pfps } from "../../../lib/templates.js";
