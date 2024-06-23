@@ -9,77 +9,73 @@ import { ChooseSessions } from "./views/scrapbook.js";
 
 Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
     try {
-    await ack();
+        if (body.type !== "block_actions") return;
 
-    if (body.type !== "block_actions") return;
+        const view = await Slack.views.open({
+            trigger_id: body.trigger_id,
+            view: Loading.loading()
+        });
 
-    const view = await Slack.views.open({         
-        trigger_id: body.trigger_id,         
-        view: Loading.loading()     
-    }); 
+        const flowTs = body.message!.ts;
 
-    const flowTs = body.message!.ts;
+        const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
+            where: {
+                flowTs,
+            }
+        });
 
-    const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
-        where: {
-            flowTs,
-        }
-    });
+        // // Get the latest post
+        // const scrapbooks = await prisma.scrapbook.findMany({
+        //     where: {
+        //         userId: scrapbook?.userId,
+        //     },
+        //     select: {
+        //         createdAt: true,
+        //     },
+        //     orderBy: {
+        //         createdAt: "desc",
+        //     },
+        // });
 
-    // // Get the latest post
-    // const scrapbooks = await prisma.scrapbook.findMany({
-    //     where: {
-    //         userId: scrapbook?.userId,
-    //     },
-    //     select: {
-    //         createdAt: true,
-    //     },
-    //     orderBy: {
-    //         createdAt: "desc",
-    //     },
-    // });
-
-    const sessions = await prisma.session.findMany({
-        where: {
-            userId: scrapbook?.userId,
-            // createdAt: {
-            //     // Before today & after the last post  
-            //     // Assuming the latest post is the last post (scrapbook)
-            //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
-            //     lte: scrapbook?.createdAt,
-            // },
-            metadata: {
-                path: ["banked"],
-                equals: false,
-            },
-
-            OR: [
-                {
-                    completed: true
+        const sessions = await prisma.session.findMany({
+            where: {
+                userId: scrapbook?.userId,
+                // createdAt: {
+                //     // Before today & after the last post  
+                //     // Assuming the latest post is the last post (scrapbook)
+                //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
+                //     lte: scrapbook?.createdAt,
+                // },
+                metadata: {
+                    path: ["banked"],
+                    equals: false,
                 },
-                {
-                    cancelled: true
-                }
-            ]
-        },
-    });
 
-    log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
+                OR: [
+                    {
+                        completed: true
+                    },
+                    {
+                        cancelled: true
+                    }
+                ]
+            },
+        });
+
+        log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
 
 
-    await Slack.views.update({
-        view_id: view?.view?.id,
-        view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-    }).catch((err) => console.log(err));
-} catch (error) {
-    console.log(error);
-    emitter.emit("error", error);
-}
+        await Slack.views.update({
+            view_id: view?.view?.id,
+            view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
+        }).catch((err) => console.log(err));
+    } catch (error) {
+        console.log(error);
+        emitter.emit("error", error);
+    }
 });
 
 Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
-    await ack();
-
     const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
         where: {
             internalId: view.private_metadata,
@@ -109,8 +105,8 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             },
         },
     });
-    
-    for (const session of selectedSessions) {        
+
+    for (const session of selectedSessions) {
         // if (session.metadata?.airtable?.status === "Approved") {
         //     session.metadata.airtable.status = "Banked";
 
@@ -119,9 +115,9 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         //         "Status": "Banked",
         //     });
         // } else {
-            const airtableScrapbook = await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
-                "Scrapbook": [scrapbook.data.record],
-            });
+        const airtableScrapbook = await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
+            "Scrapbook": [scrapbook.data.record],
+        });
         // }
 
         if (!airtableScrapbook) {
@@ -138,7 +134,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
 
             continue;
         }
- 
+
         session.metadata.banked = true;
 
         await prisma.session.update({

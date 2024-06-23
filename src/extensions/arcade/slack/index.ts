@@ -8,8 +8,6 @@ import { firstTime } from "../watchers/hackhour.js";
 Slack.action(Actions.NO_ACTION, async ({}) => {});
 
 // app.command(Commands.SESSIONS, async ({ command, ack }) => {
-//     await ack();
-
 //     const sessions = await prisma.session.findMany({
 //         where: {
 //             user: {
