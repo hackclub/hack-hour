@@ -5,9 +5,7 @@ import { updateController } from "../../slack/lib/lib.js";
 import { fetchEvidence } from "../lib/helper.js";
 import { t } from "../../../lib/templates.js";
 
-Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
-    await ack();
-
+Slack.action(Actions.TUTORIAL_ADVANCE, async ({ body, client }) => {
     const session = await prisma.session.findFirstOrThrow({
         where: {
             messageTs: (body as any).message.thread_ts,
@@ -93,9 +91,7 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
     await updateController(updatedSession);
 });
 
-Slack.action(Actions.TUTORIAL_BACK, async ({ ack, body, client }) => {
-    await ack();
-
+Slack.action(Actions.TUTORIAL_BACK, async ({ body, client }) => {
     const session = await prisma.session.findFirstOrThrow({//findUnique({
         where: {
             messageTs: (body as any).message.thread_ts,

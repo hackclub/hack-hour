@@ -143,6 +143,8 @@ export const Slack = {
 
             console.log(`[${now.toISOString()}] <@${body.user.id}> used ${action.type} "${actionId}"`)
 
+            await ack();
+
             const user = await app.client.users.info({
                 user: body.user.id
             });
@@ -216,9 +218,11 @@ export const Slack = {
             const now = new Date();
             let verb = "";
 
-            const { body, view } = payload;
+            const { body, ack } = payload;
 
-            console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`)
+            console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`);
+
+            await ack();
 
             try {
                 if (Environment.VERBOSE) {
