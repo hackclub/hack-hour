@@ -13,7 +13,8 @@ import "./functions/pause.js";
 import "./functions/cancel.js";
 import "./functions/extend.js";
 import "./functions/goals.js";
-import "./functions/stats.js"
+import "./functions/stats.js";
+import "./functions/api.js";
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
@@ -630,6 +631,8 @@ emitter.on('resume', async (session: Session) => {
 });
 
 emitter.on('init', async () => {
+    console.log('Slack initialized!');
+
     if (Environment.PROD) {
         const message = t('init', {
             repo: "https://github.com/hackclub/hack-hour",

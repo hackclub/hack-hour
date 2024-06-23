@@ -65,13 +65,7 @@ export const Commands = Environment.PROD ? {
   HOUR: '/hour',
   ARCADE: '/arcade',
   ADMIN: '/admin',
-  /*
-  GOALS: '/goals',
-  STATS: '/mystats',
-  REMINDERS: '/reminders',
-  EVENTS: '/picnics',
-  INSTRUCTIONS: '/instructions'  
-  */
+  API: '/api'
 } : {
   PAUSE: '/testpause',
   START: '/teststart',
@@ -84,13 +78,7 @@ export const Commands = Environment.PROD ? {
   HOUR: '/testhour',
   ARCADE: '/testarcade',
   ADMIN: '/testadmin',
-  /*
-  GOALS: '/testgoals',
-  STATS: '/testmystats',
-  REMINDERS: '/testreminders',
-  EVENTS: '/testpicnics',
-  INSTRUCTIONS: '/testinstructions'
-  */
+  API: '/testapi'
 };
 
 export const Actions = {
