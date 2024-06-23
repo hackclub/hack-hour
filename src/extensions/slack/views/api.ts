@@ -36,7 +36,7 @@ export class API {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `your api key is \`${key}\`. this will regenerate every time you run \`/api\`.`
+                        "text": `your api key is \`${key}\`.\nthis will regenerate every time you run \`/api\`.`
                     }
                 },
                 {

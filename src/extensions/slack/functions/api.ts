@@ -23,7 +23,7 @@ Slack.command(Commands.API, async ({ body, respond }) => {
 
     const apiKey = crypto.randomUUID();
 
-    const user = await prisma.user.update({
+   await prisma.user.update({
         where: {
             id: slackUser.userId,
         },
@@ -34,6 +34,6 @@ Slack.command(Commands.API, async ({ body, respond }) => {
 
     await Slack.views.open({
         trigger_id: body.trigger_id,
-        view: API.api(user.apiKey),
+        view: API.api(apiKey),
     });
 });

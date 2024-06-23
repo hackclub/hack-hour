@@ -88,7 +88,10 @@ express.get('/api/clock/:slackId', async (req, res) => {
     });
 
     if (!slackUser) {
-        return res.status(404).send('User not found');
+        return res.status(404).send({
+            ok: false,
+            error: 'User not found',
+        });
     }
 
     const result = await prisma.session.findFirst({
@@ -124,7 +127,10 @@ express.get('/api/session/:slackId', async (req, res) => {
     });
 
     if (!slackUser) {
-        return res.status(404).send('User not found');
+        return res.status(404).send({
+            ok: false,
+            error: 'User not found',
+        });
     }
 
     // Grab the latest session
@@ -213,7 +219,10 @@ express.get('/api/stats/:slackId', async (req, res) => {
     });
 
     if (!slackUser) {
-        return res.status(404).send('User not found');
+        return res.status(404).send({
+            ok: false,
+            error: 'User not found',        
+        });
     }
 
     const result = await prisma.session.aggregate({
@@ -222,7 +231,7 @@ express.get('/api/stats/:slackId', async (req, res) => {
             completed: true,
         },
         _sum: {
-            time: true,
+            elapsed: true,
         },
         _count: true,
     });
@@ -232,7 +241,7 @@ express.get('/api/stats/:slackId', async (req, res) => {
             ok: true,
             data: {
                 sessions: result._count,
-                total: result._sum.time,
+                total: result._sum.elapsed,
             },
         }
 
@@ -262,7 +271,10 @@ express.get('/api/goals/:slackId', async (req, res) => {
     });
 
     if (!slackUser) {
-        return res.status(404).send('User not found');
+        return res.status(404).send({
+            ok: false,
+            error: 'User not found',
+        });
     }
 
     const result = await prisma.goal.findMany({
