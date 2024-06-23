@@ -43,10 +43,10 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
                 throw new Error(`Channel not found`);
             }
 
-            // informUser(slackId, t('error.not_yours', {}), body.channel.id, (body as any).message.ts);
+            // informUser(slackId, t('error.not_yours'), body.channel.id, (body as any).message.ts);
             await client.views.update({
                 view_id: view?.view?.id,
-                view: Loading.error(t('error.not_yours', {}))
+                view: Loading.error(t('error.not_yours'))
             });
 
             return;

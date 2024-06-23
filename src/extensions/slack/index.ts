@@ -110,7 +110,7 @@ const hack = async ({ command }: CommandHandler) => {
                                 "type": "mrkdwn",
                                 "text": /*session.metadata.firstTime ? t('onboarding.complete', {
                             slackId: slackUser.slackId
-                        }) : */t('firstTime.existing_user', {})
+                        }) : */t('firstTime.existing_user')
                             },
                             "accessory": {
                                 "type": "button",
@@ -137,14 +137,14 @@ const hack = async ({ command }: CommandHandler) => {
 
         const topLevel = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
-            text: "if you can read this, i'm under a lot of stress... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
+            text: t('loading'),
         });
 
         // Create a controller message in the thread
         const controller = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: topLevel!.ts,
-            text: "if you can read this, i'm going through a lot right now... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
+            text: t('loading')
         })
 
         if (!controller || !controller.ts) {
@@ -306,21 +306,21 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
     }
 
     if (!text || text.length == 0) {
-        await informUser(slackId, t('error.empty_text', {}), channel);
+        await informUser(slackId, t('error.empty_text'), channel);
 
         return;
     }
 
     const topLevel = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
-        text: "if you can read this, i'm dancing as fast as i can... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
+        text: t('loading'),
     });
 
     // Create a controller message in the thread
     const controller = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
         thread_ts: topLevel!.ts,
-        text: "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:" // Leave it empty, for initialization
+        text: t('loading')
     })
 
     if (!controller || !controller.ts) {
@@ -496,9 +496,9 @@ emitter.on('complete', async (session: Session) => {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Stats"
+                            "text": "View Shop"
                         },
-                        "action_id": Actions.VIEW_STATS,
+                        "action_id": Actions.OPEN_SHOP,
                     }
                 }
             ]
@@ -588,9 +588,9 @@ emitter.on('cancel', async (session: Session) => {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Stats"
+                            "text": "View Shop"
                         },
-                        "action_id": Actions.VIEW_STATS,
+                        "action_id": Actions.OPEN_SHOP,
                     }
                 }
             ]

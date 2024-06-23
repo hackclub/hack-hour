@@ -8,8 +8,8 @@ export class Shop {
         awaitingApproval,
         inOrders,
         spent,
-        lifetime,
-        lifetimeTickets
+        // lifetime,
+        // lifetimeTickets
     }: {
         recordId: string,
         spendable: number,

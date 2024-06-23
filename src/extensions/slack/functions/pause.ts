@@ -28,7 +28,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
+            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
 
             return;
         }
@@ -40,7 +40,7 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: slackId,
                 channel: Environment.MAIN_CHANNEL,
-                text: t(`error.not_yours`, {}),
+                text: t(`error.not_yours`),
                 thread_ts: (body as any).message.thread_ts
             });                
 
@@ -69,7 +69,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);          
+            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);          
 
             return;
         }
@@ -77,7 +77,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
         const slackOwnerId = await fetchSlackId(session.userId);
 
         if (slackId !== slackOwnerId) {
-            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
+            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
 
             return;
         }
@@ -106,12 +106,12 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id);
+            informUser(slackId, t('error.not_hacking'), body.channel_id);
             return;
         }
 
         if (session.metadata.firstTime) {
-            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.first_time'), body.channel_id, undefined, pfps['question']);
         }
 
         const updatedSession = await Session.pause(session);
@@ -148,16 +148,16 @@ Slack.command(Commands.START, async ({ ack, body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.not_hacking'), body.channel_id, undefined, pfps['question']);
             return;
         }
 
         if (session.metadata.firstTime) {
-            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.first_time'), body.channel_id, undefined, pfps['question']);
         }
 
         if (!session.paused) {
-            informUser(slackId, t('error.already_resumed', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.already_resumed'), body.channel_id, undefined, pfps['question']);
         }
 
         const updatedSession = await Session.pause(session);

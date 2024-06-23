@@ -117,13 +117,13 @@ express.post("/scrapbook/post", async (req, res) => {
 
         const flowMsg = await Slack.chat.postMessage({
             channel: slackId,
-            text: "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:",
+            text: t('loading'),
         });
 
         if (!flowMsg || !flowMsg.ts) {
             await Slack.chat.postMessage({
                 channel: slackId,
-                text: t(`error.generic`, {}),
+                text: t(`error.generic`),
             });
             throw new Error("No ts found for flow message");
         }
@@ -152,7 +152,7 @@ express.post("/scrapbook/post", async (req, res) => {
         await app.client.chat.update({
             channel: flowMsg.channel!,
             ts: flowMsg.ts,
-            text: t('scrapbook.prompt.select_sessions', {}),
+            text: t('scrapbook.prompt.select_sessions'),
             blocks: ChooseSessions.chooseSessionsButton(scrapbook.internalId),
         });
 

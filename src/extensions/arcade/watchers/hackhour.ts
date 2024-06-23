@@ -289,14 +289,14 @@ app.event("message", async ({ event }) => {
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
-                    text: t('detect.evidence', {})
+                    text: t('detect.evidence')
                 });
             } else if (!airtableSession.fields["Activity"] && activity) {
                 await Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
-                    text: t('detect.activity', {}),
+                    text: t('detect.activity'),
                 });
             }
 

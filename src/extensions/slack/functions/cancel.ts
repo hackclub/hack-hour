@@ -59,7 +59,7 @@ Slack.view(Callbacks.CANCEL, async ({ ack, body, view }) => {
         console.log(session?.user.slackUser?.slackId);
 
         if (!session || slackId !== session.user.slackUser?.slackId) {
-            informUser(slackId, t('error.not_yours', {}), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
+            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
 
             return;
         }
@@ -94,13 +94,13 @@ Slack.command(Commands.CANCEL, async ({ ack, body }) => {
 
         if (!session) {
             // Send a message to the user in the channel they ran the command
-            informUser(slackId, t('error.not_hacking', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.not_hacking'), body.channel_id, undefined, pfps['question']);
 
             return;
         }
 
         if (session.metadata.firstTime) {
-            informUser(slackId, t('error.first_time', {}), body.channel_id, undefined, pfps['question']);
+            informUser(slackId, t('error.first_time'), body.channel_id, undefined, pfps['question']);
         }
 
         await Session.cancel(session);
