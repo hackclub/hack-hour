@@ -31,6 +31,11 @@ export class Shop {
             },
             "blocks": [
                 {
+                    "type": "image",
+                    "image_url": "https://cloud-44iflv7n5-hack-club-bot.vercel.app/0welcome_to_the_shop_.gif",
+                    "alt_text": "delicious tacos"
+                },
+                {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
