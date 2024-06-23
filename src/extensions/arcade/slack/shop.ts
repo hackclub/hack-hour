@@ -23,7 +23,6 @@ Slack.command(Commands.SHOP, async ({ command }) => {
     });
 
     if (!airtableUser || !user) {
-        // await ack();
         // informUser(command.user_id, t('error.first_time'), command.channel_id);
         await Slack.views.update({
             view_id: view?.view?.id,
@@ -45,9 +44,7 @@ Slack.command(Commands.SHOP, async ({ command }) => {
     })
 });
 
-Slack.action(Actions.OPEN_SHOP, async ({ ack, body }) => {
-    await ack();
-
+Slack.action(Actions.OPEN_SHOP, async ({ body }) => {
     const view = await Slack.views.open({
         trigger_id: (body as any).trigger_id,
         view: Loading.loading()
@@ -64,7 +61,6 @@ Slack.action(Actions.OPEN_SHOP, async ({ ack, body }) => {
     });
 
     if (!airtableUser || !user) {
-        // await ack();
         // informUser(body.user.id, t('error.first_time'), body.channel.id);
         await Slack.views.update({
             view_id: view?.view?.id,

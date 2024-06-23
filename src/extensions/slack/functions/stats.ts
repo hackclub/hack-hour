@@ -7,10 +7,8 @@ import { informUser } from "../lib/lib.js";
 import { Loading } from "../views/loading.js";
 import { Stats } from "../views/stats.js";
 
-Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
+Slack.action(Actions.VIEW_STATS, async ({ body }) => {
     try {
-        await ack();
-
         const view = await Slack.views.open({
             trigger_id: (body as any).trigger_id,
             view: Loading.loading(),
@@ -53,7 +51,7 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
     }
 });
 
-Slack.command(Commands.STATS, async ({ ack, body, client }) => {
+Slack.command(Commands.STATS, async ({ body, client }) => {
     const slackId = body.user_id;
     const channelId = body.channel_id;
     const triggerId = body.trigger_id;

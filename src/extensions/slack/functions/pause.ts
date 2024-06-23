@@ -12,10 +12,8 @@ import { pfps, t } from "../../../lib/templates.js";
 
 // TODO: Move to a standard library
 
-Slack.action(Actions.PAUSE, async ({ ack, body }) => {
+Slack.action(Actions.PAUSE, async ({ body }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
 
         const session = await prisma.session.findFirst({
@@ -53,10 +51,8 @@ Slack.action(Actions.PAUSE, async ({ ack, body }) => {
     }
 });
 
-Slack.action(Actions.RESUME, async ({ ack, body }) => {
+Slack.action(Actions.RESUME, async ({ body }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
 
         const session = await prisma.session.findFirst({
@@ -89,7 +85,7 @@ Slack.action(Actions.RESUME, async ({ ack, body }) => {
 });
 
 // Can toggle
-Slack.command(Commands.PAUSE, async ({ ack, body }) => {
+Slack.command(Commands.PAUSE, async ({ body }) => {
     try {
         const slackId = body.user_id;
 
@@ -131,7 +127,7 @@ Slack.command(Commands.PAUSE, async ({ ack, body }) => {
 });
 
 // Can only start
-Slack.command(Commands.START, async ({ ack, body }) => {
+Slack.command(Commands.START, async ({ body }) => {
     try {
         const slackId = body.user_id;
 

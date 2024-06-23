@@ -8,10 +8,8 @@ import { emitter } from "../../../lib/emitter.js";
 import { t } from "../../../lib/templates.js";
 import { Loading } from "../views/loading.js";
 
-Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.OPEN_GOAL, async ({ body, client }) => {
     try {
-        await ack();
-
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id
         
@@ -65,10 +63,8 @@ Slack.action(Actions.OPEN_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.SELECT_GOAL, async ({ body, client }) => {
     try {
-        await ack();
-
         const goalId = (body as any).actions[0].selected_option.value;
         const sessionId = (body as any).view.private_metadata
 
@@ -142,14 +138,10 @@ Slack.action(Actions.SELECT_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-Slack.view(Callbacks.MAIN_GOAL, async ({ ack }) => {
-    await ack();
-});
+Slack.view(Callbacks.MAIN_GOAL, async ({}) => {});
 
-Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.CREATE_GOAL, async ({ body, client }) => {
     try {
-        await ack();
-
         const sessionId = (body as any).view.private_metadata;
         const trigger_id: string = (body as any).trigger_id;
 
@@ -162,10 +154,8 @@ Slack.action(Actions.CREATE_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.CREATE_GOAL, async ({ body, view, client }) => {
     try {
-        await ack();
-
         const slackId = body.user.id;
 
         const sessionId = body.view.private_metadata;
@@ -187,13 +177,6 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
         });
 
         if (!goalName) {
-            // await ack({
-            //     response_action: 'errors',
-            //     errors: {
-            //         goal_name: 'Please enter a goal name'
-            //     }
-            // });
-
             await client.views.update({
                 view_id: body.view.root_view_id!,
                 view: await Goals.main(sessionId, 'Please enter a goal name')
@@ -222,13 +205,6 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
         // Check if the max number of goals has been reached
         if (user.goals.length > 9) {
             // User should not have been able to get here
-            // await ack({
-            //     response_action: 'errors',
-            //     errors: {
-            //         "goal_name": 'You have reached the maximum number of goals'
-            //     }
-            // });
-
             await client.views.update({
                 view_id: body.view.root_view_id!,
                 view: await Goals.main(sessionId, 'You have reached the maximum number of goals')
@@ -263,9 +239,8 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ ack, body, view, client }) => {
     }
 });
 
-Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
+Slack.action(Actions.DELETE_GOAL, async ({ body, client }) => {
     try {
-
         const sessionId = (body as any).view.private_metadata;
 
         const trigger_id: string = (body as any).trigger_id;
@@ -285,12 +260,10 @@ Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
 
         // Ensure that it is not "No Goal"
         if (session.goal.name === 'No Goal') {
-            await ack({
-                response_action: 'errors',
-                errors: {
-                    goal_actions: 'You cannot delete "No Goal"'
-                }
-            } as any);
+            await Slack.views.update({
+                view_id: (body as any).view.root_view_id!,
+                view: await Goals.main(sessionId, 'You cannot delete "No Goal"')
+            });
 
             return;
         }
@@ -304,10 +277,8 @@ Slack.action(Actions.DELETE_GOAL, async ({ ack, body, client }) => {
     }
 });
 
-Slack.view(Callbacks.DELETE_GOAL, async ({ ack, body, view, client }) => {
+Slack.view(Callbacks.DELETE_GOAL, async ({ body, view, client }) => {
     try {
-        await ack();
-
         const sessionId = body.view.private_metadata;
 
         let session = await prisma.session.findUniqueOrThrow({

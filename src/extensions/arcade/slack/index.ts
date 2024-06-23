@@ -10,10 +10,8 @@ import { emitter } from "../../../lib/emitter.js";
 import { firstTime } from "../watchers/hackhour.js";
 import { Loading } from "../../slack/views/loading.js";
 
-Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
+Slack.action(Actions.CHOOSE_SESSIONS, async ({ body }) => {
     try {
-    await ack();
-
     if (body.type !== "block_actions") return;
 
     const view = await Slack.views.open({         
@@ -80,9 +78,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 }
 });
 
-Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
-    await ack();
-
+Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ body, view }) => {
     const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
         where: {
             internalId: view.private_metadata,
@@ -170,8 +166,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     });
 });
 
-// app.command(Commands.SESSIONS, async ({ command, ack }) => {
-//     await ack();
+// app.command(Commands.SESSIONS, async ({ command }) => {
 
 //     const sessions = await prisma.session.findMany({
 //         where: {
@@ -407,7 +402,4 @@ Slack.command(Commands.ADMIN, async ({ command }) => {
     }
 });
 
-// Slack.action(Actions.OPEN_SHOP, async ({ ack, body }) => {
-//     // Close the modal
-//     await ack();
-// });
+// Slack.action(Actions.OPEN_SHOP, async () => {});

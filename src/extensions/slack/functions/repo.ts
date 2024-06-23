@@ -13,8 +13,6 @@
 // 	try {
 //         const slackId = body.user.id;
 
-//         await ack();
-
 //         const user = await prisma.user.findFirst({
 //             where: {
 //                 slackUser: {
@@ -38,7 +36,6 @@
 // });
 
 // Slack.view(Callbacks.ATTACH_REPO, async ({ ack, body, view, client }) => {
-// 	ack();
 
 // 	const repoLink = body.view.state.values.repo_input.repo_link.value;
 // });
