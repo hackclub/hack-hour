@@ -106,6 +106,8 @@ export const Actions = {
   OPEN_SHOP: 'openshop',
 
   EXISTING_USER_FIRST_TIME: 'existinguserfirsttime',
+
+  NO_ACTION: 'noaction',
 };
 
 export const Callbacks = {
