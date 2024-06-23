@@ -1,5 +1,5 @@
 import { View } from "@slack/bolt";
-import { Environment } from "../../../../lib/constants.js";
+import { Actions, Environment } from "../../../../lib/constants.js";
 
 export class Shop {
     public static shop({
@@ -84,8 +84,17 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                                 "emoji": true
                             },
                             "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`,
+                            "action_id": Actions.NO_ACTION,
                             "style": "primary"
-                        }
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "open the shop!",
+                                "emoji": true
+                            }
+                        }                        
                     ]
                 },
                 // {

@@ -1,9 +1,11 @@
 import { Slack, approvedUsers } from "../../../lib/bolt.js";
-import { Commands, Constants } from "../../../lib/constants.js";
+import { Actions, Commands, Constants } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { pfps } from "../../../lib/templates.js";
 import { firstTime } from "../watchers/hackhour.js";
+
+Slack.action(Actions.NO_ACTION, async ({}) => {});
 
 // app.command(Commands.SESSIONS, async ({ command, ack }) => {
 //     await ack();
