@@ -77,3 +77,23 @@ Example Response:
     }
 }
 ```
+
+### `/api/history/:slackId`
+Gets the history for the user.
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": [
+        {
+            "createdAt": "2024-06-23T05:09:04.105Z",
+            "time": 60,
+            "elapsed": 23,
+            "goal": "No Goal",
+            "ended": false,
+            "work": "123"
+        }
+    ]
+}
+```

@@ -8,7 +8,10 @@ const limiter = rateLimit({
     // 4 req per hour
     windowMs: 60 * 60 * 1000,
     max: 4,
-    message: "You have exceeded the 4 requests in 1 hour limit!",
+    message: {
+        ok: false,
+        error: 'Rate limit exceeded - 4 requests per hour allowed.',
+    },
 });
 
 // Extract authorization header
@@ -46,7 +49,7 @@ express.get('/status', async (req, res) => {
 
     try {
         await Promise.all([
-            prisma.session.aggregate({where: {completed: false, cancelled: false}, _count: true }).then(r => result['activeSessions'] = r._count),
+            prisma.session.aggregate({ where: { completed: false, cancelled: false }, _count: true }).then(r => result['activeSessions'] = r._count),
             AirtableAPI.User.lookupBySlack('U04QD71QWS0').then(r => result['airtableConnected'] = r?.fields['Slack ID'] == 'U04QD71QWS0'),
             app.client.auth.test().then(r => result['slackConnected'] = r?.ok),
         ]);
@@ -107,8 +110,8 @@ express.get('/api/clock/:slackId', async (req, res) => {
         const startTime = result.createdAt.getTime();
         const duration = result.time * 60 * 1000; // convert from minutes to milliseconds
         const currTime = new Date().getTime();
-        const elapsedTime = currTime-startTime;
-        const leftTime = duration-elapsedTime;
+        const elapsedTime = currTime - startTime;
+        const leftTime = duration - elapsedTime;
         return res.status(200).send(leftTime.toString());
     } else {
         return res.status(200).send((-1).toString());
@@ -168,15 +171,15 @@ express.get('/api/session/:slackId', async (req, res) => {
                     time: result.time,
                     elapsed: result.elapsed,
                     remaining: result.time - result.elapsed,
-                    endTime: new Date(result.createdAt.getTime() + result.time*60*1000),
+                    endTime: new Date(result.createdAt.getTime() + result.time * 60 * 1000),
                     paused: result.paused,
                     goal: result.goal.name,
                     completed: true
                 },
-            }     
+            }
         } else {
             const now = new Date();
-            const endTime = new Date(now.getTime() + result.time-result.elapsed);
+            const endTime = new Date(now.getTime() + result.time - result.elapsed);
 
             endTime.setMilliseconds(0);
             endTime.setSeconds(0);
@@ -191,7 +194,7 @@ express.get('/api/session/:slackId', async (req, res) => {
                     remaining: result.time - result.elapsed,
                     endTime: endTime,
                     paused: result.paused,
-                    completed: false                    
+                    completed: false
                 },
             }
         }
@@ -221,7 +224,7 @@ express.get('/api/stats/:slackId', async (req, res) => {
     if (!slackUser) {
         return res.status(404).send({
             ok: false,
-            error: 'User not found',        
+            error: 'User not found',
         });
     }
 
@@ -295,6 +298,67 @@ express.get('/api/goals/:slackId', async (req, res) => {
                 minutes: r.minutes
             }
         }),
+    }
+
+    return res.status(200).send(response);
+});
+
+/**
+ * Get the user's session history
+ */
+express.get('/api/history/:slackId', limiter, async (req, res) => {
+    const slackId = req.params.slackId;
+    const slackUser = await prisma.slackUser.findFirst({
+        where: {
+            slackId: slackId,
+        },
+        select: {
+            user: {
+                include: {
+                    sessions: {
+                        orderBy: {
+                            createdAt: 'desc',
+                        },
+                        select: {
+                            createdAt: true,
+                            time: true,
+                            elapsed: true,
+                            completed: true,
+                            cancelled: true,
+                            goal: {
+                                select: {
+                                    name: true,
+                                }
+                            },
+                            metadata: true,
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!slackUser) {
+        return res.status(404).send({
+            ok: false,
+            error: 'User not found',
+        });
+    }
+
+    const response: Response = {
+        ok: true,
+        data: slackUser.user.sessions.map(r => {
+            return {
+                createdAt: r.createdAt,
+                time: r.time,
+                elapsed: r.elapsed,
+
+                goal: r.goal.name,
+                ended: r.completed || r.cancelled,
+
+                work: r.metadata?.work,
+            }
+        })
     }
 
     return res.status(200).send(response);
