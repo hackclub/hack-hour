@@ -39,8 +39,61 @@ Example Response:
         "elapsed": 12,
         "remaining": 48,
         "endTime": "2024-06-23T03:08:00.000Z",
+        "goal": "No Goal",
         "paused": true,
         "completed": false
     }
+}
+```
+
+### `/api/stats/:slackId`
+Gets the stats for the user.
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": {
+        "sessions": 0,
+        "total": 0,
+    }
+}
+```
+
+### `/api/goals/:slackId`
+Gets the goals for the user.
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": {
+        "goals": [
+            {
+                "name": "No Goal",
+                "minutes": 0,
+            }
+        ]
+    }
+}
+```
+
+### `/api/history/:slackId`
+Gets the history for the user.
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": [
+        {
+            "createdAt": "2024-06-23T05:09:04.105Z",
+            "time": 60,
+            "elapsed": 23,
+            "goal": "No Goal",
+            "ended": false,
+            "work": "123"
+        }
+    ]
 }
 ```
