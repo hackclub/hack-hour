@@ -110,7 +110,7 @@ const hack = async ({ command }: CommandHandler) => {
                                 "type": "mrkdwn",
                                 "text": /*session.metadata.firstTime ? t('onboarding.complete', {
                             slackId: slackUser.slackId
-                        }) : */t('firstTime.existing_user', {})
+                        }) : */t('firstTime.existing_user')
                             },
                             "accessory": {
                                 "type": "button",
@@ -137,14 +137,14 @@ const hack = async ({ command }: CommandHandler) => {
 
         const topLevel = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
-            text: t('loading', {}),
+            text: t('loading'),
         });
 
         // Create a controller message in the thread
         const controller = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             thread_ts: topLevel!.ts,
-            text: t('loading', {})
+            text: t('loading')
         })
 
         if (!controller || !controller.ts) {
@@ -306,21 +306,21 @@ Slack.action(Actions.HACK, async ({ ack, body, respond }) => {
     }
 
     if (!text || text.length == 0) {
-        await informUser(slackId, t('error.empty_text', {}), channel);
+        await informUser(slackId, t('error.empty_text'), channel);
 
         return;
     }
 
     const topLevel = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
-        text: t('loading', {}),
+        text: t('loading'),
     });
 
     // Create a controller message in the thread
     const controller = await Slack.chat.postMessage({
         channel: Environment.MAIN_CHANNEL,
         thread_ts: topLevel!.ts,
-        text: t('loading', {})
+        text: t('loading')
     })
 
     if (!controller || !controller.ts) {

@@ -44,7 +44,7 @@ export class Controller {
         };
 
         if (session.metadata.firstTime) {
-            info.text.text = t('firstTime.controller', {})
+            info.text.text = t('firstTime.controller')
         } else if (session.paused) {
             info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
         } else if (session.cancelled) {
@@ -55,7 +55,7 @@ export class Controller {
             info.text.text = t_format(session.metadata.slack.controllerTemplate, {
                 minutes: session.time - session.elapsed,
             })
-            // info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+            // info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement')}`
         }
 
         if (session.metadata.firstTime) {
@@ -242,7 +242,7 @@ export class Controller {
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
-            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement', {})}`
+            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement')}`
         }
 
         const permalink = await Slack.chat.getPermalink({

@@ -10,7 +10,7 @@ export class ChooseSessions {
                 type: "section",
                 text: {
                     type: "plain_text",
-                    text: t('scrapbook.prompt.select_sessions', {}),
+                    text: t('scrapbook.prompt.select_sessions'),
                     emoji: true,
                 },
             },
@@ -53,7 +53,7 @@ export class ChooseSessions {
                         type: "section",
                         text: {
                             type: "plain_text",
-                            text: t('scrapbook.modal.sessions_not_found', {}),
+                            text: t('scrapbook.modal.sessions_not_found'),
                             emoji: true,
                         },
                     },
@@ -85,7 +85,7 @@ export class ChooseSessions {
                 //     type: "section",
                 //     text: {
                 //         type: "plain_text",
-                //         text: t('scrapbook.modal.select_sessions', {}),
+                //         text: t('scrapbook.modal.select_sessions'),
                 //         emoji: true,
                 //     },
                 // },
@@ -97,7 +97,7 @@ export class ChooseSessions {
                     block_id: "sessions",
                     text: {
                         type: "mrkdwn",
-                        text: t('scrapbook.modal.select_sessions', {}),
+                        text: t('scrapbook.modal.select_sessions'),
                     },
                     accessory: {
                         type: "multi_static_select",
@@ -131,7 +131,7 @@ export class ChooseSessions {
                 type: "section",
                 text: {
                     type: "plain_text",
-                    text: t('scrapbook.prompt.complete', {}),
+                    text: t('scrapbook.prompt.complete'),
                     emoji: true,
                 },
             },

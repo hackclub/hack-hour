@@ -29,7 +29,7 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
     if (session.user.slackUser.slackId !== (body as any).user.id) {
         await Slack.chat.postEphemeral({
             channel: Environment.MAIN_CHANNEL,
-            text: t('error.not_yours', {}),
+            text: t('error.not_yours'),
             thread_ts: session.messageTs,
             user: (body as any).user.id
         });
@@ -43,13 +43,13 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
                 channel: Environment.MAIN_CHANNEL,
                 thread_ts: session.messageTs,
                 user: (body as any).user,
-                text: t('firstTime.tutorial_step_2', {}),
+                text: t('firstTime.tutorial_step_2'),
                 // blocks: [
                 //     {
                 //         "type": "section",
                 //         "text": {
                 //             "type": "mrkdwn",
-                //             "text": t('firstTime.tutorial_step_2', {})
+                //             "text": t('firstTime.tutorial_step_2')
                 //         },
                 //         "accessory": {
                 //             "type": "button",
@@ -69,7 +69,7 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ ack, body, client }) => {
             if (!evidenced) {
                 await Slack.chat.postEphemeral({
                     channel: Environment.MAIN_CHANNEL,
-                    text: t('firstTime.walkthrough.no_evidence', {}),
+                    text: t('firstTime.walkthrough.no_evidence'),
                     thread_ts: session.messageTs,
                     user: (body as any).user.id
                 });
@@ -117,7 +117,7 @@ Slack.action(Actions.TUTORIAL_BACK, async ({ ack, body, client }) => {
     if (session.user.slackUser.slackId !== (body as any).user.id) {
         await Slack.chat.postEphemeral({
             channel: Environment.MAIN_CHANNEL,
-            text: t('error.not_yours', {}),
+            text: t('error.not_yours'),
             thread_ts: session.messageTs,
             user: (body as any).user.id
         });

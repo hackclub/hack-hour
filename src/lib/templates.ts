@@ -111,8 +111,12 @@ export const pfps = {
     ded: ":rac_ded:"
 };
 
-export function t(template: Template, data: Data) {
+export function t(template: Template, data: Data | null = null) {
 //    return (randomChoice(templates[template]) as string).replace(/\${(.*?)}/g, (_, key) => (data as any)[key])
+    if (!data) {
+        return t_fetch(template);
+    }
+    
     return t_format(t_fetch(template), data);
 }
 

@@ -27,19 +27,19 @@ Slack.action(Actions.VIEW_STATS, async ({ ack, body }) => {
         });
 
         if (!user) {
-            // informUser(slackId, t('error.not_a_user', {}), Environment.MAIN_CHANNEL, (body as any).message.ts);
+            // informUser(slackId, t('error.not_a_user'), Environment.MAIN_CHANNEL, (body as any).message.ts);
             await Slack.views.update({
                 view_id: view?.view?.id,
-                view: Loading.error(t('error.not_a_user', {}))
+                view: Loading.error(t('error.not_a_user'))
             });
             return;
         }        
 
         if (user.metadata.firstTime) {
-            // informUser(slackId, t('error.first_time', {}), Environment.MAIN_CHANNEL);
+            // informUser(slackId, t('error.first_time'), Environment.MAIN_CHANNEL);
             await Slack.views.update({
                 view_id: view?.view?.id,
-                view: Loading.error(t('error.first_time', {}))
+                view: Loading.error(t('error.first_time'))
             });
             return;
         }        
@@ -72,19 +72,19 @@ Slack.command(Commands.STATS, async ({ ack, body, client }) => {
     });
 
     if (!user) {
-        // informUser(slackId, t('error.not_a_user', {}), channelId);
+        // informUser(slackId, t('error.not_a_user'), channelId);
         await client.views.update({
             view_id: view?.view?.id,
-            view: Loading.error(t('error.not_a_user', {}))
+            view: Loading.error(t('error.not_a_user'))
         });
         return;
     }
 
     if (user.metadata.firstTime) {
-        // informUser(slackId, t('error.first_time', {}), body.channel_id);
+        // informUser(slackId, t('error.first_time'), body.channel_id);
         await client.views.update({
             view_id: view?.view?.id,
-            view: Loading.error(t('error.first_time', {}))
+            view: Loading.error(t('error.first_time'))
         });
     }
 

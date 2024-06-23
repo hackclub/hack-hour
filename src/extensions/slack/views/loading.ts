@@ -20,7 +20,7 @@ export class Loading {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": t('loading', {})
+                        "text": t('loading')
                     }
                 }
             ]

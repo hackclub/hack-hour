@@ -18,10 +18,10 @@ import { prisma } from "../../../lib/prisma.js";
 
 //     if (!airtableUser) {
 //         // await ack();
-//         // informUser(command.user_id, t('error.first_time', {}), command.channel_id);
+//         // informUser(command.user_id, t('error.first_time'), command.channel_id);
 //         await Slack.views.update({
 //             view_id: view?.view?.id,
-//             view: Loading.error(t('error.first_time', {}))
+//             view: Loading.error(t('error.first_time'))
 //         });
 
 //         return;
@@ -109,10 +109,10 @@ Slack.command(Commands.SHOP, async ({ command }) => {
 
     if (!airtableUser || !user) {
         // await ack();
-        // informUser(command.user_id, t('error.first_time', {}), command.channel_id);
+        // informUser(command.user_id, t('error.first_time'), command.channel_id);
         await Slack.views.update({
             view_id: view?.view?.id,
-            view: Loading.error(t('error.first_time', {}))
+            view: Loading.error(t('error.first_time'))
         });
 
         return;
