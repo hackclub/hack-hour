@@ -3,7 +3,7 @@ import { Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { t } from "../../../lib/templates.js";
 import { API } from "../views/api.js";
-import { scrypt, scryptSync } from "crypto";
+import { scryptSync } from "crypto";
 
 Slack.command(Commands.API, async ({ body, respond }) => {
     const slackUser = await prisma.slackUser.findUnique({
