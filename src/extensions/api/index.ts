@@ -179,7 +179,7 @@ express.get('/api/session/:slackId', async (req, res) => {
             }
         } else {
             const now = new Date();
-            const endTime = new Date(now.getTime() + result.time - result.elapsed);
+            const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
 
             endTime.setMilliseconds(0);
             endTime.setSeconds(0);
@@ -194,7 +194,8 @@ express.get('/api/session/:slackId', async (req, res) => {
                     remaining: result.time - result.elapsed,
                     endTime: endTime,
                     paused: result.paused,
-                    completed: false
+                    completed: false,
+                    goal: result.goal.name,
                 },
             }
         }
