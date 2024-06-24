@@ -16,6 +16,7 @@ const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("Users");
 const sessions = base("Sessions");
 const scrapbooks = base("Scrapbook");
+const api = base("API");
 
 type AirtableRecordID = string;
 
@@ -64,6 +65,7 @@ type AirtableUserRead = {
 
     "Minutes (All)": number,
     // "Preexisting": boolean,
+    "API Authorization": boolean,
 };
 
 type AirtableSessionWrite = {
@@ -112,6 +114,12 @@ type AirtableScrapbookWrite = {
 };
 
 type AirtableScrapbookRead = AirtableScrapbookWrite;
+
+type AirtableAPIRead = {
+    "App Name": string,
+    "Endpoint": string,
+    "Active": boolean,
+};
 
 export const AirtableAPI = {
     User: {
@@ -212,6 +220,20 @@ export const AirtableAPI = {
             } catch (error) {
                 emitter.emit("error", error);
             }
+        },
+
+        async authorizedAPIUsers(): Promise<string[]> {
+            console.log(`[AirtableAPI.User.authorizedAPIUsers] Finding all users with API Authorization`)
+
+            const now = Date.now();
+
+            const records = await users.select({
+                filterByFormula: `{API Authorization} = 1`
+            }).all();
+
+            console.log(`[AirtableAPI.User.authorizedAPIUsers] Took ${Date.now() - now}ms`)
+
+            return records.map(record => (record.fields as AirtableUserRead)["Slack ID"]);
         }
     },
     Session: {
@@ -313,4 +335,20 @@ export const AirtableAPI = {
             return {id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite};
         },
     },    
+    API: {
+        async getAllActive(): Promise<{id: AirtableRecordID, fields: AirtableAPIRead}[]> {
+            console.log(`[AirtableAPI.API.getAllActive] Finding all active APIs`)
+
+            const now = Date.now();
+
+            const records = await api.select({
+                filterByFormula: `{Active} = 1`
+            }).all();
+
+            console.log(`[AirtableAPI.API.getAllActive] Took ${Date.now() - now}ms`)
+            
+            // Return a list of endpoints
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableAPIRead}));
+        }    
+    }
 };

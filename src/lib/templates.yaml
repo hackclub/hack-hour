@@ -100,6 +100,9 @@ error:
   first_time:
     - hey hey! you need to finish your first arcade session before you can do that!
 
+  not_authorized:
+    - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
+
 action:
   paused:
     - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left

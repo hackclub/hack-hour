@@ -36,6 +36,7 @@ type Template =
     'error.not_yours' |
     'error.generic' |
     'error.first_time' |
+    'error.not_authorized' |
 
     'airtable.approved' |
     'airtable.rejected' |
