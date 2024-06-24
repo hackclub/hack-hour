@@ -303,7 +303,7 @@ app.event("message", async ({ event }) => {
                             "elements": [
                                 {
                                     "type": "mrkdwn",
-                                    "text": "_(note: screenshots of code don't count as proof)_"
+                                    "text": "_(note: screenshots of code don't count as proof - share git commits instead)_"
                                 }
                             ]
                         }
