@@ -4,14 +4,13 @@ import type { Session } from "@prisma/client";
 import { t } from "../../../lib/templates.js";
 
 export class ChooseSessions {
-    public static chooseSessionsButton(scrapbookId: string) {
+    public static chooseSessionsButton(scrapbookId: string): KnownBlock[] {
         return [
             {
                 type: "section",
                 text: {
-                    type: "plain_text",
+                    type: "mrkdwn",
                     text: t('scrapbook.prompt.select_sessions'),
-                    emoji: true,
                 },
             },
             {
