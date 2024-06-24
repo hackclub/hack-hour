@@ -5,7 +5,7 @@ import { Actions, Environment } from "../../../../lib/constants.js";
 import { AirtableAPI } from "../../../../lib/airtable.js";
                            
 export class Sessions {
-    public static async sessions(sessions: Session[], page: number, error: string | null = null): Promise<View> {
+    public static async sessions(userId: string, sessions: Session[], page: number, error: string | null = null): Promise<View> {
         const blocks: KnownBlock[] = [];
 
         for (let session of sessions) {
@@ -67,7 +67,7 @@ ${
                 ]
             }
         );
-        
+
         blocks.push(
             {
                 "type": "context",
@@ -91,7 +91,10 @@ ${
                 text: "close",
             },
             blocks,
-            private_metadata: page.toString(),
+            private_metadata: JSON.stringify({
+                page,
+                userId
+            }),
         }
     }
 }

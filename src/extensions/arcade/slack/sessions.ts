@@ -160,15 +160,15 @@ Slack.command(Commands.SESSIONS, async ({ command }) => {
 
     await Slack.views.update({
         view_id: view?.view?.id,
-        view: await Sessions.sessions(sessions, 0)
+        view: await Sessions.sessions(slackUser.userId, sessions, 0)
     });
 });
 
 Slack.action(Actions.SESSIONS_PREVIOUS, async ({ body }) => {
     const view = (body as any).view;
-    let page = parseInt(view.private_metadata);
+    let { page, userId } = JSON.parse(view.private_metadata);
 
-    if (!page) {
+    if (isNaN(page)) {
         return;
     }
 
@@ -176,21 +176,55 @@ Slack.action(Actions.SESSIONS_PREVIOUS, async ({ body }) => {
 
     const sessions = await prisma.session.findMany({
         where: {
-            userId: view.private_metadata,
+            userId,
         },
         skip: page <= 0 ? 0 : page * 3,
         take: 3,
     });
 
-    if (page <= 0) {
+    console.log(sessions);
+
+    if (page < 0) {
         await Slack.views.update({
             view_id: view.id,
-            view: await Sessions.sessions(sessions, page + 1, "Can't go back any further")
+            view: await Sessions.sessions(userId, sessions, page + 1, "Can't go back any further")
         });
     } else {
         await Slack.views.update({
             view_id: view.id,
-            view: await Sessions.sessions(sessions, page)
+            view: await Sessions.sessions(userId, sessions, page)
         });
     }
+});
+
+Slack.action(Actions.SESSIONS_NEXT, async ({ body }) => {
+    const view = (body as any).view;
+    let { page, userId } = JSON.parse(view.private_metadata);
+
+    if (isNaN(page)) {
+        return;
+    }
+
+    page++;
+
+    const sessions = await prisma.session.findMany({
+        where: {
+            userId
+        },
+        skip: page <= 0 ? 0 : page * 3,
+        take: 3,
+    });
+
+    if (sessions.length === 0) {
+        await Slack.views.update({
+            view_id: view.id,
+            view: await Sessions.sessions(userId, sessions, page - 1, "Can't go any further")
+        });
+        return;
+    }
+
+    await Slack.views.update({
+        view_id: view.id,
+        view: await Sessions.sessions(userId, sessions, page)
+    });
 });
