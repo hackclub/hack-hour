@@ -6,7 +6,7 @@ import { Constants, Environment } from "../../../lib/constants.js";
 import { emitter } from "../../../lib/emitter.js";
 
 import { log } from "../lib/log.js";
-import { pfps, t, t_format, templates } from "../../../lib/templates.js";
+import { t } from "../../../lib/templates.js";
 import { fetchEvidence, surfaceEvidence } from "../lib/helper.js";
 import { Session as LibSession } from "../../../lib/corelib.js";
 
@@ -289,7 +289,25 @@ app.event("message", async ({ event }) => {
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
-                    text: t('detect.evidence')
+                    text: t('detect.evidence'),
+                    blocks: [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": t('detect.evidence')
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "_(note: screenshots of code don't count as proof)_"
+                                }
+                            ]
+                        }
+                    ]
                 });
             } else if (!airtableSession.fields["Activity"] && activity) {
                 await Slack.chat.postMessage({
