@@ -108,6 +108,9 @@ export const Actions = {
   EXISTING_USER_FIRST_TIME: 'existinguserfirsttime',
 
   NO_ACTION: 'noaction',
+
+  SESSIONS_PREVIOUS: 'sessionsprevious',
+  SESSIONS_NEXT: 'sessionsnext',
 };
 
 export const Callbacks = {

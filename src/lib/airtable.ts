@@ -98,6 +98,7 @@ type AirtableSessionRead = {
     "Reason": string,
     "Approved Minutes": number,
     "Scrapbook": [AirtableRecordID] | [],
+    "Percentage Approved": number,
 };
 
 type AirtableScrapbookWrite = {
