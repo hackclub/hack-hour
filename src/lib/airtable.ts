@@ -54,7 +54,7 @@ type AirtableUserRead = {
     "Minutes (Approved)": number,
     "Minutes (Banked)": number,
     "Total Earned (Minutes)": number,
-    "Spent (Incl. Pending)": number,
+    "Spent Incl. Pending (Minutes)": number,
     "Balance (Minutes)": number,
     "dmChannel": string,
     "Minutes (Pending Approval)": number,
@@ -64,6 +64,7 @@ type AirtableUserRead = {
     "In Pending (Minutes)": number,
 
     "Minutes (All)": number,
+    "Minutes (Rejected)": number,
     // "Preexisting": boolean,
     "API Authorization": boolean,
 };
@@ -100,6 +101,8 @@ type AirtableSessionRead = {
     "Reason": string,
     "Approved Minutes": number,
     "Scrapbook": [AirtableRecordID] | [],
+    "Percentage Approved": number,
+    "Scrapbook Approved": boolean,
 };
 
 type AirtableScrapbookWrite = {

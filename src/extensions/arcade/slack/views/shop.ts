@@ -1,5 +1,5 @@
 import { View } from "@slack/bolt";
-import { Environment } from "../../../../lib/constants.js";
+import { Actions, Environment } from "../../../../lib/constants.js";
 
 export class Shop {
     public static shop({
@@ -30,6 +30,11 @@ export class Shop {
                 "emoji": true,
             },
             "blocks": [
+                // {
+                //     "type": "image",
+                //     "image_url": "https://cloud-44iflv7n5-hack-club-bot.vercel.app/0welcome_to_the_shop_.gif",
+                //     "alt_text": "the shop"
+                // },
                 {
                     "type": "section",
                     "text": {
@@ -79,8 +84,18 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                                 "emoji": true
                             },
                             "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`,
+                            "action_id": Actions.NO_ACTION,
                             "style": "primary"
-                        }
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "view sessions",
+                                "emoji": true
+                            },
+                            "action_id": Actions.SESSIONS,
+                        }                        
                     ]
                 },
                 // {

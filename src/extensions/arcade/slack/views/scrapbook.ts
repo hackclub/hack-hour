@@ -1,7 +1,7 @@
 import { KnownBlock, View } from "@slack/bolt";
-import { Actions, Callbacks } from "../../../lib/constants.js";
+import { Actions, Callbacks } from "../../../../lib/constants.js";
 import type { Session } from "@prisma/client";
-import { t } from "../../../lib/templates.js";
+import { t } from "../../../../lib/templates.js";
 
 export class ChooseSessions {
     public static chooseSessionsButton(scrapbookId: string): KnownBlock[] {
@@ -111,7 +111,7 @@ export class ChooseSessions {
                             return {
                                 text: {
                                     type: "plain_text",
-                                    text: `${work} - ${session.createdAt.getMonth()}/${session.createdAt.getDate()}`,
+                                    text: `${work} - ${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}`,
                                     emoji: true,
                                 },
                                 value: session.id,
@@ -141,7 +141,7 @@ export class ChooseSessions {
             type: "section",
             text: {
                 type: "mrkdwn",
-                text: `*${session.createdAt.getMonth()}/${session.createdAt.getDate()}* - ${session.metadata.work}`,
+                text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${session.metadata.work}`,
             },
         })));
     }
