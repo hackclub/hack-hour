@@ -4,11 +4,12 @@ Hack Hour is a project tracker & time management tool for hacking on projects. I
 ![](https://api.checklyhq.com/v1/badges/checks/271a416b-7810-47b0-b58c-7cd9e9e37f82?style=flat&theme=default&responseTime=false)
 
 ## API
+_Note: There is no guarantee for the reliability of the API. If data is lost and/or is not registered for Arcade, there's not much we can do - use at your own risk._
 
-### `/ping`
+### GET `/ping`
 Returns with `pong`. Check if the thing is alive
 
-### `/status`
+### GET `/status`
 Get specific details on the status of hack hour (heidi)
 
 Example Response:
@@ -20,12 +21,12 @@ Example Response:
 }
 ```
 
-### `/api/clock/:slackId`
+### GET `/api/clock/:slackId`
 Depreciated. Use `/api/session/:slackId` instead.
 
 Responds with unix timestamp of the expected end time of the current session for the user.
 
-### `/api/session/:slackId`
+### GET `/api/session/:slackId`
 Gets the latest session for the user.
 
 Example Response:
@@ -41,12 +42,13 @@ Example Response:
         "endTime": "2024-06-23T03:08:00.000Z",
         "goal": "No Goal",
         "paused": true,
-        "completed": false
+        "completed": false,
+        "messageTs": "messageTs",
     }
 }
 ```
 
-### `/api/stats/:slackId`
+### GET `/api/stats/:slackId`
 Gets the stats for the user.
 
 Example Response:
@@ -60,7 +62,7 @@ Example Response:
 }
 ```
 
-### `/api/goals/:slackId`
+### GET `/api/goals/:slackId`
 Gets the goals for the user.
 
 Example Response:
@@ -78,7 +80,7 @@ Example Response:
 }
 ```
 
-### `/api/history/:slackId`
+### GET `/api/history/:slackId`
 Gets the history for the user.
 
 Example Response:
@@ -95,5 +97,60 @@ Example Response:
             "work": "123"
         }
     ]
+}
+```
+
+### POST `/api/start`
+Starts a new session for the user.
+
+Requires a JSON body with the following fields:
+- `work`: what the user is working on (string)
+
+Requires an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": {
+        "id": "sessionId",
+        "slackId": "slackId",
+        "createdAt": "createdAt",
+    }
+}
+```
+
+### POST `/api/pauses`
+Pauses or resumes the current session for the user, depending on the current state.
+
+Requires an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": {
+        "id": "sessionId",
+        "slackId": "slackId",
+        "createdAt": "createdAt",
+        "paused": true,
+    }
+}
+```
+
+### POST `/api/cancel`
+Cancels the current session for the user.
+
+Requires an authorization header with the api key, as such: `Authorization Bearer <apikey>`
+
+Example Response:
+```json
+{
+    "ok": true,
+    "data": {
+        "id": "sessionId",
+        "slackId": "slackId",
+        "createdAt": "createdAt",
+    }
 }
 ```

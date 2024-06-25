@@ -1,16 +1,27 @@
-import { prisma } from "../../lib/prisma.js";
-import { app, express } from "../../lib/bolt.js";
+import { prisma, uid } from "../../lib/prisma.js";
+import { Slack, app, express } from "../../lib/bolt.js";
 import { AirtableAPI } from "../../lib/airtable.js";
 
 import rateLimit from "express-rate-limit";
+import { emitter } from "../../lib/emitter.js";
+import { Session as SessionType } from "@prisma/client";
+import { t, t_fetch } from "../../lib/templates.js";
+import { assertVal } from "../../lib/assert.js";
+import { Environment } from "../../lib/constants.js";
+import { reactOnContent } from "../slack/lib/emoji.js";
+import { updateController, updateTopLevel } from "../slack/lib/lib.js";
+import { Session } from "../../lib/corelib.js";
+import { scryptSync } from "crypto";
+
+import { authorizedInternalUsers } from "../../lib/airtable.js";
 
 const limiter = rateLimit({
-    // 4 req per hour
+    // 16 req per hour
     windowMs: 60 * 60 * 1000,
-    max: 4,
+    max: 16,
     message: {
         ok: false,
-        error: 'Rate limit exceeded - 4 requests per hour allowed.',
+        error: 'Rate limit exceeded - 16 requests per hour allowed.',
     },
 });
 
@@ -22,6 +33,48 @@ declare global {
         }
     }
 }
+
+const airtableAPIdata = await AirtableAPI.API.getAllActive();
+const endpoints = airtableAPIdata.map((r) => r.fields['Endpoint']);
+
+const postEndpoints = async (session: SessionType) => {
+    const user = await prisma.slackUser.findUnique({
+        where: {
+            userId: session.userId,
+        },
+    });
+
+    for (const endpoint of endpoints) {
+        await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                slackId: user?.slackId,
+                userId: session.userId,
+                sessionId: session.id,
+                sessionTs: session.messageTs,
+                createdAt: session.createdAt,
+                endedAt: new Date(),
+                time: session.time,
+                elapsed: session.elapsed,
+                completed: session.completed,
+                cancelled: session.cancelled,
+                paused: session.paused,
+                metadata: session.metadata,
+            }),
+        });
+    }
+}
+
+emitter.on('complete', async (session: SessionType) => {
+    await postEndpoints(session);
+});
+
+emitter.on('cancel', async (session: SessionType) => {
+    await postEndpoints(session);
+});
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -144,60 +197,37 @@ express.get('/api/session/:slackId', async (req, res) => {
         orderBy: {
             createdAt: 'desc',
         },
-        select: {
-            createdAt: true,
-            time: true,
-            elapsed: true,
-            completed: true,
-            cancelled: true,
-            paused: true,
+        include: {
             goal: {
                 select: {
                     name: true,
                 }
-            }
+            },
         },
     });
 
     if (result) {
-        let response: Response = {} as Response;
+        const now = new Date();
+        const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
 
-        if (result.completed || result.cancelled) {
-            response = {
-                ok: true,
-                data: {
-                    id: slackId,
-                    createdAt: result.createdAt,
-                    time: result.time,
-                    elapsed: result.elapsed,
-                    remaining: result.time - result.elapsed,
-                    endTime: new Date(result.createdAt.getTime() + result.time * 60 * 1000),
-                    paused: result.paused,
-                    goal: result.goal.name,
-                    completed: true
-                },
-            }
-        } else {
-            const now = new Date();
-            const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
+        endTime.setMilliseconds(0);
+        endTime.setSeconds(0);
 
-            endTime.setMilliseconds(0);
-            endTime.setSeconds(0);
-
-            response = {
-                ok: true,
-                data: {
-                    id: slackId,
-                    createdAt: result.createdAt,
-                    time: result.time,
-                    elapsed: result.elapsed,
-                    remaining: result.time - result.elapsed,
-                    endTime: endTime,
-                    paused: result.paused,
-                    completed: false,
-                    goal: result.goal.name,
-                },
-            }
+        const response = {
+            ok: true,
+            data: {
+                id: slackId,
+                createdAt: result.createdAt,
+                time: result.time,
+                elapsed: result.elapsed,
+                remaining: result.time - result.elapsed,
+                endTime: endTime,
+                paused: result.paused,
+                completed: result.completed || result.cancelled,
+                goal: result.goal.name,
+                work: result.metadata?.work,
+                messageTs: result.messageTs,
+            },
         }
 
         return res.status(200).send(response);
@@ -307,7 +337,7 @@ express.get('/api/goals/:slackId', async (req, res) => {
 /**
  * Get the user's session history
  */
-express.get('/api/history/:slackId', limiter, async (req, res) => {
+express.get('/api/history/:slackId', async (req, res) => {
     const slackId = req.params.slackId;
     const slackUser = await prisma.slackUser.findFirst({
         where: {
@@ -363,4 +393,294 @@ express.get('/api/history/:slackId', limiter, async (req, res) => {
     }
 
     return res.status(200).send(response);
+});
+
+/*
+Write API
+*/
+
+/**
+ * Start a session
+ */
+express.post('/api/start', limiter, async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized - Missing API key',
+        });
+    }
+
+    const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+    const user = await prisma.user.findUnique({
+        where: {
+            apiKey
+        },
+        include: {
+            sessions: {
+                where: {
+                    completed: false,
+                    cancelled: false,
+                }
+            },
+            slackUser: {
+                select: {
+                    slackId: true
+                }
+            }
+        }
+    });
+
+    if (!user) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized - Invalid API key',
+        });
+    }
+
+    if (!authorizedInternalUsers.includes(user.id)) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized - User not authorized',
+        });
+    }
+
+    if (user.sessions.length > 0) {
+        return res.status(400).send({
+            ok: false,
+            error: 'You already have an active session',
+        });
+    }
+
+    const work = req.body.work;
+
+    if (!work || typeof work !== 'string' || work.length === 0) {
+        return res.status(400).send({
+            ok: false,
+            error: 'Missing or invalid work parameter',
+        });
+    }
+
+    const topLevel = await Slack.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        text: t('loading'),
+    });
+
+    // Create a controller message in the thread
+    const controller = await Slack.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        thread_ts: topLevel!.ts,
+        text: t('loading')
+    })
+
+    if (!controller || !controller.ts) {
+        throw new Error(`Failed to create a message via. API for ${user.slackUser?.slackId}`)
+    }
+
+    const session = await prisma.session.create({
+        data: {
+            id: uid(),
+
+            user: {
+                connect: {
+                    id: user.id
+                }
+            },
+
+            messageTs: assertVal(topLevel!.ts),
+            controlTs: controller.ts,
+
+            time: 60,
+            elapsed: 0,
+
+            completed: false,
+            cancelled: false,
+            paused: false,
+
+            elapsedSincePause: 0,
+
+            metadata: {
+                work,
+                slack: {
+                    template: t_fetch('toplevel.main'),
+                    controllerTemplate: t_fetch('encouragement'),
+                },
+                banked: false
+            },
+
+            goal: {
+                connect: {
+                    id: (await prisma.goal.findFirstOrThrow({
+                        where: {
+                            default: true,
+                            userId: user.id
+                        }
+                    })).id
+                }
+            }
+        }
+    });
+
+    await updateController(session);
+    await updateTopLevel(session);
+
+    emitter.emit('start', session);
+
+    await reactOnContent({
+        content: work,
+        channel: Environment.MAIN_CHANNEL,
+        ts: assertVal(topLevel!.ts)
+    });
+
+    return res.status(200).send({
+        ok: true,
+        data: {
+            id: session.id,
+            slackId: user.slackUser?.slackId,
+            createdAt: session.createdAt,
+        },
+    });
+});
+
+/**
+ * Cancel a session
+ */
+express.post('/api/cancel', limiter, async (req, res) => {
+    try {
+        if (!req.apiKey) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized',
+            });
+        }
+
+        const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+        const session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    apiKey
+                },
+                completed: false,
+                cancelled: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Invalid user or no active session found',
+            });
+        }
+
+        if (!authorizedInternalUsers.includes(session.userId)) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized - User not authorized',
+            });
+        }
+
+        if (session.metadata.firstTime) {
+            return res.status(400).send({
+                ok: false,
+                error: 'First time sessions cannot be cancelled',
+            });
+        }
+
+        await Session.cancel(session);
+
+        return res.status(200).send({
+            ok: true,
+            data: {
+                id: session.id,
+                slackId: session.user.slackUser?.slackId,
+                createdAt: session.createdAt,
+            },
+        });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+});
+
+/**
+ * Pause a session
+ */
+express.post('/api/pause', limiter, async (req, res) => {
+    try {
+        if (!req.apiKey) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized',
+            });
+        }
+
+        const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+        const session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    apiKey
+                },
+                completed: false,
+                cancelled: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Invalid user or no active session found',
+            });
+        }
+
+        if (!authorizedInternalUsers.includes(session.userId)) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized - User not authorized',
+            });
+        }
+
+        if (session.metadata.firstTime) {
+            return res.status(400).send({
+                ok: false,
+                error: 'First time sessions cannot be paused',
+            });
+        }
+
+        const updatedSession = await Session.pause(session);
+
+        return res.status(200).send({
+            ok: true,
+            data: {
+                id: session.id,
+                slackId: session.user.slackUser?.slackId,
+                createdAt: session.createdAt,
+                paused: updatedSession.paused,
+            },
+        });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
 });
