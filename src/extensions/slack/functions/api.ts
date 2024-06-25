@@ -1,3 +1,4 @@
+import { AirtableAPI } from "../../../lib/airtable.js";
 import { Slack } from "../../../lib/bolt.js";
 import { Commands } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
@@ -5,7 +6,18 @@ import { t } from "../../../lib/templates.js";
 import { API } from "../views/api.js";
 import { scryptSync } from "crypto";
 
+import { authorizedSlackUsers } from "../../../lib/airtable.js";
+
 Slack.command(Commands.API, async ({ body, respond }) => {
+    if (!authorizedSlackUsers.includes(body.user_id)) {
+        await respond({
+            response_type: 'ephemeral',
+            text: t('error.not_authorized'),
+        });
+
+        return;
+    }
+
     const slackUser = await prisma.slackUser.findUnique({
         where: {
             slackId: body.user_id,
