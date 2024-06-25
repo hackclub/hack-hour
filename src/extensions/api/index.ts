@@ -13,6 +13,8 @@ import { updateController, updateTopLevel } from "../slack/lib/lib.js";
 import { Session } from "../../lib/corelib.js";
 import { scryptSync } from "crypto";
 
+import { authorizedInternalUsers } from "../../lib/airtable.js";
+
 const limiter = rateLimit({
     // 4 req per hour
     windowMs: 60 * 60 * 1000,
@@ -459,6 +461,13 @@ express.post('/api/start', limiter, async (req, res) => {
         });
     }
 
+    if (!authorizedInternalUsers.includes(user.id)) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized - User not authorized',
+        });
+    }
+
     if (user.sessions.length > 0) {
         return res.status(400).send({
             ok: false,
@@ -598,6 +607,13 @@ express.post('/api/cancel', limiter, async (req, res) => {
             });
         }
 
+        if (!authorizedInternalUsers.includes(session.userId)) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized - User not authorized',
+            });
+        }        
+
         if (session.metadata.firstTime) {
             return res.status(400).send({
                 ok: false,
@@ -659,6 +675,13 @@ express.post('/api/pause', limiter, async (req, res) => {
             return res.status(401).send({
                 ok: false,
                 error: 'Invalid user or no active session found',
+            });
+        }
+
+        if (!authorizedInternalUsers.includes(session.userId)) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized - User not authorized',
             });
         }
 

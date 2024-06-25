@@ -6,10 +6,10 @@ import { t } from "../../../lib/templates.js";
 import { API } from "../views/api.js";
 import { scryptSync } from "crypto";
 
-const authorizedAPIUsers = await AirtableAPI.User.authorizedAPIUsers();
+import { authorizedSlackUsers } from "../../../lib/airtable.js";
 
 Slack.command(Commands.API, async ({ body, respond }) => {
-    if (!authorizedAPIUsers.includes(body.user_id)) {
+    if (!authorizedSlackUsers.includes(body.user_id)) {
         await respond({
             response_type: 'ephemeral',
             text: t('error.not_authorized'),

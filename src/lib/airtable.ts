@@ -222,7 +222,7 @@ export const AirtableAPI = {
             }
         },
 
-        async authorizedAPIUsers(): Promise<string[]> {
+        async authorizedAPIUsers(): Promise<AirtableUserRead[]> {
             console.log(`[AirtableAPI.User.authorizedAPIUsers] Finding all users with API Authorization`)
 
             const now = Date.now();
@@ -233,7 +233,7 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.User.authorizedAPIUsers] Took ${Date.now() - now}ms`)
 
-            return records.map(record => (record.fields as AirtableUserRead)["Slack ID"]);
+            return records.map(record => record.fields as AirtableUserRead);
         }
     },
     Session: {
@@ -352,3 +352,14 @@ export const AirtableAPI = {
         }    
     }
 };
+
+let authorizedAPIUsers = await AirtableAPI.User.authorizedAPIUsers();
+
+export let authorizedSlackUsers = authorizedAPIUsers.map(user => user["Slack ID"]);
+export let authorizedInternalUsers = authorizedAPIUsers.map(user => user["Internal ID"]);
+
+emitter.on("hour", async () => {
+    authorizedAPIUsers = await AirtableAPI.User.authorizedAPIUsers();
+    authorizedSlackUsers = authorizedAPIUsers.map(user => user["Slack ID"]);
+    authorizedInternalUsers = authorizedAPIUsers.map(user => user["Internal ID"]);
+});

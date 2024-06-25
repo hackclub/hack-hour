@@ -6,7 +6,7 @@ const program = new Command();
 
 const apiEndpoint = 'https://hack-hour.manitej.hackclub.app/api/';
 const slackId = 'U04QD71QWS0';
-const apiKey = 'bc5dc530-d4b8-402e-99e0-d9393d45e64d';
+const apiKey = 'a488a2ab-a1d4-4ef8-a296-4ebbe68e1a8f';
 
 program
     .version('0.0.1')
