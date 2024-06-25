@@ -4,6 +4,7 @@ Hack Hour is a project tracker & time management tool for hacking on projects. I
 ![](https://api.checklyhq.com/v1/badges/checks/271a416b-7810-47b0-b58c-7cd9e9e37f82?style=flat&theme=default&responseTime=false)
 
 ## API
+_Note: There is no guarantee for the reliability of the API. If data is lost and/or is not registered for Arcade, there's not much we can do - use at your own risk._
 
 ### GET `/ping`
 Returns with `pong`. Check if the thing is alive
@@ -41,7 +42,8 @@ Example Response:
         "endTime": "2024-06-23T03:08:00.000Z",
         "goal": "No Goal",
         "paused": true,
-        "completed": false
+        "completed": false,
+        "messageTs": "messageTs",
     }
 }
 ```

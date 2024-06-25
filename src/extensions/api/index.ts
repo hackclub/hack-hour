@@ -16,12 +16,12 @@ import { scryptSync } from "crypto";
 import { authorizedInternalUsers } from "../../lib/airtable.js";
 
 const limiter = rateLimit({
-    // 4 req per hour
+    // 16 req per hour
     windowMs: 60 * 60 * 1000,
-    max: 4,
+    max: 16,
     message: {
         ok: false,
-        error: 'Rate limit exceeded - 4 requests per hour allowed.',
+        error: 'Rate limit exceeded - 16 requests per hour allowed.',
     },
 });
 
@@ -197,60 +197,37 @@ express.get('/api/session/:slackId', async (req, res) => {
         orderBy: {
             createdAt: 'desc',
         },
-        select: {
-            createdAt: true,
-            time: true,
-            elapsed: true,
-            completed: true,
-            cancelled: true,
-            paused: true,
+        include: {
             goal: {
                 select: {
                     name: true,
                 }
-            }
+            },
         },
     });
 
     if (result) {
-        let response: Response = {} as Response;
+        const now = new Date();
+        const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
 
-        if (result.completed || result.cancelled) {
-            response = {
-                ok: true,
-                data: {
-                    id: slackId,
-                    createdAt: result.createdAt,
-                    time: result.time,
-                    elapsed: result.elapsed,
-                    remaining: result.time - result.elapsed,
-                    endTime: new Date(result.createdAt.getTime() + result.time * 60 * 1000),
-                    paused: result.paused,
-                    goal: result.goal.name,
-                    completed: true
-                },
-            }
-        } else {
-            const now = new Date();
-            const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
+        endTime.setMilliseconds(0);
+        endTime.setSeconds(0);
 
-            endTime.setMilliseconds(0);
-            endTime.setSeconds(0);
-
-            response = {
-                ok: true,
-                data: {
-                    id: slackId,
-                    createdAt: result.createdAt,
-                    time: result.time,
-                    elapsed: result.elapsed,
-                    remaining: result.time - result.elapsed,
-                    endTime: endTime,
-                    paused: result.paused,
-                    completed: false,
-                    goal: result.goal.name,
-                },
-            }
+        const response = {
+            ok: true,
+            data: {
+                id: slackId,
+                createdAt: result.createdAt,
+                time: result.time,
+                elapsed: result.elapsed,
+                remaining: result.time - result.elapsed,
+                endTime: endTime,
+                paused: result.paused,
+                completed: result.completed || result.cancelled,
+                goal: result.goal.name,
+                work: result.metadata?.work,
+                messageTs: result.messageTs,
+            },
         }
 
         return res.status(200).send(response);
@@ -612,7 +589,7 @@ express.post('/api/cancel', limiter, async (req, res) => {
                 ok: false,
                 error: 'Unauthorized - User not authorized',
             });
-        }        
+        }
 
         if (session.metadata.firstTime) {
             return res.status(400).send({
