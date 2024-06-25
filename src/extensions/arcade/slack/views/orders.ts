@@ -14,7 +14,6 @@ export class Orders {
                 }
             });
         } else {
-
             for (const order of orders) {
                 blocks.push({
                     type: "section",
@@ -24,13 +23,13 @@ export class Orders {
                             `*${order["Item: Name"]}*
 _Status:_ ${order["Status"]}
 _Quantity:_ ${order["Quantity"]}
-_Price:_ ${Math.floor(order["Order Price (Minutes)"] / 60)}`
+_Price:_ ${Math.floor(order["Order Price (Minutes)"] / 60)} :tw_admission_tickets:`
                     },
-                    accessory: {
+                    accessory: order["Item: Image"][0] ? {
                         type: "image",
-                        image_url: order["Item: Image"],
-                        alt_text: order["Item: Name"],
-                    }
+                        image_url: order["Item: Image"][0],
+                        alt_text: order["Item: Name"][0],
+                    } : undefined
                 }, {
                     type: "divider",
                 });

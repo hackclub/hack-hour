@@ -29,7 +29,10 @@ Slack.action(Actions.ORDERS, async ({ body, client }) => {
         return;
     }
 
-    const orders = await AirtableAPI.Orders.findByUser(user.metadata.airtable.id);
+    // const orders = await AirtableAPI.Orders.findByUser(user.metadata.airtable.id);
+    const orders = await AirtableAPI.Orders.findByUser('rec6p5Fv3KCgYuemQ');
+
+    console.log(JSON.stringify(Orders.order(orders)));
 
     await Slack.views.update({
         view_id: view.view?.id,

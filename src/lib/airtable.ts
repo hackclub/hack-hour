@@ -130,11 +130,12 @@ type AirtableAPIRead = {
 
 export type AirtableOrdersRead = {
     "User": [AirtableRecordID],
-    "Item: Name": string,
-    "Item: Image": string,
+    "Item: Name": [string],
+    "Item: Image": [string],
     "Status": "Awaiting Fulfillment" | "Fulfilled" | "Declined (Insufficient balance)" | "Declined (Failed age verification)" | "Declined (Other reason)" | "Incomplete Fillout Submission"
     "Quantity": number,
     "Order Price (Minutes)": number,
+    "User: Record ID": AirtableRecordID,
 }
 
 export const AirtableAPI = {
@@ -374,8 +375,9 @@ export const AirtableAPI = {
             const now = Date.now();
 
             const records = await orders.select({
-                filterByFormula: `{User} = "${user}"`
-            }).all();
+                filterByFormula: `{User: Record ID} = "${user}"`
+            }).all()
+                .catch(error => { console.error(error); return [] });
 
             console.log(`[AirtableAPI.Orders.findByUser] Took ${Date.now() - now}ms`)
 
