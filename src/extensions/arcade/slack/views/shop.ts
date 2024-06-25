@@ -69,7 +69,7 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `*Tickets spent:* ${spent + inOrders}`
+                        "text": `*Tickets spent:* ${spent + inOrders} :tw_admission_tickets:`
                     }
                 },                
                 {
