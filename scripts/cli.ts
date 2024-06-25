@@ -4,9 +4,9 @@ import { Command } from 'commander';
 
 const program = new Command();
 
-const apiEndpoint = 'https://hack-hour.manitej.hackclub.app/api/';
-const slackId = 'U04QD71QWS0';
-const apiKey = 'a488a2ab-a1d4-4ef8-a296-4ebbe68e1a8f';
+const apiEndpoint = 'https://hackhour.hackclub.com/api/';
+const slackId = 'YOUR_SLACK_ID_HERE';
+const apiKey = 'YOUR_API_KEY_HERE';
 
 program
     .version('0.0.1')
