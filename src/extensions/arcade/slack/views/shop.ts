@@ -30,11 +30,11 @@ export class Shop {
                 "emoji": true,
             },
             "blocks": [
-                {
-                    "type": "image",
-                    "image_url": "https://cloud-44iflv7n5-hack-club-bot.vercel.app/0welcome_to_the_shop_.gif",
-                    "alt_text": "delicious tacos"
-                },
+                // {
+                //     "type": "image",
+                //     "image_url": "https://cloud-44iflv7n5-hack-club-bot.vercel.app/0welcome_to_the_shop_.gif",
+                //     "alt_text": "the shop"
+                // },
                 {
                     "type": "section",
                     "text": {
@@ -91,9 +91,10 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "open the shop!",
+                                "text": "view sessions",
                                 "emoji": true
-                            }
+                            },
+                            "action_id": Actions.SESSIONS,
                         }                        
                     ]
                 },

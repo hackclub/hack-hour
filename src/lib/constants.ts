@@ -109,6 +109,8 @@ export const Actions = {
 
   NO_ACTION: 'noaction',
 
+  SESSIONS: 'sessions',
+
   SESSIONS_PREVIOUS: 'sessionsprevious',
   SESSIONS_NEXT: 'sessionsnext',
 };

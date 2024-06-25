@@ -103,6 +103,16 @@ error:
   not_authorized:
     - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
 
+  cant_go_back:
+    - "i tried, i really did, but there's literally nothing here"
+    - "knock knock. who's there? not you"
+    - "nope. not happening"
+    - "why are you like this?"
+  
+  cant_go_next:
+    - "ow i hit a wall"
+    - "that's all folks!"
+    
 action:
   paused:
     - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
