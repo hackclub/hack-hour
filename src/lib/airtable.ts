@@ -5,6 +5,7 @@ dotenv.config();
 
 import Airtable from "airtable";
 import { emitter } from './emitter.js';
+import { Orders } from '../extensions/arcade/slack/views/orders.js';
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -17,6 +18,7 @@ const users = base("Users");
 const sessions = base("Sessions");
 const scrapbooks = base("Scrapbook");
 const api = base("API");
+const orders = base("Orders");
 
 type AirtableRecordID = string;
 
@@ -125,6 +127,15 @@ type AirtableAPIRead = {
     "Endpoint": string,
     "Active": boolean,
 };
+
+export type AirtableOrdersRead = {
+    "User": [AirtableRecordID],
+    "Item: Name": string,
+    "Item: Image": string,
+    "Status": "Awaiting Fulfillment" | "Fulfilled" | "Declined (Insufficient balance)" | "Declined (Failed age verification)" | "Declined (Other reason)" | "Incomplete Fillout Submission"
+    "Quantity": number,
+    "Order Price (Minutes)": number,
+}
 
 export const AirtableAPI = {
     User: {
@@ -355,6 +366,21 @@ export const AirtableAPI = {
             // Return a list of endpoints
             return records.map(record => ({id: record.id, fields: record.fields as AirtableAPIRead}));
         }    
+    },
+    Orders: {
+        async findByUser(user: AirtableRecordID): Promise<AirtableOrdersRead[]> {
+            console.log(`[AirtableAPI.Orders.findByUser] Finding orders for ${user}`)
+
+            const now = Date.now();
+
+            const records = await orders.select({
+                filterByFormula: `{User} = "${user}"`
+            }).all();
+
+            console.log(`[AirtableAPI.Orders.findByUser] Took ${Date.now() - now}ms`)
+
+            return records.map(record => record.fields as AirtableOrdersRead);
+        }
     }
 };
 

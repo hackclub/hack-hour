@@ -97,7 +97,16 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                                 "emoji": true
                             },
                             "action_id": Actions.SESSIONS,
-                        }                        
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "view orders",
+                                "emoji": true
+                            },
+                            "action_id": Actions.ORDERS,
+                        }                  
                     ]
                 },
                 // {

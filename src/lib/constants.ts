@@ -113,6 +113,8 @@ export const Actions = {
 
   SESSIONS_PREVIOUS: 'sessionsprevious',
   SESSIONS_NEXT: 'sessionsnext',
+
+  ORDERS: 'orders',
 };
 
 export const Callbacks = {
