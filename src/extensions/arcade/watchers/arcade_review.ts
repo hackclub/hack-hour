@@ -7,8 +7,10 @@ const getArcadeScrapbooksToReview = async () => {
     const filterRules = [
         '{Count Unreviewed Sessions} > 0',
         'BLANK() = Reviewer',
-        'Blank() = {Review TS}'
+        'Blank() = {Review TS}',
+        `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
+    // TODO: also include re-reviews in this list
     const filter = `AND(${filterRules.join(', ')})`
     const records = await AirtableAPI.Scrapbook.filter(filter)
     return records
