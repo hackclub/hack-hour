@@ -114,6 +114,8 @@ export const Actions = {
 
   SESSIONS_PREVIOUS: 'sessionsprevious',
   SESSIONS_NEXT: 'sessionsnext',
+
+  START_REVIEW: 'startreview',
 };
 
 export const Callbacks = {

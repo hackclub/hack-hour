@@ -18,9 +18,7 @@ const main = async () => {
     const scrapbooks = await getArcadeScrapbooksToReview();
 
     for (const scrapbook of scrapbooks) {
-        const reviewTS = await Review.init(scrapbook.fields)
-
-        await Review.open(scrapbook.fields);
+        await Review.init(scrapbook.id);
     }
 }
 

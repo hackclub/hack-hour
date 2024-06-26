@@ -122,10 +122,9 @@ export const Slack = {
                 verb = "failed"
                 emitter.emit('error', { error })
 
-                await app.client.chat.postEphemeral({
-                    channel: event.channel_id,
-                    user: event.user_id,
-                    text: `An error occurred while processing your command!`
+                payload.respond({
+                    text: `An error occurred while processing your command!`,
+                    response_type: "ephemeral"
                 })
             }
 
@@ -201,11 +200,11 @@ export const Slack = {
             } catch (error) {
                 verb = "failed"
                 emitter.emit('error', { error });
-                /*               await app.client.chat.postEphemeral({
-                                   channel: action.channel.id,
-                                   user: action.user.id,
-                                   text: `An error occurred while processing your action!`
-                               });*/
+
+                respond({
+                    text: `An error occurred while processing your action!`,
+                    response_type: "ephemeral"
+                })
             }
 
             const duration = new Date().getTime() - now.getTime();
@@ -273,11 +272,10 @@ export const Slack = {
                 verb = "failed"
                 emitter.emit('error', { error });
 
-                await app.client.chat.postEphemeral({
-                    channel: body.user.id,
-                    user: body.user.id,
-                    text: `An error occurred while processing your view!`
-                });
+                payload.respond({
+                    text: `An error occurred while processing your view!`,
+                    response_type: "ephemeral"
+                })
             }
 
             const duration = new Date().getTime() - now.getTime();
