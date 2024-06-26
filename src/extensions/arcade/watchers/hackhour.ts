@@ -284,6 +284,13 @@ app.event("message", async ({ event }) => {
 
             const { activity, evidenced } = await fetchEvidence(session.messageTs, user.slackUser!.slackId);
 
+            let noteMessage = "_(note: screenshots of code don't count as proof - share git commits instead)_";
+            let shouldAddNote = false;
+
+            if ((event as any).files && (event as any).files.length > 0) {
+                shouldAddNote = true;
+            }
+
             if (!airtableSession.fields["Evidenced"] && evidenced) {
                 await Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
@@ -298,15 +305,17 @@ app.event("message", async ({ event }) => {
                                 "text": t('detect.evidence')
                             }
                         },
-                        {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "mrkdwn",
-                                    "text": "_(note: screenshots of code don't count as proof - share git commits instead)_"
-                                }
-                            ]
-                        }
+                        ...(shouldAddNote ? [
+                            {
+                                "type": "context",
+                                "elements": [
+                                    {
+                                        "type": "mrkdwn",
+                                        "text": noteMessage
+                                    }
+                                ]
+                            }
+                        ] : [])
                     ]
                 });
             } else if (!airtableSession.fields["Activity"] && activity) {
@@ -315,6 +324,17 @@ app.event("message", async ({ event }) => {
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
                     text: t('detect.activity'),
+                    blocks: shouldAddNote ? [
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "mrkdwn",
+                                    "text": noteMessage
+                                }
+                            ]
+                        }
+                    ] : []
                 });
             }
 
