@@ -16,6 +16,15 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
             view: Loading.loading()
         });
 
+        if (!view) {
+            await Slack.chat.postEphemeral({
+                user: body.user.id,
+                channel: body.user.id,
+                text: "An error occurred while opening the view. Please try again.",
+            });
+            return;
+        }
+
         const flowTs = body.message!.ts;
 
         const scrapbook = await prisma.scrapbook.findUniqueOrThrow({
@@ -46,10 +55,10 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
                 //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
                 //     lte: scrapbook?.createdAt,
                 // },
-                // metadata: {
-                //     path: ["banked"],
-                //     equals: false,
-                // },
+                metadata: {
+                    path: ["banked"],
+                    equals: false,
+                },
 
                 scrapbook: {
                     is: null
@@ -68,7 +77,6 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         });
 
         log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
-
 
         await Slack.views.update({
             view_id: view?.view?.id,
@@ -140,16 +148,16 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             continue;
         }
 
-        // session.metadata.banked = true;
+        session.metadata.banked = true;
 
-        // await prisma.session.update({
-        //     where: {
-        //         id: session.id,
-        //     },
-        //     data: {
-        //         metadata: session.metadata,
-        //     },
-        // });
+        await prisma.session.update({
+            where: {
+                id: session.id,
+            },
+            data: {
+                metadata: session.metadata,
+            },
+        });
 
         bankedSessions++;
     }

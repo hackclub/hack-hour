@@ -257,19 +257,28 @@ export class Review {
                     "Review Button TS": undefined,
                 });
 
-                const sessionRemove = await prisma.session.update({
+                const dbSession = await prisma.session.findUnique({
                     where: {
-                        id: session.fields['Session ID']
-                    },
-                    data: {
-                        scrapbook: {
-                            disconnect: true,
-                        },
-                        scrapbookId: undefined
+                        id: sessionId
                     }
                 });
 
-                console.log(sessionRemove.scrapbookId);
+                if (dbSession) {
+                    dbSession.metadata.banked = false;
+
+                    await prisma.session.update({
+                        where: {
+                            id: session.fields['Session ID']
+                        },
+                        data: {
+                            scrapbook: {
+                                disconnect: true,
+                            },
+                            scrapbookId: undefined,
+                            metadata: dbSession.metadata
+                        }
+                    });    
+                }
             }
         } catch (e) {
             console.error(e);
