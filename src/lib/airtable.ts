@@ -113,10 +113,15 @@ type AirtableScrapbookWrite = {
     "Attachments": {
         "url": string
     }[],
-    "Text": string
+    "Text": string,
+    "Approved"?: boolean,
+    "Magic Happening"?: boolean,
+    "Reviewer": [AirtableRecordID],
+    "Review Start Time"?: string,
+    "Review End Time"?: string,
 };
 
-type AirtableScrapbookRead = AirtableScrapbookWrite;
+type AirtableScrapbookRead = Required<AirtableScrapbookWrite>;
 
 type AirtableAPIRead = {
     "App Name": string,
