@@ -34,8 +34,12 @@ declare global {
     }
 }
 
-const airtableAPIdata = await AirtableAPI.API.getAllActive();
-const endpoints = airtableAPIdata.map((r) => r.fields['Endpoint']);
+const endpoints = [];
+AirtableAPI.API.getAllActive().then(records => {
+    records.forEach(record => {
+        endpoints.push(record.fields['Endpoint']);
+    });
+})
 
 const postEndpoints = async (session: SessionType) => {
     const user = await prisma.slackUser.findUnique({
