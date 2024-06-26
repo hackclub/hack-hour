@@ -122,7 +122,7 @@ type AirtableScrapbookWrite = {
     "Review TS"?: string,
 };
 
-type AirtableScrapbookRead = Required<AirtableScrapbookWrite>;
+export type AirtableScrapbookRead = Required<AirtableScrapbookWrite>;
 
 type AirtableAPIRead = {
     "App Name": string,
