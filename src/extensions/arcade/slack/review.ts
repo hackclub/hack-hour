@@ -127,7 +127,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
     }
 });
 
-Slack.action(Actions.APPROVE, async ({ body }) => {
+Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -154,9 +154,41 @@ Slack.action(Actions.APPROVE, async ({ body }) => {
             },
         ]
     });
+
+    if (session.fields['Scrapbook'].length !== 1) {
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+
+        return;
+    }
+
+    const scrapbook = await AirtableAPI.Scrapbook.find(session.fields['Scrapbook'][0]);
+
+    if (!scrapbook) {
+        console.error(`Scrapbook not found: ${session.fields['Scrapbook'][0]}`);
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+        return;
+    }
+
+    if (scrapbook.fields['Count Approved Sessions'] === scrapbook.fields['Linked Sessions Count']) {
+        await AirtableAPI.Scrapbook.update(scrapbook.id, {
+            "Approved": true
+        });
+
+        await Slack.chat.postMessage({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            text: `All sessions approved. <@${body.user.id}>`,
+            thread_ts: scrapbook.fields['Scrapbook TS']
+        });
+    }
 });
 
-Slack.action(Actions.REJECT, async ({ body }) => {
+Slack.action(Actions.REJECT, async ({ body, respond }) => {
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -183,9 +215,41 @@ Slack.action(Actions.REJECT, async ({ body }) => {
             },
         ]
     });
+
+    if (session.fields['Scrapbook'].length !== 1) {
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+
+        return;
+    }
+
+    const scrapbook = await AirtableAPI.Scrapbook.find(session.fields['Scrapbook'][0]);
+
+    if (!scrapbook) {
+        console.error(`Scrapbook not found: ${session.fields['Scrapbook'][0]}`);
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+        return;
+    }
+
+    if (scrapbook.fields['Count Approved Sessions'] === scrapbook.fields['Linked Sessions Count']) {
+        await AirtableAPI.Scrapbook.update(scrapbook.id, {
+            "Approved": true
+        });
+
+        await Slack.chat.postMessage({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            text: `All sessions approved. <@${body.user.id}>`,
+            thread_ts: scrapbook.fields['Scrapbook TS']
+        });
+    }    
 });
 
-Slack.action(Actions.REJECT_LOCK, async ({ body }) => {
+Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -212,4 +276,36 @@ Slack.action(Actions.REJECT_LOCK, async ({ body }) => {
             },
         ]
     });
+
+    if (session.fields['Scrapbook'].length !== 1) {
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+
+        return;
+    }
+
+    const scrapbook = await AirtableAPI.Scrapbook.find(session.fields['Scrapbook'][0]);
+
+    if (!scrapbook) {
+        console.error(`Scrapbook not found: ${session.fields['Scrapbook'][0]}`);
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral'
+        });
+        return;
+    }
+
+    if (scrapbook.fields['Count Approved Sessions'] === scrapbook.fields['Linked Sessions Count']) {
+        await AirtableAPI.Scrapbook.update(scrapbook.id, {
+            "Approved": true
+        });
+
+        await Slack.chat.postMessage({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            text: `All sessions approved. <@${body.user.id}>`,
+            thread_ts: scrapbook.fields['Scrapbook TS']
+        });
+    }
 });

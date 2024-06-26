@@ -111,7 +111,7 @@ type AirtableSessionRead = {
     "Scrapbook Approved": boolean,
 };
 
-type AirtableScrapbookWrite = {
+interface AirtableScrapbookWrite {
     "Scrapbook TS": string,
     "Scrapbook URL": string,
     "Sessions": AirtableRecordID[],
@@ -128,7 +128,11 @@ type AirtableScrapbookWrite = {
     "Review TS"?: string,
 };
 
-export type AirtableScrapbookRead = Required<AirtableScrapbookWrite>;
+export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
+    "Count Approved Sessions": number,
+    "Count Unreviewed Sessions": number,
+    "Linked Sessions Count": number,
+};
 
 type AirtableAPIRead = {
     "App Name": string,
@@ -167,7 +171,7 @@ export const AirtableAPI = {
             return records.map(record => ({id: record.id, fields: record.fields as AirtableReviewerRead}));
 
         }
-    }
+    },
     User: {
         async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
             console.log(`[AirtableAPI.User.find] Looking up ${record}`)
