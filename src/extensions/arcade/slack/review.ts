@@ -6,15 +6,20 @@ import { t } from "../../../lib/templates.js";
 import { ReviewView } from "./views/review.js";
 
 export class Review {
-    public static async init(recordId: string) {
+    public static async init(recordId: string, reviewerSlackId: string | null) {
+        // New session to review! post in #arcade-reivew!
+        // optionally if reviewerSlackId is provided, assign that reviewer instantly
+
         const review = await Slack.chat.postMessage({
             channel: Environment.REVIEW_CHANNEL,
             text: t('loading'),
         });
 
-        await AirtableAPI.Scrapbook.update(recordId, {
-            "Review TS": review?.ts
-        });
+        await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
+
+        if (reviewerSlackId) {
+            this.assignReviewer({scrapbookID: recordId, reviewerSlackId});
+        }
 
         await Slack.chat.update({
             channel: Environment.REVIEW_CHANNEL,
@@ -26,6 +31,17 @@ export class Review {
             // pressing the button triggers handleStartButton()
             // post in scrapbook thread "review has been started by"
             // post in scrapbook thread "list of sessions + approve/reject buttons"
+    }
+
+    public static async assignReviewer({scrapbookID, reviewerSlackId}) {
+        const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = ${reviewerSlackId}`)
+        const reviewer = reviewers[0] || null;
+        if (!reviewer) {
+            throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
+        }
+        await AirtableAPI.Scrapbook.update(scrapbookID, {
+            "Reviewer": [reviewer.id]
+        });
     }
 
     // public static async handleStartButton({ body, respond }) {
