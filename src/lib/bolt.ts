@@ -65,33 +65,33 @@ export const Slack = {
             const now = new Date();
             let verb = ""
 
-            const { command: event, ack, respond } = payload;
-
-            console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
-
-            await ack();
-
-            if (Environment.MAINTAINANCE_MODE) {
-                const user = await app.client.users.info({
-                    user: event.user_id
-                });
-
-                if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
-                    return respond(t('maintanenceMode'))
-                }
-            }
-
-            if (recordCommands.includes(command) && Environment.PROD) {
-                const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
-
-                if (airtableUser) {
-                    await AirtableAPI.User.update(airtableUser.id, {
-                        [command]: true
-                    });
-                }
-            }
-
             try {
+                const { command: event, ack, respond } = payload;
+
+                console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
+
+                await ack();
+
+                if (Environment.MAINTAINANCE_MODE) {
+                    const user = await app.client.users.info({
+                        user: event.user_id
+                    });
+
+                    if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
+                        return respond(t('maintanenceMode'))
+                    }
+                }
+
+                if (recordCommands.includes(command) && Environment.PROD) {
+                    const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
+
+                    if (airtableUser) {
+                        await AirtableAPI.User.update(airtableUser.id, {
+                            [command]: true
+                        });
+                    }
+                }
+
                 if (Environment.VERBOSE) {
                     await app.client.chat.postMessage({
                         channel: Environment.INTERNAL_CHANNEL,
@@ -138,21 +138,21 @@ export const Slack = {
             const now = new Date();
             let verb = ""
 
-            const { action, body, ack, respond } = payload;
-
-            console.log(`[${now.toISOString()}] <@${body.user.id}> used ${action.type} "${actionId}"`)
-
-            await ack();
-
-            const user = await app.client.users.info({
-                user: body.user.id
-            });
-
-            if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
-                return respond(t('maintanenceMode'))
-            }
-
             try {
+                const { action, body, ack, respond } = payload;
+
+                console.log(`[${now.toISOString()}] <@${body.user.id}> used ${action.type} "${actionId}"`)
+
+                await ack();
+
+                const user = await app.client.users.info({
+                    user: body.user.id
+                });
+
+                if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                    return respond(t('maintanenceMode'))
+                }
+
                 if (Environment.VERBOSE) {
                     await app.client.chat.postMessage({
                         channel: Environment.INTERNAL_CHANNEL,
@@ -493,6 +493,24 @@ export const Slack = {
                 console.log(`[${now.toISOString()}] updating view`)
 
                 const result = await app.client.views.update(options);
+
+                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', { error });
+            }
+        },
+
+        async push(options: Parameters<typeof app.client.views.push>[0]) {
+            try {
+                const now = new Date();
+
+                if (!options) { throw new Error('No options provided!') }
+
+                console.log(`[${now.toISOString()}] pushing view`)
+
+                const result = await app.client.views.push(options);
 
                 console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
