@@ -119,6 +119,7 @@ type AirtableScrapbookWrite = {
     "Reviewer": [AirtableRecordID],
     "Review Start Time"?: string,
     "Review End Time"?: string,
+    "Review TS"?: string,
 };
 
 type AirtableScrapbookRead = Required<AirtableScrapbookWrite>;
