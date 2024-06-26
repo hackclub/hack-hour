@@ -1,6 +1,7 @@
 // This handles figuring out what to post in #arcade-review
 
 import { AirtableAPI } from "../../../lib/airtable.js"
+import { Review } from "../slack/review.js"
 
 const getArcadeScrapbooksToReview = async () => {
     const filterRules = [
@@ -13,19 +14,13 @@ const getArcadeScrapbooksToReview = async () => {
     return records
 }
 
-const postScrapbookForReview = async (scrapbookRecord) => {
-    // write your code here for posting!
-
-    // returns the message ts of the post
-}
-
 const main = async () => {
-    const scrapbooks = await getArcadeScrapbooksToReview()
+    const scrapbooks = await getArcadeScrapbooksToReview();
+
     for (const scrapbook of scrapbooks) {
-        const reviewTS = await postScrapbookForReview(scrapbook)
-        await AirtableAPI.Scrapbook.update(scrapbook.id, {
-            "Review TS": reviewTS
-        })
+        const reviewTS = await Review.init(scrapbook.fields)
+
+        await Review.open(scrapbook.fields);
     }
 }
 
