@@ -28,9 +28,7 @@ export class Review {
                 getReviewerCache()
             ])
  
-            const reviewer = reviewers[0].fields['Slack ID'] || null;
-
-            console.log(reviewer, slackUsers);
+            const reviewer = reviewers[0] || null;
 
             if (!reviewer) {
                 console.warn(`No reviewer found with Slack ID ${reviewerSlackId}`);
@@ -252,6 +250,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }
@@ -375,6 +374,7 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }    
@@ -421,6 +421,7 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }
@@ -467,6 +468,7 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }
@@ -512,6 +514,7 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }
@@ -550,6 +553,7 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
         });
         return;
     }
