@@ -58,7 +58,7 @@ const main = async () => {
         try {
             const scrapbooks = await getArcadeScrapbooksToApprove();
             for (const scrapbook of scrapbooks) {
-                await Review.approveScrapbook(scrapbook.id);
+                await Review.finishReview(scrapbook.id);
             }
         } catch(e) {
             console.error(e)
