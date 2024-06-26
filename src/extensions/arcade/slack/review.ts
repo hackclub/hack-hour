@@ -9,6 +9,8 @@ import { prisma } from "../../../lib/prisma.js";
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
 
+
+
 async function getReviewerCache() {
     const noCache = !slackReviewerCache || slackReviewerCache.length == 0;
     const expired = new Date().getTime() - reviewerCacheUpdatedTs.getTime() > 1000 * 60 * 5; // 5 minutes
@@ -24,7 +26,7 @@ export class Review {
     public static async ensureReviewPermission(reviewerSlackId: string) {
         try {
             const [reviewers, slackUsers] = await Promise.all([
-                AirtableAPI.Reviewer.filter(`{Slack ID} = '${reviewerSlackId}'`),
+                AirtableAPI.Reviewer.filter(`AND({Slack ID} = '${reviewerSlackId}', {TEMP: Beta system} = TRUE())`),
                 getReviewerCache()
             ])
  
