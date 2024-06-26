@@ -201,7 +201,7 @@ export const Slack = {
                 verb = "failed"
                 emitter.emit('error', { error });
 
-                respond({
+                payload.respond({
                     text: `An error occurred while processing your action!`,
                     response_type: "ephemeral"
                 })

@@ -52,7 +52,7 @@ Slack.command(Commands.SESSIONS, async ({ command }) => {
 });
 
 Slack.action(Actions.SESSIONS, async ({ body, client }) => {
-    const view = await client.views.push({
+    const view = await Slack.views.push({
         trigger_id: (body as any).trigger_id,
         view: Loading.loading()
     });

@@ -145,7 +145,7 @@ Slack.action(Actions.CREATE_GOAL, async ({ body, client }) => {
         const sessionId = (body as any).view.private_metadata;
         const trigger_id: string = (body as any).trigger_id;
 
-        await client.views.push({
+        await Slack.views.push({
             trigger_id: trigger_id,
             view: await Goals.create(sessionId)
         });
@@ -268,7 +268,7 @@ Slack.action(Actions.DELETE_GOAL, async ({ body, client }) => {
             return;
         }
 
-        await client.views.push({
+        await Slack.views.push({
             trigger_id: trigger_id,
             view: await Goals.delete(sessionId)
         });
