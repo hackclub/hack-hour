@@ -27,8 +27,10 @@ export class Review {
                 AirtableAPI.Reviewer.filter(`{Slack ID} = '${reviewerSlackId}'`),
                 getReviewerCache()
             ])
-            
-            const reviewer = reviewers[0] || null;
+ 
+            const reviewer = reviewers[0].fields['Slack ID'] || null;
+
+            console.log(reviewer, slackUsers);
 
             if (!reviewer) {
                 console.warn(`No reviewer found with Slack ID ${reviewerSlackId}`);

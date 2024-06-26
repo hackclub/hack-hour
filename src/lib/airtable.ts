@@ -16,6 +16,7 @@ const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("Users");
 const sessions = base("Sessions");
 const scrapbooks = base("Scrapbook");
+const reviewers = base("Reviewers");
 const api = base("API");
 
 type AirtableRecordID = string;
@@ -150,7 +151,7 @@ export const AirtableAPI = {
 
             const now = Date.now();
 
-            const records = await users.select().all();
+            const records = await reviewers.select().all();
 
             console.log(`[AirtableAPI.Reviewer.all] Took ${Date.now() - now}ms`)
 
@@ -165,7 +166,7 @@ export const AirtableAPI = {
 
             const now = Date.now();
 
-            const records = await users.select({
+            const records = await reviewers.select({
                 filterByFormula: filter
             }).all();
 
