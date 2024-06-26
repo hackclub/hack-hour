@@ -54,16 +54,5 @@ export class Review {
 }
 
 Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
-    const ts = (body as any).message.ts;
-
-    if (!ts) {
-        respond({
-            text: "No message found",
-            response_type: "ephemeral",
-        });
-
-        return;
-    }
-
-    
+    const ts = (body as any).message.ts!;
 });
