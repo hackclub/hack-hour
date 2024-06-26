@@ -30,7 +30,25 @@ export class Review {
 
     public static async handleStartButton({ body, respond }) {
         // Tells the user in the scrapbook post that someone has started the review
-        // 
+        // Post a list of sessions (each with an approve & reject button)
+    }
+
+    public static async handleSessionApproveButton({ body, respond }) {
+        // Updates the session in Airtable to be approved
+        // Updates the scrapbook thread in slack to remove buttons & say it was approved
+        // If no more sessions to review, runs handleFinishedReview()
+    }
+
+    public static async handleSessionRejectButton({ body, respond }) {
+        // same as handleSessionApproveButton, but reject
+
+    }
+
+    public static async handleFinishedReview({ body, respond }) {
+        // if rejected sessions, post instructions about re-review
+        // if reviewer hasn't posted a message in the thread, post a reminder
+        // post a link to "Next review" or "Stop reviewing", only visible to reviewer
+
     }
 
 }
