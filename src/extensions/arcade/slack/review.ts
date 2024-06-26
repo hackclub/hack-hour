@@ -19,7 +19,7 @@ export class Review {
                 return false
             }
 
-            if (!slackUsers || !slackUser.includes(reviewerSlackId)) {
+            if (!slackUsers || !slackUsers.includes(reviewerSlackId)) {
                 console.warn(`Reviewer ${reviewerSlackId} is not in the review channel`);
                 return false
             }
@@ -227,6 +227,17 @@ export class Review {
 }
 
 Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }
+    
     const ts = (body as any).message.ts!;
 
     const records = await AirtableAPI.Scrapbook.filter(`{Review TS} = '${ts}'`);
@@ -339,6 +350,17 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 });
 
 Slack.action(Actions.APPROVE, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }    
+
     console.log(JSON.stringify(body, null, 2))
     const sessionId = (body as any).actions[0].value;
 
@@ -373,7 +395,18 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     await Review.finishReview(session.fields['Scrapbook'][0]);
 });
 
-Slack.action(Actions.REJECT, async ({ body, respond }) => {
+Slack.action(Actions.REJECT, async ({ body, respond }) => {    
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }
+
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -408,6 +441,17 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
 });
 
 Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }
+
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -442,6 +486,17 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
 });
 
 Slack.action(Actions.UNDO, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }
+
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);
@@ -469,6 +524,17 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
 });
 
 Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!await Review.ensureReviewPermission(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+        });
+        return;
+    }
+
     const scrapbookId = (body as any).actions[0].value;
 
     // Check if the scrapbook exists
