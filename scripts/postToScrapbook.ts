@@ -16,7 +16,7 @@ fetch(url, {
         attachments: [
             "https://files.slack.com/files-tmb/T0266FRGM-F07AAJA143T-9a4090c4d0/image_720.png"
         ],
-        messageText: "somethinaaaaaaag radical"
+        messageText: "something radical"
     }),
 })
 .then((data) => {
