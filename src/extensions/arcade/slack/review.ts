@@ -121,7 +121,7 @@ export class Review {
                 return;
             }
 
-            if (scrapbook.fields['Count Unreviewed Sessions'] === 0) {
+            if (scrapbook.fields['Count Unreviewed Sessions'] === 0 && scrapbook.fields['Review TS']) {
                 await AirtableAPI.Scrapbook.update(scrapbook.id, {
                     "Approved": true
                 });
