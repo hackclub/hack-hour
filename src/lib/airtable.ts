@@ -16,6 +16,7 @@ const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("Users");
 const sessions = base("Sessions");
 const scrapbooks = base("Scrapbook");
+const reviewers = base("Reviewers");
 const api = base("API");
 
 type AirtableRecordID = string;
@@ -69,6 +70,12 @@ type AirtableUserRead = {
     "API Authorization": boolean,
 };
 
+type AirtableReviewerRead = {
+    "Name": string,
+    "Scrapbook": AirtableRecordID[],
+    "Slack ID": string,
+}
+
 type AirtableSessionWrite = {
     "Session ID": string,
     "Message TS": string,
@@ -84,6 +91,7 @@ type AirtableSessionWrite = {
     "Reason"?: string,
     "Scrapbook"?: [AirtableRecordID] | [],
     "First Time"?: boolean,
+    "Review Button TS"?: string,
 };
 
 type AirtableSessionRead = {
@@ -94,7 +102,7 @@ type AirtableSessionRead = {
     "User": [AirtableRecordID],
     "Work": string,
     "Minutes": number,
-    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review",
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review" | "Rejected Locked",
     "Created At": string,
     "Evidenced": boolean,
     "Activity": boolean,
@@ -103,9 +111,10 @@ type AirtableSessionRead = {
     "Scrapbook": [AirtableRecordID] | [],
     "Percentage Approved": number,
     "Scrapbook Approved": boolean,
+    "Review Button TS"?: string,
 };
 
-type AirtableScrapbookWrite = {
+interface AirtableScrapbookWrite {
     "Scrapbook TS": string,
     "Scrapbook URL": string,
     "Sessions": AirtableRecordID[],
@@ -113,10 +122,21 @@ type AirtableScrapbookWrite = {
     "Attachments": {
         "url": string
     }[],
-    "Text": string
+    "Text": string,
+    "Approved"?: boolean,
+    "Magic Happening"?: boolean,
+    "Reviewer": [AirtableRecordID] | [],
+    "Review Start Time"?: string,
+    "Review End Time"?: string,
+    "Review TS"?: string,
 };
 
-type AirtableScrapbookRead = AirtableScrapbookWrite;
+export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
+    "Count Approved Sessions": number,
+    "Count Unreviewed Sessions": number,
+    "Linked Sessions Count": number,
+    "Review Button TSs": string[],
+};
 
 type AirtableAPIRead = {
     "App Name": string,
@@ -125,6 +145,37 @@ type AirtableAPIRead = {
 };
 
 export const AirtableAPI = {
+    Reviewer: {
+        async all(): Promise<{id: AirtableRecordID, fields: AirtableReviewerRead}[]> {
+            console.log(`[AirtableAPI.Reviewer.all] Finding all reviewers`)
+
+            const now = Date.now();
+
+            const records = await reviewers.select().all();
+
+            console.log(`[AirtableAPI.Reviewer.all] Took ${Date.now() - now}ms`)
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableReviewerRead}));
+        },
+        async allSlackIDs(): Promise<string[]> {
+            const records = await this.all();
+            return records.map(reviewer => reviewer.fields["Slack ID"]);
+        },
+        async filter(filter: string): Promise<{id: AirtableRecordID, fields: AirtableReviewerRead}[]> {
+            console.log(`[AirtableAPI.Reviewer.filter] Looking up ${filter}`)
+
+            const now = Date.now();
+
+            const records = await reviewers.select({
+                filterByFormula: filter
+            }).all();
+
+            console.log(`[AirtableAPI.Reviewer.filter] Took ${Date.now() - now}ms`)
+
+            return records.map(record => ({id: record.id, fields: record.fields as AirtableReviewerRead}));
+
+        }
+    },
     User: {
         async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
             console.log(`[AirtableAPI.User.find] Looking up ${record}`)
@@ -307,6 +358,22 @@ export const AirtableAPI = {
             if (!records) { return null; }
 
             return {id: records.id, fields: records.fields as unknown as AirtableScrapbookRead};
+        },
+
+        async filter(filter: string): Promise<{id: AirtableRecordID, fields: AirtableScrapbookRead}[]> {
+            console.log(`[AirtableAPI.Scrapbook.filter] Looking up ${filter}`)
+
+            const now = Date.now();
+
+            const records = await scrapbooks.select({
+                filterByFormula: filter
+            }).all();
+
+            console.log(`[AirtableAPI.Scrapbook.filter] Took ${Date.now() - now}ms`)
+
+            if (!records) { return [] }
+
+            return records.map(record => ({id: record.id, fields: record.fields as unknown as AirtableScrapbookRead}));
         },
 
         async create(scrapbook: AirtableScrapbookWrite): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {

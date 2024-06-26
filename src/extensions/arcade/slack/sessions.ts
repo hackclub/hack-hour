@@ -195,3 +195,5 @@ Slack.action(Actions.SESSIONS_NEXT, async ({ body }) => {
         })
     });
 });
+
+Slack.action('sessions', async ({}) => {});
