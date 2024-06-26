@@ -45,6 +45,7 @@ export class Review {
             throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
         }
         await AirtableAPI.Scrapbook.update(scrapbookID, {
+            "Review Start Time": new Date().toISOString(),
             "Reviewer": [reviewer.id]
         });
     }
