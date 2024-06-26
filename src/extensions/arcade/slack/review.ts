@@ -6,12 +6,25 @@ import { t } from "../../../lib/templates.js";
 import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
 
+const slackReviewerCache = [];
+let reviewerCacheUpdatedTs = new Date();
+
+async function getReviewerCache() {
+    const noCache = slackReviewerCache.length == 0;
+    const expired = new Date().getTime() - reviewerCacheUpdatedTs.getTime() > 1000 * 60 * 5; // 5 minutes
+    if (noCache || expired) {
+        slackReviewerCache = Slack.conversations.members(Environment.REVIEW_CHANNEL);
+        reviewerCacheUpdatedTs = new Date();
+    }
+    return slackReviewerCache;
+}
+
 export class Review {
     public static async ensureReviewPermission(reviewerSlackId: string) {
         try {
             const [reviewers, slackUsers] = await Promise.all([
                 AirtableAPI.Reviewer.filter(`{Slack ID} = '${reviewerSlackId}'`),
-                Slack.conversations.members(Environment.REVIEW_CHANNEL)
+                getReviewerCache().then((users) => users.map((user) => user.id))
             ])
             const reviewer = reviewers[0] || null
             if (!reviewer) {
