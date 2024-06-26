@@ -426,15 +426,14 @@ export const AirtableAPI = {
     }
 };
 
-// replace with object to enable modification 
+
 export let authorizedSlackUsers: string[] = [];
 export let authorizedInternalUsers: string[] = [];
 
-try {
-    AirtableAPI.User.authorizedAPIUsers().then(users => {
-        authorizedSlackUsers = users.map(user => user["Slack ID"]);
-        authorizedSlackUsers = users.map(user => user["Internal ID"]);
-    }).catch(error => console.error(error));
+AirtableAPI.User.authorizedAPIUsers().then(users => {
+    authorizedSlackUsers = users.map(user => user["Slack ID"]);
+    authorizedSlackUsers = users.map(user => user["Internal ID"]);
+});
 
 emitter.on("hour", async () => {
     AirtableAPI.User.authorizedAPIUsers().then(users => {
