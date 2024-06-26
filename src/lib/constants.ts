@@ -120,6 +120,7 @@ export const Actions = {
     REJECT: 'reject',
     REJECT_LOCK: 'rejectlock',
     UNDO: 'undo',
+    UNSUBMIT: 'unsubmit',
 };
 
 export const Callbacks = {

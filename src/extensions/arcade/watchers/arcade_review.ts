@@ -8,7 +8,7 @@ const getArcadeScrapbooksToReview = async () => {
         '{Count Unreviewed Sessions} > 0',
         // 'NOT({Approved})',
         'BLANK() = Reviewer',
-        'Blank() = {Review TS}',
+        // 'Blank() = {Review TS}',
         `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
     // TODO: also include re-reviews in this list
@@ -42,7 +42,7 @@ async function sleep(ms) {
 }
 
 const main = async () => {
-    const reviewJob = async () => {
+    const reviewJob = async (): Promise<void> => {
         try {
             const scrapbooks = await getArcadeScrapbooksToReview();
             const scrapbook = scrapbooks[0];
@@ -55,7 +55,7 @@ const main = async () => {
     }
     reviewJob(); // intentionally not awaiting!
 
-    const approveJob = async () => {
+    const approveJob = async (): Promise<void> => {
         try {
             const scrapbooks = await getArcadeScrapbooksToApprove();
             for (const scrapbook of scrapbooks) {

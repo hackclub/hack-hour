@@ -90,6 +90,7 @@ type AirtableSessionWrite = {
     "Reason"?: string,
     "Scrapbook"?: [AirtableRecordID] | [],
     "First Time"?: boolean,
+    "Review Button TS"?: string,
 };
 
 type AirtableSessionRead = {
@@ -109,6 +110,7 @@ type AirtableSessionRead = {
     "Scrapbook": [AirtableRecordID] | [],
     "Percentage Approved": number,
     "Scrapbook Approved": boolean,
+    "Review Button TS"?: string,
 };
 
 interface AirtableScrapbookWrite {
@@ -122,7 +124,7 @@ interface AirtableScrapbookWrite {
     "Text": string,
     "Approved"?: boolean,
     "Magic Happening"?: boolean,
-    "Reviewer": [AirtableRecordID],
+    "Reviewer": [AirtableRecordID] | [],
     "Review Start Time"?: string,
     "Review End Time"?: string,
     "Review TS"?: string,
@@ -132,6 +134,7 @@ export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> 
     "Count Approved Sessions": number,
     "Count Unreviewed Sessions": number,
     "Linked Sessions Count": number,
+    "Review Button TSs": string[],
 };
 
 type AirtableAPIRead = {
