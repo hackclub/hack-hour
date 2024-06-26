@@ -100,7 +100,7 @@ type AirtableSessionRead = {
     "User": [AirtableRecordID],
     "Work": string,
     "Minutes": number,
-    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review",
+    "Status": "Approved" | "Unreviewed" | "Rejected" | "Banked" | "Requested Re-review" | "Rejected Locked",
     "Created At": string,
     "Evidenced": boolean,
     "Activity": boolean,

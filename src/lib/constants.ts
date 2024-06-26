@@ -119,6 +119,7 @@ export const Actions = {
     APPROVE: 'approve',
     REJECT: 'reject',
     REJECT_LOCK: 'rejectlock',
+    UNDO: 'undo',
 };
 
 export const Callbacks = {

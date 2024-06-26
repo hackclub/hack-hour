@@ -6,6 +6,7 @@ import { Review } from "../slack/review.js"
 const getArcadeScrapbooksToReview = async () => {
     const filterRules = [
         '{Count Unreviewed Sessions} > 0',
+        // 'NOT({Approved})',
         'BLANK() = Reviewer',
         'Blank() = {Review TS}',
         `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
@@ -17,7 +18,11 @@ const getArcadeScrapbooksToReview = async () => {
 }
 
 const main = async () => {
+    console.log('Checking for arcade scrapbooks to review...')
+
     const scrapbooks = await getArcadeScrapbooksToReview();
+
+    console.log(scrapbooks);
 
     for (const scrapbook of scrapbooks) {
         await Review.init(scrapbook.id);

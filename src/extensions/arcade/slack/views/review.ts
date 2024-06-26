@@ -75,6 +75,7 @@ export class ReviewView {
                             "text": "Reject",
                             "emoji": true
                         },
+                        "value": recId, 
                         "action_id": Actions.REJECT
                     },
                     {
@@ -90,5 +91,71 @@ export class ReviewView {
                 ]
             }
         ];
+    }
+
+    public static approved(sessionId: string, slackId: string | null = null) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Approved ${slackId ? `by <@${slackId}>` : ` session!`}`
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Undo",
+                        "emoji": true
+                    },
+                    "value": sessionId,
+                    "action_id": Actions.UNDO
+                }
+            },
+        ]
+    }
+
+    public static rejected(sessionId: string, slackId: string | null = null) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Rejected ${slackId ? `by <@${slackId}>` : ` session!`}`
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Undo",
+                        "emoji": true
+                    },
+                    "value": sessionId,
+                    "action_id": Actions.UNDO
+                }
+            },
+        ]
+    }
+
+    public static rejectedLock(sessionId: string, slackId: string | null = null) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Rejected and locked ${slackId ? `by <@${slackId}>` : ` session!`}`
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Undo",
+                        "emoji": true
+                    },
+                    "value": sessionId,
+                    "action_id": Actions.UNDO
+                }
+            },
+        ]
     }
 }
