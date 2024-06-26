@@ -315,6 +315,22 @@ export const AirtableAPI = {
             return {id: records.id, fields: records.fields as unknown as AirtableScrapbookRead};
         },
 
+        async filter(filter: string): Promise<{id: AirtableRecordID, fields: AirtableScrapbookRead}[]> {
+            console.log(`[AirtableAPI.Scrapbook.filter] Looking up ${filter}`)
+
+            const now = Date.now();
+
+            const records = await scrapbooks.select({
+                filterByFormula: filter
+            })
+
+            console.log(`[AirtableAPI.Scrapbook.filter] Took ${Date.now() - now}ms`)
+
+            if (!records) { return [] }
+
+            return {id: records.id, fields: records.fields as unknown as AirtableScrapbookRead};
+        }
+
         async create(scrapbook: AirtableScrapbookWrite): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
             console.log(`[AirtableAPI.Scrapbook.create] Creating ${scrapbook}`)
 
