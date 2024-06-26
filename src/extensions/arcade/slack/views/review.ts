@@ -1,9 +1,15 @@
 import { KnownBlock, RichTextQuote } from "@slack/bolt";
-import { Actions } from "../../../../lib/constants.js";
+import { Actions, Environment } from "../../../../lib/constants.js";
 import { formatHour, pfps, randomChoice, t } from "../../../../lib/templates.js";
 
 export class ReviewView {
-    public static reviewStart(permalink: string): KnownBlock[] {
+    public static reviewStart({
+        permalink,
+        text,
+    }: {
+        permalink: string,
+        text: string,
+    }): KnownBlock[] {
         return [
             // {
             //     "type": "header",
@@ -37,7 +43,8 @@ export class ReviewView {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "This is a section block with a button."
+                    "text": 
+`<${permalink}|Preview>`
                 },
                 "accessory": {
                     "type": "button",
