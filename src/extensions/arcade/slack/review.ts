@@ -5,6 +5,7 @@ import { Actions, Environment } from "../../../lib/constants.js";
 import { t } from "../../../lib/templates.js";
 import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
+import { reactOnContent } from "../../slack/lib/emoji.js";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -60,15 +61,15 @@ export class Review {
                 text: t('loading'),
             });
 
-            await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
+            const scrapbook = await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
 
             if (reviewerSlackId) {
                 this.assignReviewer({ scrapbookID: recordId, reviewerSlackId });
             }
 
             const permalink = await Slack.chat.getPermalink({
-                channel: Environment.REVIEW_CHANNEL,
-                message_ts: review?.ts!
+                channel: Environment.SCRAPBOOK_CHANNEL,
+                message_ts: scrapbook.fields['Scrapbook TS']
             });
 
             console.log(permalink?.permalink);
@@ -76,9 +77,17 @@ export class Review {
             await Slack.chat.update({
                 channel: Environment.REVIEW_CHANNEL,
                 ts: review!.ts!,
-                blocks: ReviewView.reviewStart(permalink?.permalink!)
+                blocks: ReviewView.reviewStart({
+                    permalink: permalink?.permalink!,
+                    text: scrapbook.fields['Text']
+                })
             });
 
+            reactOnContent({
+                content: scrapbook.fields['Text'],
+                channel: Environment.REVIEW_CHANNEL,
+                ts: review!.ts!,
+            })
         } catch (e) {
             console.error(e);
         }
@@ -201,6 +210,10 @@ export class Review {
                 thread_ts: scrapbook.fields['Scrapbook TS']
             });
 
+            console.log(
+                scrapbook.fields['Review TS'],
+                Environment.REVIEW_CHANNEL
+            )
             await app.client.chat.delete({
                 channel: Environment.REVIEW_CHANNEL,
                 ts: scrapbook.fields['Review TS']
@@ -252,7 +265,6 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             channel: body.channel?.id!,
             user: slackId,
             text: 'You do not have permission to start a review.',
-            thread_ts: (body as any).message.ts!
         });
         return;
     }
@@ -273,6 +285,8 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
     }
 
     const scrapbook = records[0];
+
+    await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
 
     await Slack.chat.postMessage({
         channel: Environment.SCRAPBOOK_CHANNEL,

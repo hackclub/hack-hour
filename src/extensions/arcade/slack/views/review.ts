@@ -1,14 +1,20 @@
 import { KnownBlock } from "@slack/bolt";
-import { Actions } from "../../../../lib/constants.js";
+import { Actions, Environment } from "../../../../lib/constants.js";
 
 export class ReviewView {
-    public static reviewStart(permalink: string): KnownBlock[] {
+    public static reviewStart({
+        permalink,
+        text,
+    }: {
+        permalink: string,
+        text: string,
+    }): KnownBlock[] {
         return [
             {
-                "type": "header",
+                "type": "section",
                 "text": {
                     "type": "plain_text",
-                    "text": "This is a header block",
+                    "text": `>_${text.split('\n').join('_\n>')}`,
                     "emoji": true
                 }
             },
@@ -19,7 +25,8 @@ export class ReviewView {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "This is a section block with a button."
+                    "text": 
+`<${permalink}|Preview>`
                 },
                 "accessory": {
                     "type": "button",
