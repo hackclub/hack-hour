@@ -46,10 +46,15 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
                 //     gte: scrapbooks.length > 1 ?  scrapbooks[1].createdAt : undefined,
                 //     lte: scrapbook?.createdAt,
                 // },
-                metadata: {
-                    path: ["banked"],
-                    equals: false,
+                // metadata: {
+                //     path: ["banked"],
+                //     equals: false,
+                // },
+
+                scrapbook: {
+                    is: null
                 },
+                // scrapbookId: null,
 
                 OR: [
                     {
@@ -135,16 +140,16 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             continue;
         }
 
-        session.metadata.banked = true;
+        // session.metadata.banked = true;
 
-        await prisma.session.update({
-            where: {
-                id: session.id,
-            },
-            data: {
-                metadata: session.metadata,
-            },
-        });
+        // await prisma.session.update({
+        //     where: {
+        //         id: session.id,
+        //     },
+        //     data: {
+        //         metadata: session.metadata,
+        //     },
+        // });
 
         bankedSessions++;
     }

@@ -112,7 +112,8 @@ express.post("/scrapbook/post", async (req, res) => {
             User: [(user.metadata as any).airtable?.id],
             Sessions: [],
             Attachments: req.body.attachments.map((url: string) => ({ url })),
-            Text: req.body.messageText
+            Text: req.body.messageText,
+            Reviewer: [],
         });
 
         const flowMsg = await Slack.chat.postMessage({

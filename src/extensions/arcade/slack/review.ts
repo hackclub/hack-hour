@@ -7,152 +7,196 @@ import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
 
 export class Review {
-    public static async init(recordId: string, reviewerSlackId: string | null=null) {
+    public static async init(recordId: string, reviewerSlackId: string | null = null) {
         // New session to review! post in #arcade-reivew!
         // optionally if reviewerSlackId is provided, assign that reviewer instantly
+        try {
 
-        const review = await Slack.chat.postMessage({
-            channel: Environment.REVIEW_CHANNEL,
-            text: t('loading'),
-        });
+            const review = await Slack.chat.postMessage({
+                channel: Environment.REVIEW_CHANNEL,
+                text: t('loading'),
+            });
 
-        await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
+            await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
 
-        if (reviewerSlackId) {
-            this.assignReviewer({scrapbookID: recordId, reviewerSlackId});
+            if (reviewerSlackId) {
+                this.assignReviewer({ scrapbookID: recordId, reviewerSlackId });
+            }
+
+            const permalink = await Slack.chat.getPermalink({
+                channel: Environment.REVIEW_CHANNEL,
+                message_ts: review?.ts!
+            });
+
+            console.log(permalink?.permalink);
+
+            await Slack.chat.update({
+                channel: Environment.REVIEW_CHANNEL,
+                ts: review!.ts!,
+                blocks: ReviewView.reviewStart(permalink?.permalink!)
+            });
+
+        } catch (e) {
+            console.error(e);
         }
 
-        await Slack.chat.update({
-            channel: Environment.REVIEW_CHANNEL,
-            ts: review!.ts!,
-            blocks: ReviewView.reviewStart()
-        });
-
         // update the "review channel" post with a review button
-            // pressing the button triggers handleStartButton()
-            // post in scrapbook thread "review has been started by"
-            // post in scrapbook thread "list of sessions + approve/reject buttons"
+        // pressing the button triggers handleStartButton()
+        // post in scrapbook thread "review has been started by"
+        // post in scrapbook thread "list of sessions + approve/reject buttons"
     }
 
-    public static async assignReviewer({scrapbookID, reviewerSlackId}: {
+    public static async assignReviewer({ scrapbookID, reviewerSlackId }: {
         scrapbookID: string,
         reviewerSlackId: string
     }) {
-        const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = ${reviewerSlackId}`)
-        const reviewer = reviewers[0] || null;
-        if (!reviewer) {
-            throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
+        try {
+
+            const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = ${reviewerSlackId}`)
+            const reviewer = reviewers[0] || null;
+            if (!reviewer) {
+                throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
+            }
+            await AirtableAPI.Scrapbook.update(scrapbookID, {
+                "Review Start Time": new Date().toISOString(),
+                "Reviewer": [reviewer.id]
+            });
+
         }
-        await AirtableAPI.Scrapbook.update(scrapbookID, {
-            "Review Start Time": new Date().toISOString(),
-            "Reviewer": [reviewer.id]
-        });
+        catch (e) {
+            console.error(e);
+        }
     }
 
     public static async finishReview(scrapbookID: string) {
-        const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+        try {
+            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
 
-        if (!scrapbook) {
-            console.error(`Scrapbook not found: ${scrapbookID}`);
+            if (!scrapbook) {
+                console.error(`Scrapbook not found: ${scrapbookID}`);
 
-            return;
-        }
+                return;
+            }
 
-        if (scrapbook.fields['Count Unreviewed Sessions'] === 0 && !scrapbook.fields['Approved']) {
-            await AirtableAPI.Scrapbook.update(scrapbook.id, {
-                "Approved": true
-            });
+            if (scrapbook.fields['Count Unreviewed Sessions'] === 0) {
+                await AirtableAPI.Scrapbook.update(scrapbook.id, {
+                    "Approved": true
+                });
 
-            await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                text: `All sessions reviewed.`,
-                thread_ts: scrapbook.fields['Scrapbook TS']
-            });
+                await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    text: `All sessions reviewed.`,
+                    thread_ts: scrapbook.fields['Scrapbook TS']
+                });
+
+                await app.client.chat.delete({
+                    channel: Environment.REVIEW_CHANNEL,
+                    ts: scrapbook.fields['Review TS']
+                });
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 
     public static async garbageCollection(scrapbookID: string) {
-        const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+        try {
+            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
 
-        if (!scrapbook) {
-            console.error(`Scrapbook not found: ${scrapbookID}`);
+            if (!scrapbook) {
+                console.error(`Scrapbook not found: ${scrapbookID}`);
 
-            return;
-        }
-
-        for (const sessionId of scrapbook.fields['Sessions']) {
-            const session = await AirtableAPI.Session.find(sessionId);
-
-            if (!session) {
-                console.error(`Session not found: ${sessionId}`);
-                continue;
+                return;
             }
 
-            await app.client.chat.delete({
+            for (const sessionId of scrapbook.fields['Sessions']) {
+                const session = await AirtableAPI.Session.find(sessionId);
+
+                if (!session) {
+                    console.error(`Session not found: ${sessionId}`);
+                    continue;
+                }
+
+                await app.client.chat.delete({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    ts: session.fields['Review Button TS']!
+                });
+
+                await AirtableAPI.Session.update(sessionId, {
+                    "Review Button TS": undefined
+                });
+            }
+
+            await AirtableAPI.Scrapbook.update(scrapbook.id, {
+                "Review Start Time": undefined,
+                "Reviewer": [],
+            });
+
+            await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
-                ts: session.fields['Review Button TS']!
+                text: `kicking reviewer out for being too sleepy`,
+                thread_ts: scrapbook.fields['Scrapbook TS']
             });
-
-            await AirtableAPI.Session.update(sessionId, {
-                "Review Button TS": undefined
-            });
+        } catch (e) {
+            console.error(e);
         }
-
-        await AirtableAPI.Scrapbook.update(scrapbook.id, {
-            "Review Start Time": undefined,
-            "Reviewer": [],
-        });
-
-        await Slack.chat.postMessage({
-            channel: Environment.SCRAPBOOK_CHANNEL,
-            text: `kicking reviewer out for being too sleepy`,
-            thread_ts: scrapbook.fields['Scrapbook TS']
-        });
     }
 
     public static async unsubmit(scrapbookID: string) {
-        const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+        try {
+            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
 
-        if (!scrapbook) {
-            console.error(`Scrapbook not found: ${scrapbookID}`);
+            if (!scrapbook) {
+                console.error(`Scrapbook not found: ${scrapbookID}`);
 
-            return;
-        }
+                return;
+            }
 
-        await Slack.chat.postMessage({
-            channel: Environment.SCRAPBOOK_CHANNEL,
-            text: `unsubmitting scrapbook post & unlinking all sessions`,
-            thread_ts: scrapbook.fields['Scrapbook TS']
-        });
-
-        for (const sessionId of scrapbook.fields['Sessions']) {
-            const session = await AirtableAPI.Session.find(sessionId);
-
-            if (!session) {
-                console.error(`Session not found: ${sessionId}`);
-                continue;
-            }            
+            await Slack.chat.postMessage({
+                channel: Environment.SCRAPBOOK_CHANNEL,
+                text: `unsubmitting scrapbook post & unlinking all sessions`,
+                thread_ts: scrapbook.fields['Scrapbook TS']
+            });
 
             await app.client.chat.delete({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                ts: session.fields['Review Button TS']!
+                channel: Environment.REVIEW_CHANNEL,
+                ts: scrapbook.fields['Review TS']
             });
 
-            await AirtableAPI.Session.update(sessionId, {
-                "Scrapbook": [],
-                "Review Button TS": undefined,
-            });
+            for (const sessionId of scrapbook.fields['Sessions']) {
+                const session = await AirtableAPI.Session.find(sessionId);
 
-            await prisma.session.update({
-                where: {
-                    id: session.fields['Session ID']
-                },
-                data: {
-                    scrapbook: {
-                        disconnect: true
-                    }
+                if (!session) {
+                    console.error(`Session not found: ${sessionId}`);
+                    continue;
                 }
-            });
+
+                await app.client.chat.delete({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    ts: session.fields['Review Button TS']!
+                });
+
+                await AirtableAPI.Session.update(sessionId, {
+                    "Scrapbook": [],
+                    "Review Button TS": undefined,
+                });
+
+                const sessionRemove = await prisma.session.update({
+                    where: {
+                        id: session.fields['Session ID']
+                    },
+                    data: {
+                        scrapbook: {
+                            disconnect: true,
+                        },
+                        scrapbookId: undefined
+                    }
+                });
+
+                console.log(sessionRemove.scrapbookId);
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 }
@@ -335,7 +379,7 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
         return;
     }
 
-    await Review.finishReview(session.fields['Scrapbook'][0]);    
+    await Review.finishReview(session.fields['Scrapbook'][0]);
 });
 
 Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
@@ -369,7 +413,7 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
         return;
     }
 
-    await Review.finishReview(session.fields['Scrapbook'][0]);    
+    await Review.finishReview(session.fields['Scrapbook'][0]);
 });
 
 Slack.action(Actions.UNDO, async ({ body, respond }) => {
@@ -410,16 +454,12 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
 
         respond({
             text: 'Scrapbook not found.',
-            response_type: 'ephemeral'
+            response_type: 'ephemeral',
+            replace_original: false
         });
 
         return;
     }
 
     await Review.unsubmit(scrapbookId);
-
-    respond({
-        text: 'Scrapbook unsubmitted.',
-        response_type: 'ephemeral'
-    });
 });

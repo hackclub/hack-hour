@@ -2,7 +2,7 @@ import { KnownBlock } from "@slack/bolt";
 import { Actions } from "../../../../lib/constants.js";
 
 export class ReviewView {
-    public static reviewStart(): KnownBlock[] {
+    public static reviewStart(permalink: string): KnownBlock[] {
         return [
             {
                 "type": "header",
@@ -28,6 +28,7 @@ export class ReviewView {
                         "text": "Click Me",
                         "emoji": true
                     },
+                    "url": permalink,
                     "action_id": Actions.START_REVIEW
                 }
             }

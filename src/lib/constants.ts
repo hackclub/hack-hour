@@ -110,7 +110,7 @@ export const Actions = {
 
     NO_ACTION: 'noaction',
 
-    SESSIONS: 'sessions',
+    SESSIONS: 'sessions-NIL',
 
     SESSIONS_PREVIOUS: 'sessionsprevious',
     SESSIONS_NEXT: 'sessionsnext',
