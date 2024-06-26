@@ -524,6 +524,15 @@ export const Slack = {
     },
 
     conversations: {
+        async members(slackChannelId: string) {
+            try {
+                const results = await app.client.conversations.members({limit: 1000, channel: slackChannelId});
+                return results.members
+
+            } catch (error) {
+                emitter.emit('error', { error });
+            }
+        },
         async replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
             try {
                 const now = new Date();

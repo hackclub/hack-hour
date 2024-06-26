@@ -7,7 +7,32 @@ import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
 
 export class Review {
-    public static async init(recordId: string, reviewerSlackId: string | null = null) {
+    public static async ensureReviewPermission(reviewerSlackId: string) {
+        try {
+            const [reviewers, slackUsers] = await Promise.all([
+                AirtableAPI.Reviewer.filter(`{Slack ID} = '${reviewerSlackId}'`),
+                Slack.conversations.members(Environment.REVIEW_CHANNEL)
+            ])
+            const reviewer = reviewers[0] || null
+            if (!reviewer) {
+                console.warn(`No reviewer found with Slack ID ${reviewerSlackId}`);
+                return false
+            }
+
+            if (!slackUsers || !slackUser.includes(reviewerSlackId)) {
+                console.warn(`Reviewer ${reviewerSlackId} is not in the review channel`);
+                return false
+            }
+
+            // all good, continue...
+            return true
+        } catch(e) {
+            console.error(e)
+        }
+
+    }
+
+    public static async init(recordId: string, reviewerSlackId: string | null=null) {
         // New session to review! post in #arcade-reivew!
         // optionally if reviewerSlackId is provided, assign that reviewer instantly
         try {
