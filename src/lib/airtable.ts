@@ -322,14 +322,14 @@ export const AirtableAPI = {
 
             const records = await scrapbooks.select({
                 filterByFormula: filter
-            })
+            }).all();
 
             console.log(`[AirtableAPI.Scrapbook.filter] Took ${Date.now() - now}ms`)
 
             if (!records) { return [] }
 
-            return {id: records.id, fields: records.fields as unknown as AirtableScrapbookRead};
-        }
+            return records.map(record => ({id: record.id, fields: record.fields as unknown as AirtableScrapbookRead}));
+        },
 
         async create(scrapbook: AirtableScrapbookWrite): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
             console.log(`[AirtableAPI.Scrapbook.create] Creating ${scrapbook}`)

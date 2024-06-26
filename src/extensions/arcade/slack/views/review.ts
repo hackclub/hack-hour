@@ -33,4 +33,62 @@ export class ReviewView {
             }
         ];
     }
+
+    public static session({
+        createdAt,
+        minutes,
+        text,
+        link,
+        recId
+    }: {
+        createdAt: string,
+        minutes: number,
+        text: string,
+        link: string,
+        recId: string
+    }): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `${createdAt} - ${minutes} minutes\n>_${text}_\n<${link}|View Session>`
+                }
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Approve",
+                            "emoji": true
+                        },
+                        "value": recId, 
+                        "action_id": Actions.APPROVE
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Reject",
+                            "emoji": true
+                        },
+                        "action_id": Actions.REJECT
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Reject & Lock",    
+                            "emoji": true
+                        },
+                        "value": recId,
+                        "action_id": Actions.REJECT_LOCK
+                    }
+                ]
+            }
+        ];
+    }
 }
