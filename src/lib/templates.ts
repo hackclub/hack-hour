@@ -63,8 +63,15 @@ type Template =
     'scrapbook.prompt.select_sessions' |
     'scrapbook.prompt.complete' |
     'scrapbook.modal.select_sessions' |
-    'scrapbook.modal.sessions_not_found'
-    ;
+    'scrapbook.modal.sessions_not_found' |
+
+    'review.start' |
+    'review.preset.approved' |
+    'review.preset.rejected' |
+    'review.preset.rejectedLock' |
+    'review.reviewer.approved' |
+    'review.reviewer.rejected' |
+    'review.reviewer.rejectedLock';
 
 interface Data {
     slackId?: string,

@@ -21,6 +21,7 @@ const getArcadeScrapbooksToApprove = async () => {
     const filterRules = [
         '{Count Unreviewed Sessions} = 0',
         'Approved != TRUE()',
+        `{Reviewed On} = "Hakkuun"`
         // `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
     // TODO: also include re-reviews in this list

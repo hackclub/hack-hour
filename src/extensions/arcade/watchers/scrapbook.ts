@@ -114,6 +114,7 @@ express.post("/scrapbook/post", async (req, res) => {
             Attachments: req.body.attachments.map((url: string) => ({ url })),
             Text: req.body.messageText,
             Reviewer: [],
+            "Reviewed On": "Other"
         });
 
         const flowMsg = await Slack.chat.postMessage({
