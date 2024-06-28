@@ -6,6 +6,8 @@ export const Environment = {
     SLACK_BOT_TOKEN: assertEnv('SLACK_BOT_TOKEN'),
     SLACK_SIGNING_SECRET: assertEnv('SLACK_SIGNING_SECRET'),
 
+    ADMIN_TOKEN: assertEnv('ADMIN_TOKEN'),
+
     CLIENT_ID: assertEnv('CLIENT_ID'),
     CLIENT_SECRET: assertEnv('CLIENT_SECRET'),
 
@@ -139,3 +141,7 @@ export const Callbacks = {
 
     CHOOSE_SESSIONS: 'choosesessions',
 };
+
+export const Channels = {
+    
+}

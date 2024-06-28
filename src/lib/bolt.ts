@@ -411,6 +411,10 @@ export const Slack = {
                 channel: Environment.MAIN_CHANNEL
             });
 
+            await app.client.conversations.join({
+                channel: "C07AXU6FCC8"
+            });
+
             return;
         }
     },
