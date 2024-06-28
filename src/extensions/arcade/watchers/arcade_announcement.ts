@@ -2,7 +2,7 @@
 
 import { Slack, app } from "../../../lib/bolt.js";
 
-const channelID = "C07AXU6FCC8"
+const channelID = "C07AXU6FCC8";
 
 const getOwnBotID = async () => {
   const bot = await Slack.auth.test();
@@ -28,25 +28,30 @@ const ensureChannelJoined = async () => {
 setTimeout(ensureChannelJoined, 1000 * 5);
 
 app.event('message', async ({ event }) => {  
-  if (event.channel !== channelID) { return; }
-  if (event.subtype === 'bot_message') { return; }
-  if (!event.user) { return; }
-  let user = event.user;
+  try {
+    if (event.channel !== channelID) { return; }
+    if (event.subtype === 'bot_message') { return; }
 
-  if (!user?.id) {
-    user = await Slack.users.info({user: event.user});
+    let user = (event as any).user;
+    if (!user) { return; }
+
+    if (!user?.id) {
+      user = await Slack.users.info({user});
+    }
+
+    // if (user.is_admin) { return }
+    // if (user.is_owner) { return }
+    // if (user.is_primary_owner) { return }
+    // not an admin, delete the message
+    await Slack.chat.delete({channel: event.channel, ts: event.ts});
+    const thread_ts = (event as any)?.thread_ts || "";
+    await Slack.chat.postEphemeral({
+      channel: event.channel,
+      user: user.id,
+      thread_ts,
+      text: "This is a read-only channel. Only admins can post here."
+    });
+  } catch (error) {
+    console.error(error);
   }
-
-  if (user.is_admin) { return }
-  if (user.is_owner) { return }
-  if (user.is_primary_owner) { return }
-  // not an admin, delete the message
-  await Slack.chat.delete({channel: event.channel, ts: event.ts});
-  const thread_ts = event?.thread_ts || "";
-  await Slack.chat.postEphemeral({
-    channel: event.channel,
-    user: user.id,
-    thread_ts,
-    text: "This is a read-only channel. Only admins can post here."
-  });
 });
