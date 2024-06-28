@@ -61,20 +61,21 @@ Slack.action(Actions.TUTORIAL_ADVANCE, async ({ body, client }) => {
                 // ]
             });
         }
-        if (session.metadata.firstTime.step === 1) {
-            const { evidenced, activity } = await fetchEvidence(session.messageTs, session.user.slackUser.slackId);
-            
-            if (!evidenced) {
-                await Slack.chat.postEphemeral({
-                    channel: Environment.MAIN_CHANNEL,
-                    text: t('firstTime.walkthrough.no_evidence'),
-                    thread_ts: session.messageTs,
-                    user: (body as any).user.id
-                });
 
-                return;
-            }
-        }
+        // if (session.metadata.firstTime.step === 1) {
+        //     const { evidenced, activity } = await fetchEvidence(session.messageTs, session.user.slackUser.slackId);
+            
+        //     if (!evidenced) {
+        //         await Slack.chat.postEphemeral({
+        //             channel: Environment.MAIN_CHANNEL,
+        //             text: t('firstTime.walkthrough.no_evidence'),
+        //             thread_ts: session.messageTs,
+        //             user: (body as any).user.id
+        //         });
+
+        //         return;
+        //     }
+        // }
 
         session.metadata.firstTime.step++;
     }
