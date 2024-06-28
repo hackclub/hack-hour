@@ -59,7 +59,32 @@ export const recordCommands = [
     Commands.SHOP,
 ]
 
+async function callSlackClient(asyncFunction: Function, ...args: any[]) {
+    try {
+        const now = new Date();
+
+        console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
+
+        const result = await asyncFunction(...args);
+
+        assertVal(result);
+
+        const diff = new Date().getTime() - now.getTime();
+
+        console.log(`[${now.toISOString()}] Slack client method succeeded after ${diff}ms`)
+
+        return result;
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+
+}
+
 export const Slack = {
+    auth: {
+        ...app.client.auth
+    },
+    users: app.client.users,
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
         app.command(command, async (payload) => {
             const now = new Date();
@@ -174,17 +199,6 @@ export const Slack = {
                                 ],
                             },
                         ]
-                        // blocks: [
-                        //     {
-                        //         type: "context",
-                        //         elements: [
-                        //             {
-                        //             type: "mrkdwn",
-                        //             text: `${actionId} ${action.type}`,
-                        //             },
-                        //         ],
-                        //     },
-                        // ]
                     })
                 }
 
@@ -245,17 +259,6 @@ export const Slack = {
                                 ],
                             },
                         ]
-                        // blocks: [
-                        //     {
-                        //         type: "context",
-                        //         elements: [
-                        //             {
-                        //             type: "mrkdwn",
-                        //             text: `${callbackId} ${view.callback_id}`,
-                        //             },
-                        //         ],
-                        //     },
-                        // ]
                     })
                 }
 
@@ -284,184 +287,34 @@ export const Slack = {
     },
 
     chat: {
-        async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
-            try {
-                const now = new Date();
+        delete(options: Parameters<typeof app.client.chat.delete>[0]) {
+            if (options) { options!.token = Environment.ADMIN_TOKEN };
 
-                if (options?.blocks) {
-                    console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Sent a message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
-                }
-
-                const result = assertVal(await app.client.chat.postMessage(options));
-
-                const duration = new Date().getTime() - now.getTime();
-                console.log(`[${now.toISOString()}] posted message after ${duration}ms`)
-
-                return result;
-            } catch (error) {
-                emitter.emit('error', { error });
+            return callSlackClient(app.client.chat.delete, options);
+        },
+        postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
+            if (options?.blocks) {
+                console.log(JSON.stringify(options.blocks))
             }
+            return callSlackClient(app.client.chat.postMessage, options);
         },
 
-        async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
-            try {
-                // await app.client.chat.postMessage({
-                //     ...options,
-                //     channel: Environment.INTERNAL_CHANNEL
-                // });                
-                const now = new Date();
-
-                if (options?.blocks) {
-                    console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Sent an ephemeral message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
-                }
-
-                const result = assertVal(await app.client.chat.postEphemeral(options));
-
-                const duration = new Date().getTime() - now.getTime();
-                console.log(`[${now.toISOString()}] posted ephemeral after ${duration}ms`)
-
-                return result;
-            } catch (error: any) {
-                emitter.emit('error', { error });
-
-                console.log(`[${new Date().toISOString()}] failed to post message`)
-
-                // if (options) {
-                //     await app.client.chat.postMessage({
-                //         user: options.user,
-                //         channel: Environment.INTERNAL_CHANNEL,
-                //         text: `An error occurred! ${error.message}`
-                //     });
-                // }
+        postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
+            if (options?.blocks) {
+                console.log(JSON.stringify(options.blocks))
             }
+            return callSlackClient(app.client.chat.postEphemeral, options);
         },
 
-        async update(options: Parameters<typeof app.client.chat.update>[0]) {
-            try {
-                // await app.client.chat.postMessage({
-                //     text: `Updating message ${options.channel} ${options.ts}`,
-                //     channel: Environment.INTERNAL_CHANNEL
-                // });
-                const now = new Date();
-
-                console.log(`[${now.toISOString()}] updating message`)
-
-                if (options?.blocks) {
-                    console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Updated a message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
-                }
-
-                const result = assertVal(await app.client.chat.update(options));
-
-                const diff = new Date().getTime() - now.getTime();
-
-                console.log(`[${now.toISOString()}] updated message in ${diff}ms`)
-
-                return result;
-            } catch (error) {
-                emitter.emit('error', { error });
+        update(options: Parameters<typeof app.client.chat.update>[0]) {
+            if (options?.blocks) {
+                console.log(JSON.stringify(options.blocks))
             }
+            return callSlackClient(app.client.chat.update, options);
         },
 
-        async getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
-            try {
-                const now = new Date();
-
-                console.log(`[${now.toISOString()}] getting permalink`)
-
-                const result = assertVal(await app.client.chat.getPermalink(options));
-
-                const diff = new Date().getTime() - now.getTime();
-
-                console.log(`[${now.toISOString()}] got permalink in ${diff}ms`)
-
-                return result;
-            } catch (error) {
-                emitter.emit('error', { error });
-            }
+        getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
+            return callSlackClient(app.client.chat.getPermalink, options);
         }
     },
 
@@ -522,51 +375,35 @@ export const Slack = {
     },
 
     reactions: {
-        async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            try {
-                const now = new Date();
-
-                console.log(`[${now.toISOString()}] adding reaction`);
-
-                const result = assertVal(await app.client.reactions.add(options));
-
-                const diff = new Date().getTime() - now.getTime();
-
-                console.log(`[${now.toISOString()}] added reaction in ${diff}ms`)
-
-                return result;
-            } catch (error) {
-                emitter.emit('error', { error });
-            }
+        add(options: Parameters<typeof app.client.reactions.add>[0]) {
+            return callSlackClient(app.client.reactions.add, options);
         }
     },
 
     conversations: {
-        async members(slackChannelId: string) {
+        async members({
+            channelID,
+            nextCursor
+        }:  {channelID: string, nextCursor?: string}): Promise<string[]> {
             try {
-                const results = await app.client.conversations.members({limit: 1000, channel: slackChannelId});
-                return results.members
+                const request = await app.client.conversations.members({limit: 100, channel: channelID, cursor: nextCursor});
+                const members = request.members || [];
+                let nextMembers: string[] = []
+                if (request.response_metadata?.next_cursor) {
+                    nextMembers = await Slack.conversations.members({channelID, nextCursor: request.response_metadata.next_cursor});
+                }
+                return [...members, ...nextMembers]
 
             } catch (error) {
                 emitter.emit('error', { error });
+                return []
             }
         },
-        async replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
-            try {
-                const now = new Date();
-
-                console.log(`[${now.toISOString()}] fetching replies`);
-
-                const result = assertVal(await app.client.conversations.replies(options));
-
-                const diff = new Date().getTime() - now.getTime();
-
-                console.log(`[${now.toISOString()}] fetched replies in ${diff}ms`)
-
-                return result;
-            } catch (error) {
-                emitter.emit('error', { error });
-            }
+        info(channelID: string) {
+            return callSlackClient(app.client.conversations.info, { channel: channelID });
+        },
+        replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
+            return callSlackClient(app.client.conversations.replies, options);
         }
     },
 
@@ -574,6 +411,10 @@ export const Slack = {
         async ensureChannels() {
             await app.client.conversations.join({
                 channel: Environment.MAIN_CHANNEL
+            });
+
+            await app.client.conversations.join({
+                channel: "C07AXU6FCC8"
             });
 
             return;
