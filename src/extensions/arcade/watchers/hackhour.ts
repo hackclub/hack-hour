@@ -287,17 +287,10 @@ app.event("message", async ({ event }) => {
                 }
             });
 
-            const { activity, evidenced } = await Evidence.check({
+            const { activity, evidenced, image } = await Evidence.check({
                 messageTs: session.messageTs, 
                 slackId: user.slackUser!.slackId
             });
-            
-            let noteMessage = "_(note: screenshots of code don't count as proof - share git commits instead)_";
-            let shouldAddNote = false;
-
-            if ((event as any).files && (event as any).files.length > 0) {
-                shouldAddNote = true;
-            }
 
             if (!airtableSession.fields["Evidenced"] && evidenced) {
                 await Slack.chat.postMessage({
@@ -313,13 +306,13 @@ app.event("message", async ({ event }) => {
                                 "text": t('detect.evidence')
                             }
                         },
-                        ...(shouldAddNote ? [
+                        ...(image ? [
                             {
                                 "type": "context",
                                 "elements": [
                                     {
                                         "type": "mrkdwn",
-                                        "text": noteMessage
+                                        "text": "_(note: screenshots of code don't count as proof - share git commits instead)_"
                                     }
                                 ]
                             }
@@ -331,18 +324,7 @@ app.event("message", async ({ event }) => {
                     channel: Environment.MAIN_CHANNEL,
                     user: session.user.slackUser!.slackId,
                     thread_ts: session.messageTs,
-                    text: t('detect.activity'),
-                    blocks: shouldAddNote ? [
-                        {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "mrkdwn",
-                                    "text": noteMessage
-                                }
-                            ]
-                        }
-                    ] : []
+                    text: t('detect.activity')
                 });
             }
 

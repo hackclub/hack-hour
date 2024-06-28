@@ -51,7 +51,7 @@ export const Evidence = {
             activity,
             evidenced: image !== undefined || onshape || github || githubCommit || githubPR,
 
-            image,
+            image: image !== undefined,
             onshape,
             github,
             githubCommit,
