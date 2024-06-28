@@ -197,17 +197,6 @@ export const Slack = {
                                 ],
                             },
                         ]
-                        // blocks: [
-                        //     {
-                        //         type: "context",
-                        //         elements: [
-                        //             {
-                        //             type: "mrkdwn",
-                        //             text: `${actionId} ${action.type}`,
-                        //             },
-                        //         ],
-                        //     },
-                        // ]
                     })
                 }
 
@@ -268,17 +257,6 @@ export const Slack = {
                                 ],
                             },
                         ]
-                        // blocks: [
-                        //     {
-                        //         type: "context",
-                        //         elements: [
-                        //             {
-                        //             type: "mrkdwn",
-                        //             text: `${callbackId} ${view.callback_id}`,
-                        //             },
-                        //         ],
-                        //     },
-                        // ]
                     })
                 }
 
@@ -330,34 +308,6 @@ export const Slack = {
 
                 if (options?.blocks) {
                     console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Sent a message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
                 }
 
                 const result = assertVal(await app.client.chat.postMessage(options));
@@ -373,42 +323,10 @@ export const Slack = {
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             try {
-                // await app.client.chat.postMessage({
-                //     ...options,
-                //     channel: Environment.INTERNAL_CHANNEL
-                // });                
                 const now = new Date();
 
                 if (options?.blocks) {
                     console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Sent an ephemeral message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
                 }
 
                 const result = assertVal(await app.client.chat.postEphemeral(options));
@@ -422,56 +340,17 @@ export const Slack = {
 
                 console.log(`[${new Date().toISOString()}] failed to post message`)
 
-                // if (options) {
-                //     await app.client.chat.postMessage({
-                //         user: options.user,
-                //         channel: Environment.INTERNAL_CHANNEL,
-                //         text: `An error occurred! ${error.message}`
-                //     });
-                // }
             }
         },
 
         async update(options: Parameters<typeof app.client.chat.update>[0]) {
             try {
-                // await app.client.chat.postMessage({
-                //     text: `Updating message ${options.channel} ${options.ts}`,
-                //     channel: Environment.INTERNAL_CHANNEL
-                // });
                 const now = new Date();
 
                 console.log(`[${now.toISOString()}] updating message`)
 
                 if (options?.blocks) {
                     console.log(JSON.stringify(options.blocks))
-                    // await app.client.chat.postMessage({
-                    //     channel: Environment.INTERNAL_CHANNEL,
-                    //     blocks: [
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `> _Updated a message with blocks_`
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "section",
-                    //             "text": {
-                    //                 "type": "mrkdwn",
-                    //                 "text": `\`\`\`${JSON.stringify(options.blocks, null, 2)}\`\`\``
-                    //             }
-                    //         },
-                    //         {
-                    //             "type": "context",
-                    //             "elements": [
-                    //                 {
-                    //                     "type": "mrkdwn",
-                    //                     "text": `${new Date().toString()}`
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ]
-                    // });
                 }
 
                 const result = assertVal(await app.client.chat.update(options));
