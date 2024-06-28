@@ -41,6 +41,7 @@ export const Evidence = {
         const activity = await this.checkActivity(evidence);
         const image = await this.checkImage(evidence);
         const {
+            links,
             onshape,
             github,
             githubCommit,
@@ -49,9 +50,10 @@ export const Evidence = {
 
         return {
             activity,
-            evidenced: image !== undefined || onshape || github || githubCommit || githubPR,
+            evidenced: image || onshape || github || githubCommit || githubPR || links,
 
-            image: image !== undefined,
+            links,
+            image,
             onshape,
             github,
             githubCommit,
@@ -64,10 +66,11 @@ export const Evidence = {
     },
 
     async checkImage(evidence: Awaited<ReturnType<typeof this.fetch>>) {
-        return evidence.find(message => message.files ? message.files.length > 0 : false);
+        return evidence.find(message => message.files ? message.files.length > 0 : false) !== undefined;
     },
 
     async checkLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        let links = false;
         let onshape = false;
         let github = false;
         let githubCommit = false;
@@ -75,8 +78,10 @@ export const Evidence = {
         
         for (const message of evidence) {
             const urls = getUrls(message.text ? message.text : "");
-
+            
             for (const url of urls) {
+                links = true;
+
                 if (await this.isURL(url)) {
                     if (await this.isOnShape(url)) {
                         onshape = true;
@@ -91,6 +96,7 @@ export const Evidence = {
         }
 
         return {
+            links,
             onshape,
             github,
             githubCommit,
