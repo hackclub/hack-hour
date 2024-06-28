@@ -2,7 +2,6 @@
 
 import { Slack } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
-import { fetchEvidence } from "./helper.js";
         
 import getUrls from "get-urls";
 
@@ -50,6 +49,8 @@ export const Evidence = {
 
         return {
             activity,
+            evidenced: image !== undefined || onshape || github || githubCommit || githubPR,
+
             image,
             onshape,
             github,
@@ -121,8 +122,13 @@ export const Evidence = {
     },
 
     // Grabbers
+    async grabImages(messageTs: string, slackId: string) {
+        const evidence = await this.fetch(messageTs, slackId);
 
-    async grabImages(messageTs: string, slackId: string): Promise<string[]> {
+        return evidence.map(message => message.files ? message.files : []).flat().filter(file => file.mimetype && file.mimetype.includes("image"));
+    },
+
+    async grabImageURLs(messageTs: string, slackId: string): Promise<string[]> {
         const evidence = await this.fetch(messageTs, slackId);
 
         return evidence.map(message => message.files ? message.files : []).flat().filter(file => file.mimetype && file.mimetype.includes("image")).map(file => file.permalink_public).filter(i => i !== undefined);
