@@ -32,12 +32,12 @@ app.event('message', async ({ event }) => {
     if (event.channel !== channelID) { return; }
     if (event.subtype === 'bot_message') { return; }
 
-    let user = (event as any).user;
+    let user: string | undefined = (event as any).user;
     if (!user) { return; }
 
-    if (!user?.id) {
-      user = await Slack.users.info({user});
-    }
+    // if (!user?.id) {
+    //   user = await Slack.users.info({user});
+    // }
 
     // if (user.is_admin) { return }
     // if (user.is_owner) { return }
@@ -45,9 +45,10 @@ app.event('message', async ({ event }) => {
     // not an admin, delete the message
     await Slack.chat.delete({channel: event.channel, ts: event.ts});
     const thread_ts = (event as any)?.thread_ts || "";
+
     await Slack.chat.postEphemeral({
       channel: event.channel,
-      user: user.id,
+      user,
       thread_ts,
       text: "This is a read-only channel. Only admins can post here."
     });
