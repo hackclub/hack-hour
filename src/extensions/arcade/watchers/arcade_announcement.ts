@@ -36,12 +36,12 @@ app.event('message', async ({ event }) => {
     if (!user) { return; }
 
     // if (!user?.id) {
-    //   user = await Slack.users.info({user});
     // }
+    const userInfo = await Slack.users.info({user});
 
-    // if (user.is_admin) { return }
-    // if (user.is_owner) { return }
-    // if (user.is_primary_owner) { return }
+    if (userInfo.user?.is_admin) { return }
+    if (userInfo.user?.is_owner) { return }
+    if (userInfo.user?.is_primary_owner) { return }
     // not an admin, delete the message
     await Slack.chat.delete({channel: event.channel, ts: event.ts});
     const thread_ts = (event as any)?.thread_ts || "";
