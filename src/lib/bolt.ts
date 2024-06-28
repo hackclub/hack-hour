@@ -82,7 +82,7 @@ async function callSlackClient(asyncFunction: Function, ...args: any[]) {
 
 export const Slack = {
     auth: {
-        app.client.auth
+        ...app.client.auth
     },
     users: app.client.users,
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
@@ -288,6 +288,8 @@ export const Slack = {
 
     chat: {
         delete(options: Parameters<typeof app.client.chat.delete>[0]) {
+            if (options) { options!.token = Environment.ADMIN_TOKEN };
+
             return callSlackClient(app.client.chat.delete, options);
         },
         postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
