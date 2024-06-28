@@ -59,7 +59,30 @@ export const recordCommands = [
     Commands.SHOP,
 ]
 
+async function callSlackClient(asyncFunction: Function, ...args: any[]) {
+    try {
+        const now = new Date();
+
+        console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
+
+        const result = await asyncFunction(...args);
+
+        assertVal(result);
+
+        const diff = new Date().getTime() - now.getTime();
+
+        console.log(`[${now.toISOString()}] Slack client method succeeded after ${diff}ms`)
+
+        return result;
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+
+}
+
 export const Slack = {
+    auth: app.client.auth,
+    users: app.client.users,
     async command(command: string, commandHandler: (payload: SlackCommandMiddlewareArgs & AllMiddlewareArgs<StringIndexed>) => void) {
         app.command(command, async (payload) => {
             const now = new Date();
@@ -284,6 +307,23 @@ export const Slack = {
     },
 
     chat: {
+        async delete(options: Parameters<typeof app.client.chat.delete>[0]) {
+            try {
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] deleting message`)
+
+                const result = assertVal(await app.client.chat.delete(options));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] deleted message in ${diff}ms`)
+
+                return result;
+            } catch (error) {
+                emitter.emit('error', { error });
+            }
+        },
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             try {
                 const now = new Date();
@@ -542,11 +582,37 @@ export const Slack = {
     },
 
     conversations: {
-        async members(slackChannelId: string) {
+        async members({
+            channelID,
+            nextCursor
+        }:  {channelID: string, nextCursor?: string}): Promise<string[]> {
             try {
-                const results = await app.client.conversations.members({limit: 1000, channel: slackChannelId});
-                return results.members
+                const request = await app.client.conversations.members({limit: 100, channel: channelID, cursor: nextCursor});
+                const members = request.members || [];
+                let nextMembers: string[] = []
+                if (request.response_metadata?.next_cursor) {
+                    nextMembers = await Slack.conversations.members({channelID, nextCursor: request.response_metadata.next_cursor});
+                }
+                return [...members, ...nextMembers]
 
+            } catch (error) {
+                emitter.emit('error', { error });
+                return []
+            }
+        },
+        async info(channelID: string) {
+            try {
+                const now = new Date();
+
+                console.log(`[${now.toISOString()}] fetching channel info`);
+
+                const result = assertVal(await app.client.conversations.info({ channel: channelID }));
+
+                const diff = new Date().getTime() - now.getTime();
+
+                console.log(`[${now.toISOString()}] fetched channel info in ${diff}ms`)
+
+                return result;
             } catch (error) {
                 emitter.emit('error', { error });
             }

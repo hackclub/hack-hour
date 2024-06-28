@@ -16,7 +16,7 @@ async function getReviewerCache() {
     const noCache = !slackReviewerCache || slackReviewerCache.length == 0;
     const expired = new Date().getTime() - reviewerCacheUpdatedTs.getTime() > 1000 * 60 * 5; // 5 minutes
     if (noCache || expired) {
-        slackReviewerCache = await Slack.conversations.members(Environment.REVIEW_CHANNEL);
+        slackReviewerCache = await Slack.conversations.members({channelID: Environment.REVIEW_CHANNEL});
         reviewerCacheUpdatedTs = new Date();
     }
     if (!slackReviewerCache) { return []; }
