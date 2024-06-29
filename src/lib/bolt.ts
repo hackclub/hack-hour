@@ -59,13 +59,15 @@ export const recordCommands = [
     Commands.SHOP,
 ]
 
-async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction: T, ...args: any[]): Promise<NonNullable<ReturnType<T>> | undefined> {
+async function callSlackClient(asyncFunction: Function, ...args: any[]) {
     try {
         const now = new Date();
 
         console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
 
-        const result = await asyncFunction(...args) as ReturnType<T>;
+        const result = await asyncFunction(...args);
+
+        assertVal(result);
 
         const diff = new Date().getTime() - now.getTime();
 
@@ -74,8 +76,6 @@ async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction:
         return result;
     } catch (error) {
         emitter.emit('error', { error });
-
-        return undefined;
     }
 
 }
@@ -287,36 +287,34 @@ export const Slack = {
     },
 
     chat: {
-        async delete(options: Parameters<typeof app.client.chat.delete>[0]) {
+        delete(options: Parameters<typeof app.client.chat.delete>[0]) {
             if (options) { options!.token = Environment.ADMIN_TOKEN };
 
-            return assertVal(await callSlackClient(app.client.chat.delete, options));
+            return callSlackClient(app.client.chat.delete, options);
         },
-
-        async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
+        postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-
-            return assertVal(await callSlackClient(app.client.chat.postMessage, options));
+            return callSlackClient(app.client.chat.postMessage, options);
         },
 
-        async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
+        postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-            return assertVal(await callSlackClient(app.client.chat.postEphemeral, options));            
+            return callSlackClient(app.client.chat.postEphemeral, options);
         },
 
-        async update(options: Parameters<typeof app.client.chat.update>[0]) {
+        update(options: Parameters<typeof app.client.chat.update>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-            return assertVal(await callSlackClient(app.client.chat.update, options));
+            return callSlackClient(app.client.chat.update, options);
         },
 
-        async getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
-            return assertVal(await callSlackClient(app.client.chat.getPermalink, options));
+        getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
+            return callSlackClient(app.client.chat.getPermalink, options);
         }
     },
 
@@ -377,8 +375,8 @@ export const Slack = {
     },
 
     reactions: {
-       async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            return assertVal(await callSlackClient(app.client.reactions.add, options));
+        add(options: Parameters<typeof app.client.reactions.add>[0]) {
+            return callSlackClient(app.client.reactions.add, options);
         }
     },
 
@@ -401,13 +399,11 @@ export const Slack = {
                 return []
             }
         },
-
-        async info(channelID: string) {
-            return assertVal(await callSlackClient(app.client.conversations.info, { channel: channelID }));
+        info(channelID: string) {
+            return callSlackClient(app.client.conversations.info, { channel: channelID });
         },
-
-        async replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
-            return assertVal(await callSlackClient(app.client.conversations.replies, options));
+        replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
+            return callSlackClient(app.client.conversations.replies, options);
         }
     },
 

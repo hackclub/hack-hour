@@ -1,6 +1,5 @@
-import { KnownBlock, RichTextQuote } from "@slack/bolt";
+import { KnownBlock } from "@slack/bolt";
 import { Actions, Environment } from "../../../../lib/constants.js";
-import { formatHour, pfps, randomChoice, t } from "../../../../lib/templates.js";
 
 export class ReviewView {
     public static reviewStart({
@@ -11,30 +10,13 @@ export class ReviewView {
         text: string,
     }): KnownBlock[] {
         return [
-            // {
-            //     "type": "header",
-            //     "text": {
-            //         "type": "plain_text",
-            //         "text": "This is a header block",
-            //         "emoji": true
-            //     }
-            // },
             {
-                "type": "rich_text",
-                "elements": [
-                    {
-                        "type": "rich_text_quote",
-                        "elements": [
-                            {
-                                type: "text",
-                                "style": {
-                                    "italic": true
-                                },
-                                "text": text
-                            }
-                        ]
-                    }
-                ]
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": `>_${text.split('\n').join('_\n>')}`,
+                    "emoji": true
+                }
             },
             {
                 "type": "divider"

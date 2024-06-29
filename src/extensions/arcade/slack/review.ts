@@ -6,7 +6,6 @@ import { pfps, t } from "../../../lib/templates.js";
 import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
 import { reactOnContent } from "../../slack/lib/emoji.js";
-import getUrls from "get-urls";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -316,12 +315,6 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
     const scrapbook = records[0];
 
     await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
-
-    await AirtableAPI.Scrapbook.update(scrapbook.id, {
-        "Reviewed On": "Hakkuun"
-    });
-
-    const user = await AirtableAPI.User.find(scrapbook.fields['User'][0]);
 
     await Slack.chat.postMessage({
         channel: Environment.SCRAPBOOK_CHANNEL,
