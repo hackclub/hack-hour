@@ -13,7 +13,8 @@ import { updateController, updateTopLevel } from "../slack/lib/lib.js";
 import { Session } from "../../lib/corelib.js";
 import { scryptSync } from "crypto";
 
-import { authorizedInternalUsers } from "../../lib/airtable.js";
+let authCache: string[] = []; // list of cached API keys & user IDs
+let unauthCache: string[] = []; // list of invalid user IDs
 
 const limiter = rateLimit({
     // 16 req per hour
@@ -34,7 +35,8 @@ declare global {
     }
 }
 
-const endpoints = [];
+const endpoints: string[] = [];
+
 AirtableAPI.API.getAllActive().then(records => {
     records.forEach(record => {
         endpoints.push(record.fields['Endpoint']);
@@ -82,6 +84,7 @@ emitter.on('cancel', async (session: SessionType) => {
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
+
     if (authHeader) {
         const apiKey = authHeader.split(' ')[1];
         req.apiKey = apiKey;
@@ -178,11 +181,19 @@ express.get('/api/clock/:slackId', async (req, res) => {
 /**
  * Get the latest session
  */
-express.get('/api/session/:slackId', async (req, res) => {
-    const slackId = req.params.slackId;
+express.get('/api/session', async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
-            slackId: slackId,
+            user: {
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+            },
         },
     });
 
@@ -220,7 +231,7 @@ express.get('/api/session/:slackId', async (req, res) => {
         const response = {
             ok: true,
             data: {
-                id: slackId,
+                id: slackUser.slackId,
                 createdAt: result.createdAt,
                 time: result.time,
                 elapsed: result.elapsed,
@@ -248,11 +259,19 @@ express.get('/api/session/:slackId', async (req, res) => {
 /**
  * Get stats for a user, including number of sessions and number of hours
  */
-express.get('/api/stats/:slackId', async (req, res) => {
-    const slackId = req.params.slackId;
+express.get('/api/stats', async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
-            slackId: slackId,
+            user: {
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+            },
         },
     });
 
@@ -300,11 +319,19 @@ express.get('/api/stats/:slackId', async (req, res) => {
 /**
  * Get the goals of a user
  */
-express.get('/api/goals/:slackId', async (req, res) => {
-    const slackId = req.params.slackId;
+express.get('/api/goals', async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
-            slackId: slackId,
+            user: {
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+            },
         },
     });
 
@@ -341,31 +368,30 @@ express.get('/api/goals/:slackId', async (req, res) => {
 /**
  * Get the user's session history
  */
-express.get('/api/history/:slackId', async (req, res) => {
-    const slackId = req.params.slackId;
+express.get('/api/history', async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
-            slackId: slackId,
-        },
-        select: {
             user: {
-                include: {
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+            },
+        },
+        include: {
+            user: {
+                select: {
                     sessions: {
-                        orderBy: {
-                            createdAt: 'desc',
-                        },
-                        select: {
-                            createdAt: true,
-                            time: true,
-                            elapsed: true,
-                            completed: true,
-                            cancelled: true,
+                        include: {
                             goal: {
                                 select: {
                                     name: true,
                                 }
-                            },
-                            metadata: true,
+                            }
                         }
                     }
                 }
@@ -435,17 +461,10 @@ express.post('/api/start', limiter, async (req, res) => {
         }
     });
 
-    if (!user) {
+    if (!user || !user.slackUser?.slackId) {
         return res.status(401).send({
             ok: false,
-            error: 'Unauthorized - Invalid API key',
-        });
-    }
-
-    if (!authorizedInternalUsers.includes(user.id)) {
-        return res.status(401).send({
-            ok: false,
-            error: 'Unauthorized - User not authorized',
+            error: 'Unauthorized',
         });
     }
 
@@ -581,17 +600,10 @@ express.post('/api/cancel', limiter, async (req, res) => {
             }
         });
 
-        if (!session) {
+        if (!session || !session.user.slackUser?.slackId) {
             return res.status(401).send({
                 ok: false,
                 error: 'Invalid user or no active session found',
-            });
-        }
-
-        if (!authorizedInternalUsers.includes(session.userId)) {
-            return res.status(401).send({
-                ok: false,
-                error: 'Unauthorized - User not authorized',
             });
         }
 
@@ -652,17 +664,10 @@ express.post('/api/pause', limiter, async (req, res) => {
             }
         });
 
-        if (!session) {
+        if (!session || !session.user.slackUser?.slackId) {
             return res.status(401).send({
                 ok: false,
                 error: 'Invalid user or no active session found',
-            });
-        }
-
-        if (!authorizedInternalUsers.includes(session.userId)) {
-            return res.status(401).send({
-                ok: false,
-                error: 'Unauthorized - User not authorized',
             });
         }
 
