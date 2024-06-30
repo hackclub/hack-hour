@@ -6,8 +6,8 @@ import chalk from 'chalk';
 const program = new Command();
 
 const apiEndpoint = 'https://hackhour.hackclub.com/api/';
-const slackId = 'YOUR_SLACK_ID_HERE';
-const apiKey = 'YOUR_API_KEY_HERE';
+// const slackId = '';
+const apiKey = '';
 
 const error = chalk.bold.hex('#e63737');
 const finish = chalk.bold.bgHex('#37e637');
@@ -17,7 +17,12 @@ program
     .description('A hack hour CLI')
 
 program.action(() => {
-    fetch(apiEndpoint + 'session/' + slackId)
+    fetch(apiEndpoint + 'session', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + apiKey
+        }
+    })
         .then(res => res.json())
         .then(res => {
             if (!res || !res.ok) {
@@ -36,6 +41,9 @@ program.action(() => {
                 console.log(chalk.bold('Started at: ') + res.data.createdAt);
                 console.log(chalk.bold('Estimated end: ') + res.data.endTime);
             }
+        })
+        .catch(err => {
+            console.log(`${error('Error:')} ${err}`);
         });
 });
 
@@ -65,7 +73,7 @@ program.command('start')
 
 program.command('pause')
     .description('pause the current hack hour')
-    .action(() => {        
+    .action(() => {
         fetch(apiEndpoint + 'pause', {
             method: 'POST',
             headers: {
@@ -106,5 +114,62 @@ program.command('cancel')
                 }
             });
     });
+
+program.command('stats')
+    .description('get the user stats')
+    .action(() => {
+        fetch(apiEndpoint + 'stats', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + apiKey
+            }
+        })
+            .then(res => res.json())
+            .then(res => {
+                console.log(res);
+            })
+            .catch(err => {
+                console.log(`${error('Error:')} ${err}`);
+            });
+    });
+
+program.command('goals')
+    .description('get the user goals')
+    .action(() => {
+        fetch(apiEndpoint + 'goals', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + apiKey
+            }
+        })
+            .then(res => res.json())
+            .then(res => {
+                console.log(res);
+            })
+            .catch(err => {
+                console.log(`${error('Error:')} ${err}`);
+            });
+    });
+
+program.command('history')
+    .description('get the user history')
+    .action(() => {
+        fetch(apiEndpoint + 'history', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + apiKey
+            }
+        })
+            .then(res => res.json())
+            .then(res => {
+                console.log(res);
+            })
+            .catch(err => {
+                console.log(`${error('Error:')} ${err}`);
+            });
+    });
+
+
+
 
 program.parse(process.argv);

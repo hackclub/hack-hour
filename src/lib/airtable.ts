@@ -276,18 +276,18 @@ export const AirtableAPI = {
             }
         },
 
-        async authorizedAPIUsers(): Promise<AirtableUserRead[]> {
-            console.log(`[AirtableAPI.User.authorizedAPIUsers] Finding all users with API Authorization`)
+        async isAuthorized(slackId: string): Promise<boolean> {
+            console.log(`[AirtableAPI.User.isAuthorized] Checking if ${slackId} is authorized`)
 
             const now = Date.now();
 
             const records = await users.select({
-                filterByFormula: `{API Authorization} = 1`
+                filterByFormula: `AND({Slack ID} = "${slackId}", {API Authorization} = 1)`
             }).all();
 
-            console.log(`[AirtableAPI.User.authorizedAPIUsers] Took ${Date.now() - now}ms`)
+            console.log(`[AirtableAPI.User.isAuthorized] Took ${Date.now() - now}ms`)
 
-            return records.map(record => record.fields as AirtableUserRead);
+            return records.length > 0;
         }
     },
     Session: {
@@ -422,19 +422,3 @@ export const AirtableAPI = {
         }    
     }
 };
-
-
-export let authorizedSlackUsers: string[] = [];
-export let authorizedInternalUsers: string[] = [];
-
-AirtableAPI.User.authorizedAPIUsers().then(users => {
-    authorizedSlackUsers = users.map(user => user["Slack ID"]);
-    authorizedSlackUsers = users.map(user => user["Internal ID"]);
-});
-
-emitter.on("hour", async () => {
-    AirtableAPI.User.authorizedAPIUsers().then(users => {
-        authorizedSlackUsers = users.map(user => user["Slack ID"]);
-        authorizedSlackUsers = users.map(user => user["Internal ID"]);
-    });
-});
