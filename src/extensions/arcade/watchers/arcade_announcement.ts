@@ -3,13 +3,14 @@
 import { Slack, app } from "../../../lib/bolt.js";
 
 const channelID = "C07AXU6FCC8";
+const gameoverID = "C07ABG7JW69";
 
 const getOwnBotID = async () => {
   const bot = await Slack.auth.test();
   return bot.user_id || '';
 }
 
-const getUsersInChannel = async () => {
+const getUsersInChannel = async (channelID: string) => {
   return await Slack.conversations.members({channelID});
 }
 const ensureChannelJoined = async () => {
@@ -18,9 +19,17 @@ const ensureChannelJoined = async () => {
     throw new Error(`Failed to get channel info for ${channelID}`);
   }
 
-  const [usersInChannel, ownBotID] = await Promise.all([getUsersInChannel(), getOwnBotID()]);
+  const [usersInChannel, gameoverusersInChannel, ownBotID] = await Promise.all([
+    getUsersInChannel(channelID), 
+    getUsersInChannel(gameoverID),
+    getOwnBotID()
+  ]);
+
   if (!usersInChannel.includes(ownBotID)) {
     console.error(`⚠️ Bot is not in required channel ${channelID}`);
+  }
+  if (!gameoverusersInChannel.includes(ownBotID)) {
+    console.error(`⚠️ Bot is not in required channel ${gameoverID}`);
   }
 }
 
@@ -29,7 +38,7 @@ setTimeout(ensureChannelJoined, 1000 * 5);
 
 app.event('message', async ({ event }) => {  
   try {
-    if (event.channel !== channelID) { return; }
+    if (!(event.channel === channelID || event.channel === gameoverID)) { return; }
     if (event.subtype === 'bot_message') { return; }
 
     let user: string | undefined = (event as any).user;
