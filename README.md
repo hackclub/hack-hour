@@ -6,27 +6,9 @@ Hack Hour is a project tracker & time management tool for hacking on projects. I
 ## API
 _Note: There is no guarantee for the reliability of the API. If data is lost and/or is not registered for Arcade, there's not much we can do - use at your own risk._
 
-### GET `/ping`
-Returns with `pong`. Check if the thing is alive
+All endpoints require an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
 
-### GET `/status`
-Get specific details on the status of hack hour (heidi)
-
-Example Response:
-```json
-{
-    "activeSessions": -1,
-    "airtableConnected": false,
-    "slackConnected": false,
-}
-```
-
-### GET `/api/clock/:slackId`
-Depreciated. Use `/api/session/:slackId` instead.
-
-Responds with unix timestamp of the expected end time of the current session for the user.
-
-### GET `/api/session/:slackId`
+### GET `/api/session`
 Gets the latest session for the user.
 
 Example Response:
@@ -48,7 +30,7 @@ Example Response:
 }
 ```
 
-### GET `/api/stats/:slackId`
+### GET `/api/stats`
 Gets the stats for the user.
 
 Example Response:
@@ -62,7 +44,7 @@ Example Response:
 }
 ```
 
-### GET `/api/goals/:slackId`
+### GET `/api/goals`
 Gets the goals for the user.
 
 Example Response:
@@ -80,7 +62,7 @@ Example Response:
 }
 ```
 
-### GET `/api/history/:slackId`
+### GET `/api/history`
 Gets the history for the user.
 
 Example Response:
@@ -105,8 +87,6 @@ Starts a new session for the user.
 
 Requires a JSON body with the following fields:
 - `work`: what the user is working on (string)
-
-Requires an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
 
 Example Response:
 ```json
@@ -154,3 +134,25 @@ Example Response:
     }
 }
 ```
+
+## API - No Auth
+
+### GET `/ping`
+Returns with `pong`. Check if the thing is alive
+
+### GET `/status`
+Get specific details on the status of hack hour (heidi)
+
+Example Response:
+```json
+{
+    "activeSessions": -1,
+    "airtableConnected": false,
+    "slackConnected": false,
+}
+```
+
+### GET `/api/clock/:slackId`
+Depreciated.
+
+Responds with unix timestamp of the expected end time of the current session for the user.
