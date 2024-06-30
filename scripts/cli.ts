@@ -5,7 +5,7 @@ import chalk from 'chalk';
 
 const program = new Command();
 
-const apiEndpoint = 'https://optimum-stork-daily.ngrok-free.app/api/';
+const apiEndpoint = 'https://hackhour.hackclub.com/api/';
 // const slackId = '';
 const apiKey = '';
 
