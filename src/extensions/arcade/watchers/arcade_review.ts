@@ -72,7 +72,7 @@ const main = async () => {
             console.error(e)
         }
         await sleep(1000 * 60); // wait 5 seconds
-        return approveJob() // run again
+        // return approveJob() // run again
     }
     approveJob(); // intentionally not awaiting!
 
