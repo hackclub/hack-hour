@@ -68,10 +68,10 @@ type Template =
     'review.start' |
     'review.preset.approved' |
     'review.preset.rejected' |
-    'review.preset.rejectedLock' |
+    'review.preset.rejectedlock' |
     'review.reviewer.approved' |
     'review.reviewer.rejected' |
-    'review.reviewer.rejectedLock';
+    'review.reviewer.rejectedlock';
 
 interface Data {
     slackId?: string,

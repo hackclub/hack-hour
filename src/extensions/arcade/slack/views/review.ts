@@ -337,7 +337,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                 "text": {
                     "type": "mrkdwn",
                     // "text": `Rejected and locked ${slackId ? `by <@${slackId}>` : ` session!`}`
-                    "text": slackId ? t('review.reviewer.rejectedLock', { slackId }) : t('review.preset.rejectedLock')
+                    "text": slackId ? t('review.reviewer.rejectedlock', { slackId }) : t('review.preset.rejectedlock')
                 },
                 "accessory": {
                     "type": "button",
