@@ -1,6 +1,4 @@
 // Scans for evidence in threads
-
-import { text } from "body-parser";
 import { Slack } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
         
@@ -142,8 +140,8 @@ export const Evidence = {
     },
 
     async grabLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
-        return evidence.map(message => message.text).filter(text => text !== undefined).map(text => this.getUrl(text)).filter(url => url !== undefined);
-
+        // just return urls that are urls
+        return evidence.map(message => message.text).filter(text => text !== undefined).filter(text => this.isURL(text));
     },
 
     async grabOnShapeLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
