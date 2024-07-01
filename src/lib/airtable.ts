@@ -68,6 +68,8 @@ type AirtableUserRead = {
     "Minutes (Rejected)": number,
     // "Preexisting": boolean,
     "API Authorization": boolean,
+
+    "Verification Status (from YSWS Verification User)": "Unknown" | "Not Eligible" | "Eligible L1" | "Eligible L2" | "Testing" | "",
 };
 
 type AirtableReviewerRead = {

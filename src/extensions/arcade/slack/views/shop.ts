@@ -8,6 +8,7 @@ export class Shop {
         awaitingApproval,
         inOrders,
         spent,
+        verification
         // lifetime,
         // lifetimeTickets
     }: {
@@ -16,6 +17,7 @@ export class Shop {
         awaitingApproval: number,
         inOrders: number,
         spent: number,
+        verification: string 
     }): View {
         return {
             "type": "modal",
@@ -83,7 +85,7 @@ _How do I get tickets?_\n- Provide <https://hackclub.slack.com/canvas/C077TSWKER
                                 "text": "open the shop!",
                                 "emoji": true
                             },
-                            "url": `${Environment.SHOP_URL}/arcade/${recordId}/shop/`,
+                            "url": verification ? `${Environment.SHOP_URL}/arcade/${recordId}/shop/` : `https://forms.hackclub.com/eligibility`,
                             "action_id": Actions.NO_ACTION,
                             "style": "primary"
                         },
