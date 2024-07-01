@@ -206,28 +206,46 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                         }
                     ]
                 },
-                ...(urls ? [{
-                    "type": "rich_text_quote",
-                    "elements": urls.map(url => ({
-                        "type": "link",
-                        "text": url + '\n',
-                        "url": url,
-                    }))
-                }] as RichTextQuote[] : []),
-                {
-                    "type": "rich_text_section",
-                    "elements": [
-                        {
-                            "type": "link",
-                            "text": `view session`,
-                            "url": link,
-                            "style": {
-                                "bold": true
-                            }
-                        },
-                    ]
-                }
+                // ...(urls ? [{
+                //     "type": "rich_text_quote",
+                //     "elements": urls.map(url => ({
+                //         "type": "link",
+                //         "text": url + '\n',
+                //         "url": url,
+                //     }))
+                // }] as RichTextQuote[] : []),
+                // {
+                //     "type": "rich_text_section",
+                //     "elements": [
+                //         {
+                //             "type": "link",
+                //             "text": `view session`,
+                //             "url": link,
+                //             "style": {
+                //                 "bold": true
+                //             }
+                //         },
+                //     ]
+                // }
             ]
+        });
+
+        if (urls) {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": urls.join('\n')
+                }
+            });
+        }
+
+        blocks.push({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `view session: <${link}|here>`
+            }
         });
 
         if (images) {

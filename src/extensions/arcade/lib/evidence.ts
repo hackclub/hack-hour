@@ -160,10 +160,7 @@ export const Evidence = {
     
     // Helpers
     getUrl(message: string) {
-        // get the link out of slack formatting
-        // <https://cad.onshape.com/documents/...|Onshape> or <https://google.com>
-        const match = message.match(/<([^|]+)(?:\|[^>]+)?>/);
-        return match ? match[1] : undefined
+        return Array.from(getUrls(message))[0];
     },
     
     getUrls(message: string) {
