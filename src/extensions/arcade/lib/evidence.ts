@@ -142,7 +142,7 @@ export const Evidence = {
     },
 
     async grabLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
-        return evidence.map(message => message.text ? message.text : "").filter(text => text !== undefined).filter(text => this.isURL(text));
+        return evidence.map(message => message.text).filter(text => text !== undefined).map(text => this.getUrl(text)).filter(url => url !== undefined);
     },
 
     async grabOnShapeLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
@@ -158,6 +158,11 @@ export const Evidence = {
     },
     
     // Helpers
+    getUrl(message: string) {
+        // extract using regex
+        return /https?:\/\/[^\s]+/.exec(message)?.[0];
+    },
+    
     getUrls(message: string) {
         return Array.from(getUrls(message));
     }
