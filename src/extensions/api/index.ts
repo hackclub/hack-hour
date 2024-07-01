@@ -17,6 +17,7 @@ const readLimit = rateLimit({
     // 10 req per minute
     windowMs: 60 * 1000,
     limit: 10,
+    skipFailedRequests: true,
     message: {
         ok: false,
         error: 'Rate limit exceeded - 10 requests per minute allowed.',
