@@ -288,32 +288,32 @@ export const Slack = {
         async delete(options: Parameters<typeof app.client.chat.delete>[0]) {
             if (options) { options!.token = Environment.ADMIN_TOKEN };
 
-            return assertVal(await callSlackClient(app.client.chat.delete, options));
+            return await assertVal(await callSlackClient(app.client.chat.delete, options));
         },
 
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-            return assertVal(await callSlackClient(app.client.chat.postMessage, options));
+            return await assertVal(await callSlackClient(app.client.chat.postMessage, options));
         },
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-            return assertVal(await callSlackClient(app.client.chat.postEphemeral, options));
+            return await assertVal(await callSlackClient(app.client.chat.postEphemeral, options));
         },
 
         async update(options: Parameters<typeof app.client.chat.update>[0]) {
             if (options?.blocks) {
                 console.log(JSON.stringify(options.blocks))
             }
-            return assertVal(await callSlackClient(app.client.chat.update, options));
+            return await assertVal(await callSlackClient(app.client.chat.update, options));
         },
 
         async getPermalink(options: Parameters<typeof app.client.chat.getPermalink>[0]) {
-            return assertVal(await callSlackClient(app.client.chat.getPermalink, options));
+            return await assertVal(await callSlackClient(app.client.chat.getPermalink, options));
         }
     },
 
@@ -375,7 +375,7 @@ export const Slack = {
 
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            return assertVal(await callSlackClient(app.client.reactions.add, options));
+            return await assertVal(await callSlackClient(app.client.reactions.add, options));
         }
     },
 
@@ -400,11 +400,11 @@ export const Slack = {
         },
 
         async info(channelID: string) {
-            return assertVal(await callSlackClient(app.client.conversations.info, { channel: channelID }));
+            return await assertVal(await callSlackClient(app.client.conversations.info, { channel: channelID }));
         },
 
         async replies(options: Parameters<typeof app.client.conversations.replies>[0]) {
-            return assertVal(await callSlackClient(app.client.conversations.replies, options));
+            return await assertVal(await callSlackClient(app.client.conversations.replies, options));
         }
     },
 

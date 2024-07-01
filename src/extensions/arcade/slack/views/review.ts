@@ -202,7 +202,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                     "elements": [
                         {
                             type: "text",
-                            "text": evidence
+                            "text": evidence.length > 0 ? evidence : "no evidence provided"
                         }
                     ]
                 },

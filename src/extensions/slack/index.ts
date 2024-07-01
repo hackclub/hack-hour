@@ -337,7 +337,7 @@ Slack.action(Actions.HACK, async ({ body, respond }) => {
                 }
             },
 
-            messageTs: assertVal(topLevel!.ts),
+            messageTs: await assertVal(topLevel!.ts),
             controlTs: controller.ts,
 
             time: 60,
@@ -382,7 +382,7 @@ Slack.action(Actions.HACK, async ({ body, respond }) => {
     await reactOnContent({
         content: text,
         channel: Environment.MAIN_CHANNEL,
-        ts: assertVal(topLevel!.ts)
+        ts: await assertVal(topLevel!.ts)
     });
 });
 
