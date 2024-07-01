@@ -143,6 +143,7 @@ export const Evidence = {
 
     async grabLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
         return evidence.map(message => message.text).filter(text => text !== undefined).map(text => this.getUrl(text)).filter(url => url !== undefined);
+
     },
 
     async grabOnShapeLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
@@ -159,8 +160,10 @@ export const Evidence = {
     
     // Helpers
     getUrl(message: string) {
-        // extract using regex
-        return /https?:\/\/[^\s]+/.exec(message)?.[0];
+        // get the link out of slack formatting
+        // <https://cad.onshape.com/documents/...|Onshape> or <https://google.com>
+        const match = message.match(/<([^|]+)(?:\|[^>]+)?>/);
+        return match ? match[1] : undefined
     },
     
     getUrls(message: string) {
