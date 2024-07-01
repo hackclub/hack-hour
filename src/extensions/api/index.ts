@@ -272,12 +272,6 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
  * Get stats for a user, including number of sessions and number of hours
  */
 express.get('/api/stats/:slackId', readLimit, async (req, res) => {
-    // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -338,7 +332,6 @@ express.get('/api/stats/:slackId', readLimit, async (req, res) => {
  * Get the goals of a user
  */
 express.get('/api/goals/:slackId', readLimit, async (req, res) => {
-    // hardcode rate limit
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -388,7 +381,6 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
  * Get the user's session history
  */
 express.get('/api/history/:slackId', readLimit, async (req, res) => {
-    // hardcode rate limit
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -453,12 +445,6 @@ Write API
  * Start a session
  */
 express.post('/api/start/:slackId', limiter, async (req, res) => {
-    // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -595,12 +581,6 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
  * Cancel a session
  */
 express.post('/api/cancel/:slackId', limiter, async (req, res) => {
-    // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     try {
         if (!req.apiKey) {
             return res.status(401).send({
@@ -665,12 +645,6 @@ express.post('/api/cancel/:slackId', limiter, async (req, res) => {
  * Pause a session
  */
 express.post('/api/pause/:slackId', limiter, async (req, res) => {
-    // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     try {
         if (!req.apiKey) {
             return res.status(401).send({
