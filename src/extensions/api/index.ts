@@ -13,9 +13,6 @@ import { updateController, updateTopLevel } from "../slack/lib/lib.js";
 import { Session } from "../../lib/corelib.js";
 import { scryptSync } from "crypto";
 
-let authCache: string[] = []; // list of cached API keys & user IDs
-let unauthCache: string[] = []; // list of invalid user IDs
-
 const readLimit = rateLimit({
     // 10 req per minute
     windowMs: 60 * 1000,
@@ -91,6 +88,8 @@ emitter.on('complete', async (session: SessionType) => {
 emitter.on('cancel', async (session: SessionType) => {
     await postEndpoints(session);
 });
+
+express.set('trust proxy', true) 
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
