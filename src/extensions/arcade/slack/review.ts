@@ -419,6 +419,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 
                     text: session.fields['Work'],
                     evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
+                    urls: await Evidence.grabLinks(evidence),
                     images: await Evidence.grabImageURLs(evidence)
                 }),
                 thread_ts: scrapbook.fields['Scrapbook TS']
@@ -605,11 +606,11 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
         blocks: ReviewView.session({
             createdAt: session.fields['Created At'],
             minutes: session.fields['Minutes'],
-            urls: await Evidence.grabLinks(evidence),
             link: session.fields['Code URL'],
             recId: session.id,
 
             text: session.fields['Work'],
+            urls: await Evidence.grabLinks(evidence),
             evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
             images: await Evidence.grabImageURLs(evidence)
         })
