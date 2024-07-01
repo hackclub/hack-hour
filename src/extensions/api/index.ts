@@ -189,81 +189,76 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
     }
 });
 
+const sessionCache = new Map<string, SessionType>();
+let lastCacheUpdate = new Date(0);
+const cacheExpiration = 1000 * 5; // 5 seconds
+async function updateSessionCache() {
+    sessionCache.clear();
+    const sessions = await prisma.session.findMany({
+        where: {
+            completed: false,
+            cancelled: false,
+            paused: false,
+        },
+        include: {
+            user: {
+                select: {
+                    slackUser: {
+                        select: {
+                            slackId: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+    for (const session of sessions) {
+        if (session?.user?.slackUser?.slackId) {
+            sessionCache.set(session?.user?.slackUser?.slackId, session);
+        }
+    }
+}
+let cacheUpdatePromise: Promise<void> | null = null;
+async function getSessionFromCache(slackID: string) {
+    if (new Date().getTime() - lastCacheUpdate.getTime() > cacheExpiration) {
+        if (!cacheUpdatePromise) {
+            cacheUpdatePromise = updateSessionCache();
+        }
+        await cacheUpdatePromise;
+    }
+    return sessionCache.get(slackID);
+}
 /**
  * Get the latest session
  */
 express.get('/api/session/:slackId', readLimit, async (req, res) => {
-    if (!req.apiKey) {
-        return res.status(401).send({
-            ok: false,
-            error: 'Unauthorized',
-        });
-    }
-
-    const slackUser = await prisma.slackUser.findFirst({
-        where: {
-            user: {
-                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
-            },
-        },
-    });
-
-    if (!slackUser) {
+    const slackId = req.params.slackId;
+    const session = await getSessionFromCache(slackId)
+    if (!session) {
+        // check if the user exists
         return res.status(404).send({
             ok: false,
-            error: 'User not found',
+            error: 'Session not found',
         });
-    }
-
-    // Grab the latest session
-    const result = await prisma.session.findFirst({
-        where: {
-            userId: slackUser.userId,
-        },
-        orderBy: {
-            createdAt: 'desc',
-        },
-        include: {
-            goal: {
-                select: {
-                    name: true,
-                }
-            },
-        },
-    });
-
-    if (result) {
+    } else {
         const now = new Date();
         const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
 
         endTime.setMilliseconds(0);
         endTime.setSeconds(0);
-
-        const response = {
+        return res.status(200).send({
             ok: true,
             data: {
-                id: slackUser.slackId,
-                createdAt: result.createdAt,
-                time: result.time,
-                elapsed: result.elapsed,
-                remaining: result.time - result.elapsed,
-                endTime: endTime,
-                paused: result.paused,
-                completed: result.completed || result.cancelled,
-                goal: result.goal.name,
-                work: result.metadata?.work,
-                messageTs: result.messageTs,
+                id: slackId,
+                createdAt: session.createdAt,
+                time: session.time,
+                elapsed: session.elapsed,
+                remaining: session.time - session.elapsed,
+                paused: session.paused,
+                completed: session.completed || session.cancelled,
+                messageTs: session.messageTs,
             },
-        }
-
-        return res.status(200).send(response);
-    } else {
-        const response: Response = {
-            ok: false,
-            error: 'No active session found',
-        }
-
-        return res.status(200).send(response);
+        });
     }
 });
 
