@@ -19,7 +19,7 @@ let unauthCache: string[] = []; // list of invalid user IDs
 const readLimit = rateLimit({
     // 10 req per minute
     windowMs: 60 * 1000,
-    max: 10,
+    limit: 10,
     message: {
         ok: false,
         error: 'Rate limit exceeded - 10 requests per minute allowed.',
@@ -29,7 +29,7 @@ const readLimit = rateLimit({
 const limiter = rateLimit({
     // 16 req per hour
     windowMs: 60 * 60 * 1000,
-    max: 16,
+    limit: 16,
     message: {
         ok: false,
         error: 'Rate limit exceeded - 16 requests per hour allowed.',
