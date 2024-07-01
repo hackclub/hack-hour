@@ -28,7 +28,7 @@ type AirtableUserWrite = {
     "Initial Banked Minutes"?: number,
     "Inital Order Refunded Minutes"?: number,
 
-    "/shop"? : string,
+    "/shop"?: string,
 };
 
 /*
@@ -112,6 +112,7 @@ type AirtableSessionRead = {
     "Percentage Approved": number,
     "Scrapbook Approved": boolean,
     "Review Button TS"?: string,
+    "User: Slack ID": [string],
 };
 
 interface AirtableScrapbookWrite {
@@ -129,6 +130,7 @@ interface AirtableScrapbookWrite {
     "Review Start Time"?: string,
     "Review End Time"?: string,
     "Review TS"?: string,
+    "Reviewed On": "Hakkuun" | "Airtable Interface" | "Other",
 };
 
 export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
@@ -136,6 +138,7 @@ export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> 
     "Count Unreviewed Sessions": number,
     "Linked Sessions Count": number,
     "Review Button TSs": string[],
+    "User: Slack ID": [string],
 };
 
 type AirtableAPIRead = {
@@ -146,7 +149,7 @@ type AirtableAPIRead = {
 
 export const AirtableAPI = {
     Reviewer: {
-        async all(): Promise<{id: AirtableRecordID, fields: AirtableReviewerRead}[]> {
+        async all(): Promise<{ id: AirtableRecordID, fields: AirtableReviewerRead }[]> {
             console.log(`[AirtableAPI.Reviewer.all] Finding all reviewers`)
 
             const now = Date.now();
@@ -155,13 +158,13 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Reviewer.all] Took ${Date.now() - now}ms`)
 
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableReviewerRead}));
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableReviewerRead }));
         },
         async allSlackIDs(): Promise<string[]> {
             const records = await this.all();
             return records.map(reviewer => reviewer.fields["Slack ID"]);
         },
-        async filter(filter: string): Promise<{id: AirtableRecordID, fields: AirtableReviewerRead}[]> {
+        async filter(filter: string): Promise<{ id: AirtableRecordID, fields: AirtableReviewerRead }[]> {
             console.log(`[AirtableAPI.Reviewer.filter] Looking up ${filter}`)
 
             const now = Date.now();
@@ -172,14 +175,14 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Reviewer.filter] Took ${Date.now() - now}ms`)
 
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableReviewerRead}));
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableReviewerRead }));
 
         }
     },
     User: {
-        async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
+        async find(record: string): Promise<{ id: AirtableRecordID, fields: AirtableUserRead } | null> {
             console.log(`[AirtableAPI.User.find] Looking up ${record}`)
-            
+
             const now = Date.now();
 
             const records = await sessions.find(record);
@@ -188,10 +191,10 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.User.find] Took ${Date.now() - now}ms`)
 
-            return {id: records.id, fields: records.fields as AirtableUserRead};
+            return { id: records.id, fields: records.fields as AirtableUserRead };
         },
 
-        async lookupById(id: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
+        async lookupById(id: string): Promise<{ id: AirtableRecordID, fields: AirtableUserRead } | null> {
             console.log(`[AirtableAPI.User.lookupById] Looking up ${id}`)
 
             const now = Date.now();
@@ -203,10 +206,10 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.User.lookupById] Took ${Date.now() - now}ms, returned ${records.length} records`)
 
             if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableUserRead};
+            return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
         },
 
-        async lookupBySlack(slack: string): Promise<{id: AirtableRecordID, fields: AirtableUserRead} | null> {
+        async lookupBySlack(slack: string): Promise<{ id: AirtableRecordID, fields: AirtableUserRead } | null> {
             console.log(`[AirtableAPI.User.lookupBySlack] Looking up ${slack}`)
 
             const now = Date.now();
@@ -218,10 +221,10 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.User.lookupBySlack] Took ${Date.now() - now}ms, returned ${records.length} records`)
 
             if (records.length === 0) { return null; }
-            return {id: records[0].id, fields: records[0].fields as AirtableUserRead};
+            return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
         },
 
-        async create(user: AirtableUserWrite): Promise<{id: AirtableRecordID, fields: AirtableUserWrite}> {
+        async create(user: AirtableUserWrite): Promise<{ id: AirtableRecordID, fields: AirtableUserWrite }> {
             console.log(`[AirtableAPI.User.create] Creating ${user}`)
 
             const now = Date.now();
@@ -232,10 +235,10 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.User.create] Took ${Date.now() - now}ms`)
 
-            return {id: record[0].id, fields: record[0].fields as AirtableUserWrite};
+            return { id: record[0].id, fields: record[0].fields as AirtableUserWrite };
         },
 
-        async update(id: AirtableRecordID, user: Partial<AirtableUserWrite>): Promise<{id: AirtableRecordID, fields: AirtableUserWrite}> {
+        async update(id: AirtableRecordID, user: Partial<AirtableUserWrite>): Promise<{ id: AirtableRecordID, fields: AirtableUserWrite }> {
             console.log(`[AirtableAPI.User.update] Updating ${id} with ${user}`)
 
             const now = Date.now();
@@ -247,10 +250,10 @@ export const AirtableAPI = {
 
             // console.log(`[AirtableAPI.User.update] Took ${Date.now() - date)}ms`)
 
-            return {id: records[0].id, fields: records[0].fields as AirtableUserWrite};
+            return { id: records[0].id, fields: records[0].fields as AirtableUserWrite };
         },
 
-        async findAll(): Promise<{id: AirtableRecordID, fields: AirtableUserRead}[]> {
+        async findAll(): Promise<{ id: AirtableRecordID, fields: AirtableUserRead }[]> {
             console.log(`[AirtableAPI.User.findAll] Finding all users`)
 
             const now = Date.now();
@@ -259,7 +262,7 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.User.findAll] Took ${Date.now() - now}ms`)
 
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableUserRead}));
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableUserRead }));
         },
 
         async delete(id: AirtableRecordID): Promise<void> {
@@ -291,7 +294,7 @@ export const AirtableAPI = {
         }
     },
     Session: {
-        async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableSessionRead} | null> {
+        async find(record: string): Promise<{ id: AirtableRecordID, fields: AirtableSessionRead } | null> {
             console.log(`[AirtableAPI.Session.find] Looking up ${record}`)
 
             const now = Date.now();
@@ -301,10 +304,10 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Session.find] Took ${Date.now() - now}ms`)
 
-            return {id: records.id, fields: records.fields as AirtableSessionRead};
+            return { id: records.id, fields: records.fields as AirtableSessionRead };
         },
 
-        async create(session: AirtableSessionWrite): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite}> {
+        async create(session: AirtableSessionWrite): Promise<{ id: AirtableRecordID, fields: AirtableSessionWrite }> {
             console.log(`[AirtableAPI.Session.create] Creating ${session}`)
 
             const now = Date.now();
@@ -315,10 +318,10 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Session.create] Took ${Date.now() - now}ms`);
 
-            return {id: record[0].id, fields: record[0].fields as AirtableSessionWrite};
+            return { id: record[0].id, fields: record[0].fields as AirtableSessionWrite };
         },
 
-        async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{id: AirtableRecordID, fields: AirtableSessionWrite} | null> {
+        async update(id: AirtableRecordID, session: Partial<AirtableSessionWrite>): Promise<{ id: AirtableRecordID, fields: AirtableSessionWrite } | null> {
             console.log(`[AirtableAPI.Session.update] Updating ${id} with ${JSON.stringify(session)}`)
 
             const now = Date.now();
@@ -326,14 +329,14 @@ export const AirtableAPI = {
             const records = await sessions.update([{
                 "id": id,
                 "fields": session
-            }]).catch(error => { console.error(error); return null});
+            }]).catch(error => { console.error(error); return null });
 
             console.log(`[AirtableAPI.Session.update] Took ${Date.now() - now}ms`);
 
-            return records ? {id: records[0].id, fields: records[0].fields as AirtableSessionWrite} : null;
+            return records ? { id: records[0].id, fields: records[0].fields as AirtableSessionWrite } : null;
         },
-        
-        async findAll(): Promise<{id: AirtableRecordID, fields: AirtableSessionRead}[]> {
+
+        async findAll(): Promise<{ id: AirtableRecordID, fields: AirtableSessionRead }[]> {
             console.log(`[AirtableAPI.Session.findAll] Finding all sessions`)
 
             const now = Date.now();
@@ -342,11 +345,11 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Session.findAll] Took ${Date.now() - now}ms`)
 
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableSessionRead}));
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableSessionRead }));
         }
     },
     Scrapbook: {
-        async find(record: string): Promise<{id: AirtableRecordID, fields: AirtableScrapbookRead} | null> {
+        async find(record: string): Promise<{ id: AirtableRecordID, fields: AirtableScrapbookRead } | null> {
             console.log(`[AirtableAPI.Scrapbook.find] Looking up ${record}`)
 
             const now = Date.now();
@@ -357,10 +360,10 @@ export const AirtableAPI = {
 
             if (!records) { return null; }
 
-            return {id: records.id, fields: records.fields as unknown as AirtableScrapbookRead};
+            return { id: records.id, fields: records.fields as unknown as AirtableScrapbookRead };
         },
 
-        async filter(filter: string): Promise<{id: AirtableRecordID, fields: AirtableScrapbookRead}[]> {
+        async filter(filter: string): Promise<{ id: AirtableRecordID, fields: AirtableScrapbookRead }[]> {
             console.log(`[AirtableAPI.Scrapbook.filter] Looking up ${filter}`)
 
             const now = Date.now();
@@ -373,10 +376,10 @@ export const AirtableAPI = {
 
             if (!records) { return [] }
 
-            return records.map(record => ({id: record.id, fields: record.fields as unknown as AirtableScrapbookRead}));
+            return records.map(record => ({ id: record.id, fields: record.fields as unknown as AirtableScrapbookRead }));
         },
 
-        async create(scrapbook: AirtableScrapbookWrite): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
+        async create(scrapbook: AirtableScrapbookWrite): Promise<{ id: AirtableRecordID, fields: AirtableScrapbookWrite }> {
             console.log(`[AirtableAPI.Scrapbook.create] Creating ${scrapbook}`)
 
             const now = Date.now();
@@ -387,10 +390,10 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Scrapbook.create] Took ${Date.now() - now}ms`)
 
-            return {id: record[0].id, fields: record[0].fields as unknown as AirtableScrapbookWrite};
+            return { id: record[0].id, fields: record[0].fields as unknown as AirtableScrapbookWrite };
         },
 
-        async update(id: AirtableRecordID, scrapbook: Partial<AirtableScrapbookWrite>): Promise<{id: AirtableRecordID, fields: AirtableScrapbookWrite}> {
+        async update(id: AirtableRecordID, scrapbook: Partial<AirtableScrapbookWrite>): Promise<{ id: AirtableRecordID, fields: AirtableScrapbookWrite }> {
             console.log(`[AirtableAPI.Scrapbook.update] Updating ${id} with ${scrapbook}`)
 
             const now = Date.now();
@@ -402,11 +405,11 @@ export const AirtableAPI = {
 
             console.log(`[AirtableAPI.Scrapbook.update] Took ${Date.now() - now}ms`)
 
-            return {id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite};
+            return { id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite };
         },
-    },    
+    },
     API: {
-        async getAllActive(): Promise<{id: AirtableRecordID, fields: AirtableAPIRead}[]> {
+        async getAllActive(): Promise<{ id: AirtableRecordID, fields: AirtableAPIRead }[]> {
             console.log(`[AirtableAPI.API.getAllActive] Finding all active APIs`)
 
             const now = Date.now();
@@ -416,9 +419,9 @@ export const AirtableAPI = {
             }).all();
 
             console.log(`[AirtableAPI.API.getAllActive] Took ${Date.now() - now}ms`)
-            
+
             // Return a list of endpoints
-            return records.map(record => ({id: record.id, fields: record.fields as AirtableAPIRead}));
-        }    
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableAPIRead }));
+        }
     }
 };

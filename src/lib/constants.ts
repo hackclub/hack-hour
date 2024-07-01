@@ -123,6 +123,7 @@ export const Actions = {
     REJECT_LOCK: 'rejectlock',
     UNDO: 'undo',
     UNSUBMIT: 'unsubmit',
+    MAGIC: 'magic',
 };
 
 export const Callbacks = {
