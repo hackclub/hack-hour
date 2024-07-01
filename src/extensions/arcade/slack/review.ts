@@ -352,7 +352,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
         thread_ts: scrapbook.fields['Scrapbook TS'],
         blocks: ReviewView.userOverview({
             scrapbookId: scrapbook.id,
-            hours: (user?.fields['Minutes (All)'] ?? 0)/60
+            hours: (user?.fields['Minutes (All)'] ?? -1)
         })
     })
 
