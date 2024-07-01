@@ -16,6 +16,16 @@ import { scryptSync } from "crypto";
 let authCache: string[] = []; // list of cached API keys & user IDs
 let unauthCache: string[] = []; // list of invalid user IDs
 
+// const readLimit = rateLimit({
+//     // 16 req per hour
+//     windowMs: 60 * 60 * 1000,
+//     max: 16,
+//     message: {
+//         ok: false,
+//         error: 'Rate limit exceeded - 16 requests per hour allowed.',
+//     },
+// });
+
 const limiter = rateLimit({
     // 16 req per hour
     windowMs: 60 * 60 * 1000,
@@ -182,6 +192,12 @@ express.get('/api/clock/:slackId', async (req, res) => {
  * Get the latest session
  */
 express.get('/api/session', async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -260,6 +276,12 @@ express.get('/api/session', async (req, res) => {
  * Get stats for a user, including number of sessions and number of hours
  */
 express.get('/api/stats', async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -320,6 +342,12 @@ express.get('/api/stats', async (req, res) => {
  * Get the goals of a user
  */
 express.get('/api/goals', async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -369,6 +397,12 @@ express.get('/api/goals', async (req, res) => {
  * Get the user's session history
  */
 express.get('/api/history', async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -433,6 +467,12 @@ Write API
  * Start a session
  */
 express.post('/api/start', limiter, async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -569,6 +609,12 @@ express.post('/api/start', limiter, async (req, res) => {
  * Cancel a session
  */
 express.post('/api/cancel', limiter, async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     try {
         if (!req.apiKey) {
             return res.status(401).send({
@@ -633,6 +679,12 @@ express.post('/api/cancel', limiter, async (req, res) => {
  * Pause a session
  */
 express.post('/api/pause', limiter, async (req, res) => {
+    // hardcode rate limit
+    return res.status(429).send({
+        ok: false,
+        error: 'Rate limit exceeded',
+    });
+
     try {
         if (!req.apiKey) {
             return res.status(401).send({
