@@ -68,10 +68,10 @@ type Template =
     'review.start' |
     'review.preset.approved' |
     'review.preset.rejected' |
-    'review.preset.rejectedlock' |
+    'review.preset.rejectedlocked' |
     'review.reviewer.approved' |
     'review.reviewer.rejected' |
-    'review.reviewer.rejectedlock';
+    'review.reviewer.rejectedlocked';
 
 interface Data {
     slackId?: string,
@@ -107,6 +107,8 @@ function flatten(obj: any, prefix: string = '') {
 export const templates: {
     [key in Template]: string[]
 } = flatten(templatesRaw);
+
+console.log(templates);
 
 export const pfps = {
     question: ":rac_question:",
