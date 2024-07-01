@@ -8,7 +8,7 @@ _Note: There is no guarantee for the reliability of the API. If data is lost and
 
 All endpoints require an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
 
-### GET `/api/session`
+### GET `/api/session/:slackId`
 Gets the latest session for the user.
 
 Example Response:
@@ -30,7 +30,7 @@ Example Response:
 }
 ```
 
-### GET `/api/stats`
+### GET `/api/stats/:slackId`
 Gets the stats for the user.
 
 Example Response:
@@ -44,7 +44,7 @@ Example Response:
 }
 ```
 
-### GET `/api/goals`
+### GET `/api/goals/:slackId`
 Gets the goals for the user.
 
 Example Response:
@@ -62,7 +62,7 @@ Example Response:
 }
 ```
 
-### GET `/api/history`
+### GET `/api/history/:slackId`
 Gets the history for the user.
 
 Example Response:
@@ -82,7 +82,7 @@ Example Response:
 }
 ```
 
-### POST `/api/start`
+### POST `/api/start/:slackId`
 Starts a new session for the user.
 
 Requires a JSON body with the following fields:
@@ -100,7 +100,7 @@ Example Response:
 }
 ```
 
-### POST `/api/pauses`
+### POST `/api/pause/:slackId`
 Pauses or resumes the current session for the user, depending on the current state.
 
 Requires an authorization header with the api key, as such: `Authorization: Bearer <apikey>`
@@ -118,7 +118,7 @@ Example Response:
 }
 ```
 
-### POST `/api/cancel`
+### POST `/api/cancel/:slackId`
 Cancels the current session for the user.
 
 Requires an authorization header with the api key, as such: `Authorization Bearer <apikey>`

@@ -16,15 +16,15 @@ import { scryptSync } from "crypto";
 let authCache: string[] = []; // list of cached API keys & user IDs
 let unauthCache: string[] = []; // list of invalid user IDs
 
-// const readLimit = rateLimit({
-//     // 16 req per hour
-//     windowMs: 60 * 60 * 1000,
-//     max: 16,
-//     message: {
-//         ok: false,
-//         error: 'Rate limit exceeded - 16 requests per hour allowed.',
-//     },
-// });
+const readLimit = rateLimit({
+    // 10 req per minute
+    windowMs: 60 * 1000,
+    max: 10,
+    message: {
+        ok: false,
+        error: 'Rate limit exceeded - 10 requests per minute allowed.',
+    },
+});
 
 const limiter = rateLimit({
     // 16 req per hour
@@ -95,6 +95,8 @@ emitter.on('cancel', async (session: SessionType) => {
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
 
+    console.log(`User agent: ${req.headers['user-agent']}`)
+
     if (authHeader) {
         const apiKey = authHeader.split(' ')[1];
         req.apiKey = apiKey;
@@ -152,7 +154,7 @@ type Response = ResponseOk | ResponseError;
  * Get the remaining time for the current session
  * deprecated
  */
-express.get('/api/clock/:slackId', async (req, res) => {
+express.get('/api/clock/:slackId', readLimit, async (req, res) => {
     const slackId = req.params.slackId;
     const slackUser = await prisma.slackUser.findFirst({
         where: {
@@ -191,13 +193,7 @@ express.get('/api/clock/:slackId', async (req, res) => {
 /**
  * Get the latest session
  */
-express.get('/api/session', async (req, res) => {
-    // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
+express.get('/api/session/:slackId', readLimit, async (req, res) => {
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -275,7 +271,7 @@ express.get('/api/session', async (req, res) => {
 /**
  * Get stats for a user, including number of sessions and number of hours
  */
-express.get('/api/stats', async (req, res) => {
+express.get('/api/stats/:slackId', readLimit, async (req, res) => {
     // hardcode rate limit
     return res.status(429).send({
         ok: false,
@@ -341,13 +337,8 @@ express.get('/api/stats', async (req, res) => {
 /**
  * Get the goals of a user
  */
-express.get('/api/goals', async (req, res) => {
+express.get('/api/goals/:slackId', readLimit, async (req, res) => {
     // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -396,13 +387,8 @@ express.get('/api/goals', async (req, res) => {
 /**
  * Get the user's session history
  */
-express.get('/api/history', async (req, res) => {
+express.get('/api/history/:slackId', readLimit, async (req, res) => {
     // hardcode rate limit
-    return res.status(429).send({
-        ok: false,
-        error: 'Rate limit exceeded',
-    });
-
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -466,7 +452,7 @@ Write API
 /**
  * Start a session
  */
-express.post('/api/start', limiter, async (req, res) => {
+express.post('/api/start/:slackId', limiter, async (req, res) => {
     // hardcode rate limit
     return res.status(429).send({
         ok: false,
@@ -608,7 +594,7 @@ express.post('/api/start', limiter, async (req, res) => {
 /**
  * Cancel a session
  */
-express.post('/api/cancel', limiter, async (req, res) => {
+express.post('/api/cancel/:slackId', limiter, async (req, res) => {
     // hardcode rate limit
     return res.status(429).send({
         ok: false,
@@ -678,7 +664,7 @@ express.post('/api/cancel', limiter, async (req, res) => {
 /**
  * Pause a session
  */
-express.post('/api/pause', limiter, async (req, res) => {
+express.post('/api/pause/:slackId', limiter, async (req, res) => {
     // hardcode rate limit
     return res.status(429).send({
         ok: false,
