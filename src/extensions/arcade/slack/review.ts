@@ -315,6 +315,18 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 
     const scrapbook = records[0];
 
+    if (scrapbook.fields['Reviewed On'] !== 'Other') {
+        console.error(`Scrapbook already reviewed: ${scrapbook.id}`);
+
+        respond({
+            text: 'Scrapbook already reviewed.',
+            response_type: 'ephemeral',
+            replace_original: true
+        });
+
+        return;
+    }
+
     await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
 
     await AirtableAPI.Scrapbook.update(scrapbook.id, {

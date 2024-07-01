@@ -9,6 +9,7 @@ const getArcadeScrapbooksToReview = async () => {
         // 'NOT({Approved})',
         'BLANK() = Reviewer',
         'BLANK() = {Review TS}',
+        '{Reviewed On} = "Other"'
         // `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
     // TODO: also include re-reviews in this list
@@ -55,7 +56,7 @@ const main = async () => {
         } catch(e) {
             console.error(e);
         }
-        await sleep(1000 * 10); // wait 10 seconds
+        await sleep(1000 * 60); // wait 10 seconds
         // return reviewJob() // run again
     }
     reviewJob(); // intentionally not awaiting!
@@ -70,8 +71,8 @@ const main = async () => {
         } catch(e) {
             console.error(e)
         }
-        await sleep(1000 * 5); // wait 5 seconds
-        // return approveJob() // run again
+        await sleep(1000 * 60); // wait 5 seconds
+        return approveJob() // run again
     }
     approveJob(); // intentionally not awaiting!
 
