@@ -190,6 +190,14 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
     }
 });
 
+express.get('/api/session', async (req, res) => {
+    // This is to invalidate all the sessions from the previous version of the vs code extension
+    return res.status(401).send({
+        ok: false,
+        error: 'Unauthorized',
+    })
+})
+
 /**
  * Get the latest session
  */
