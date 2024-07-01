@@ -193,7 +193,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                     "elements": [
                         {
                             type: "text",
-                            "text": text
+                            "text": text ? text : "no text provided"
                         }
                     ]
                 },
