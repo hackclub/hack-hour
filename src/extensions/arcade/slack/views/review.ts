@@ -158,11 +158,13 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
         evidence,
         images
     }: {
+        recId: string
+
         createdAt: string,
         minutes: number,
-        text: string,
         link: string,
-        recId: string
+
+        text: string,
         evidence: string,
         urls?: string[],
         images?: string[]

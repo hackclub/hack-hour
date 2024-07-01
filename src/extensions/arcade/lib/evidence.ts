@@ -1,5 +1,6 @@
 // Scans for evidence in threads
 
+import { text } from "body-parser";
 import { Slack } from "../../../lib/bolt.js";
 import { Environment } from "../../../lib/constants.js";
         
@@ -128,42 +129,34 @@ export const Evidence = {
     },
 
     // Grabbers
-    async grabImages(messageTs: string, slackId: string) {
-        const evidence = await this.fetch(messageTs, slackId);
-
+    async grabImages(evidence: Awaited<ReturnType<typeof this.fetch>>) {
         return evidence.map(message => message.files ? message.files : []).flat().filter(file => file.mimetype && file.mimetype.includes("image"));
     },
 
-    async grabImageURLs(messageTs: string, slackId: string): Promise<string[]> {
-        const evidence = await this.fetch(messageTs, slackId);
-
-        return evidence.map(message => message.files ? message.files : []).flat().filter(file => file.mimetype && file.mimetype.includes("image")).map(file => file.permalink_public).filter(i => i !== undefined);
+    async grabImageURLs(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        return (await this.grabImages(evidence)).map(file => file.permalink_public).filter(i => i !== undefined);
     },
 
-    async grabLinks(messageTs: string, slackId: string): Promise<string[]> {
-        const evidence = await this.fetch(messageTs, slackId);
+    async grabMessageText(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        return evidence.map(message => message.text).filter(text => text !== undefined).filter(text => !this.isURL(text));
+    },
 
+    async grabLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
         return evidence.map(message => this.getUrls(message.text ? message.text : "")).flat().filter(url => url !== undefined);
     },
 
-    async grabOnShapeLinks(messageTs: string, slackId: string): Promise<string[]> {
-        const evidence = await this.fetch(messageTs, slackId);
-
-        return (await this.grabLinks(messageTs, slackId)).filter(url => this.isOnShape(url));
+    async grabOnShapeLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        return (await this.grabLinks(evidence)).filter(url => this.isOnShape(url));
     },
 
-    async grabGHLinks(messageTs: string, slackId: string): Promise<string[]> {
-        const evidence = await this.fetch(messageTs, slackId);
-
-        return (await this.grabLinks(messageTs, slackId)).filter(url => this.isGH(url));
+    async grabGHLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        return (await this.grabLinks(evidence)).filter(url => this.isGH(url));
     },
 
-    async grabGHCommitLinks(messageTs: string, slackId: string): Promise<string[]> {
-        const evidence = await this.fetch(messageTs, slackId);
-
-        return (await this.grabGHLinks(messageTs, slackId)).filter(url => this.isGHCommit(url));
+    async grabGHCommitLinks(evidence: Awaited<ReturnType<typeof this.fetch>>) {
+        return (await this.grabGHLinks(evidence)).filter(url => this.isGHCommit(url));
     },
-
+    
     // Helpers
     getUrls(message: string) {
         return Array.from(getUrls(message));

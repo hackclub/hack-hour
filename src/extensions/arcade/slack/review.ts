@@ -7,6 +7,7 @@ import { ReviewView } from "./views/review.js";
 import { prisma } from "../../../lib/prisma.js";
 import { reactOnContent } from "../../slack/lib/emoji.js";
 import getUrls from "get-urls";
+import { Evidence } from "../lib/evidence.js";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -405,22 +406,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
                 blocks: ReviewView.rejectedLock(sessionId)
             });
         } else {
-            const sessionMessages = await Slack.conversations.replies({
-                ts: session.fields['Message TS'],
-                channel: Environment.MAIN_CHANNEL
-            });
-   
-            const userMessages = sessionMessages?.messages
-                ?.filter((m) => m.user === session.fields['User: Slack ID'][0]) ?? [];
-            
-            const textEvidence = userMessages?.length > 0 ? userMessages?.map((m) => m.text).join('\n') : 'Missing evidence';
-
-            const files = userMessages?.
-                filter((m) => m.files && m.files.length > 0)
-
-            console.log(files);
-
-            const urls = getUrls(textEvidence ?? '');
+            const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
             
             button = await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
@@ -428,11 +414,12 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
                 blocks: ReviewView.session({
                     createdAt: session.fields['Created At'],
                     minutes: session.fields['Minutes'],
-                    text: session.fields['Work'],
-                    evidence: textEvidence,
-                    urls: Array.from(urls),
                     link: session.fields['Code URL'],
-                    recId: session.id
+                    recId: session.id,
+
+                    text: session.fields['Work'],
+                    evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
+                    images: await Evidence.grabImageURLs(evidence)
                 }),
                 thread_ts: scrapbook.fields['Scrapbook TS']
             });
@@ -610,33 +597,7 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
         "Status": "Unreviewed"
     });
 
-    const sessionMessages = await Slack.conversations.replies({
-        ts: session.fields['Message TS'],
-        channel: Environment.MAIN_CHANNEL
-    });
-
-    const userMessages = sessionMessages?.messages
-        ?.filter((m) => m.user === session.fields['User: Slack ID'][0]) ?? [];
-    
-    const textEvidence = userMessages?.length > 0 ? 
-        userMessages
-        ?.map((m) => m.text)
-        .filter((t) => t && t.length > 0)
-        .join('\n') 
-        : 'Missing evidence';
-
-    const files = userMessages
-        ?.filter((m) => m.files && m.files.length > 0)
-        ?.map((m) => m.files)
-        ?.flat()
-
-    const images = files?.filter((f) => f?.mimetype?.startsWith('image')) ?? [];
-
-    const permalinks = files?.map((f) => f?.permalink) ?? [];
-
-    const urls = getUrls(textEvidence ?? '');
-
-    permalinks.forEach((f) => f && urls.add(f));
+    const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
 
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
@@ -644,12 +605,13 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
         blocks: ReviewView.session({
             createdAt: session.fields['Created At'],
             minutes: session.fields['Minutes'],
-            text: session.fields['Work'],
-            evidence: textEvidence,
-            urls: Array.from(urls),
+            urls: await Evidence.grabLinks(evidence),
             link: session.fields['Code URL'],
             recId: session.id,
-            images: images.map((i) => i?.permalink).filter(i => i !== undefined)
+
+            text: session.fields['Work'],
+            evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
+            images: await Evidence.grabImageURLs(evidence)
         })
     });
 });
