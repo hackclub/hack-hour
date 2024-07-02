@@ -371,7 +371,9 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
         ]
     });
 
-    for (const sessionId of scrapbook.fields['Sessions']) {
+    const sessionIds = await AirtableAPI.Session.fromScrapbook(scrapbook.id);
+
+    for (const sessionId of sessionIds) {
         const session = await AirtableAPI.Session.find(sessionId);
 
         if (!session) {

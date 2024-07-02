@@ -246,7 +246,15 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                 "type": "mrkdwn",
                 "text": `view session: <${link}|here>`
             }
+        }, {
+            "type": "section",
+            "text": {
+                "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${recId}|override on airtable>`,
+                "type": "mrkdwn"
+            }
         });
+
+        // add link to airtable
 
         if (images) {
             images.forEach(image => {

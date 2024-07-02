@@ -298,6 +298,7 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.Session.find] Looking up ${record}`)
 
             const now = Date.now();
+
             const records = await sessions.find(record);
 
             if (!records) { return null; }
@@ -346,6 +347,15 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.Session.findAll] Took ${Date.now() - now}ms`)
 
             return records.map(record => ({ id: record.id, fields: record.fields as AirtableSessionRead }));
+        },
+
+        async fromScrapbook(scrapbook: AirtableRecordID): Promise<AirtableRecordID[]> {
+            const records = await sessions.select({
+                filterByFormula: `FIND('${scrapbook}', {Scrapbook})`,
+                sort: [{ field: "Created At", direction: "asc" }],
+            }).all();
+
+            return records.map(record => record.id);
         }
     },
     Scrapbook: {
