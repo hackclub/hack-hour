@@ -465,7 +465,7 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.approved(sessionId, body.user.id, session.fields['Approved Minutes'])
+        blocks: ReviewView.approved(sessionId, body.user.id, session.fields['Minutes'])
     });
 
     // await Slack.chat.postMessage({
