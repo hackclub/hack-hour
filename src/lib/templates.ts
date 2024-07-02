@@ -42,6 +42,7 @@ type Template =
 
     'airtable.approved' |
     'airtable.rejected' |
+    'airtable.rejectedlocked' |
 
     'maintanenceMode' |
 

@@ -2,9 +2,6 @@
 
 import { Slack, app } from "../../../lib/bolt.js";
 
-// const channelID = "C07AXU6FCC8";
-// const gameoverID = "C07ABG7JW69";
-
 const protectedChannels = [
   "C07AXU6FCC8", // arcade-bulletin
   "C07ABG7JW69", // game-over

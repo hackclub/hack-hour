@@ -131,9 +131,11 @@ detect:
 
 airtable:
   approved:
-    - great work <@${slackId}>! you've got a arcade session! this session is now approved!
+    - great work <@${slackId}>! you've got a arcade session! you earned `${minutes}` minutes!!
   rejected:
-    - womp womp <@${slackId}>! this session is now rejected! i wunder why
+    - looks like this session was rejected <@${slackId}>! to resubmit this session, link a scrap in the thread!
+  rejectedlocked:
+    - "looks like this session was rejected <@${slackId}>! you won't be able to resubmit this session, sorry ):"
 
 maintanenceMode:
   - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
