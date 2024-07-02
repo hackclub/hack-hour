@@ -351,7 +351,7 @@ export const AirtableAPI = {
 
         async fromScrapbook(scrapbook: AirtableRecordID): Promise<AirtableRecordID[]> {
             const records = await sessions.select({
-                filterByFormula: `FIND('${scrapbook}', {Scrapbook})`,
+                filterByFormula: `{Scrapbook: Record ID} = '${scrapbook}'`,
                 sort: [{ field: "Created At", direction: "asc" }],
             }).all();
 
