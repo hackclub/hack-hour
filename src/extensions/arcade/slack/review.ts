@@ -467,6 +467,15 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
         blocks: ReviewView.approved(sessionId, body.user.id, session.fields['Minutes'])
     });
 
+    await Slack.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        thread_ts: session.fields['Message TS'],
+        text: t('airtable.approved', {
+            slackId: session.fields['User: Slack ID'][0],
+            minutes: session.fields['Approved Minutes']
+        })
+    });
+
     if (session.fields['Scrapbook'].length === 0) {
         console.error(`Scrapbook not found for session: ${sessionId}`);
 
@@ -511,6 +520,14 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
         blocks: ReviewView.rejected(sessionId, body.user.id)
+    });
+
+    await Slack.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        thread_ts: session.fields['Message TS'],
+        text: t('airtable.rejected', {
+            slackId: session.fields['User: Slack ID'][0],
+        })
     });
 
     if (session.fields['Scrapbook'].length === 0) {
@@ -558,6 +575,14 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
         blocks: ReviewView.rejectedLock(sessionId, body.user.id)
+    });
+
+    await Slack.chat.postMessage({
+        channel: Environment.MAIN_CHANNEL,
+        thread_ts: session.fields['Message TS'],
+        text: t('airtable.rejectedlocked', {
+            slackId: session.fields['User: Slack ID'][0],
+        })
     });
 
     if (session.fields['Scrapbook'].length === 0) {
