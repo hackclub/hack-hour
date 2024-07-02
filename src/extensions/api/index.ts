@@ -369,7 +369,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
         data: result.map(r => {
             return {
                 name: r.name,
-                minutes: r.minutes
+                minutes: r.minutes,
             }
         }),
     }
@@ -430,6 +430,7 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
                 ended: r.completed || r.cancelled,
 
                 work: r.metadata?.work,
+                messageTs: r.messageTs,
             }
         })
     }
@@ -573,6 +574,7 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
             id: session.id,
             slackId: user.slackUser?.slackId,
             createdAt: session.createdAt,
+            messageTs: assertVal(topLevel!.ts),
         },
     });
 });
@@ -634,6 +636,7 @@ express.post('/api/cancel/:slackId', limiter, async (req, res) => {
                 id: session.id,
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
+                messageTs: session.messageTs,
             },
         });
     } catch (error) {
@@ -699,6 +702,7 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
                 paused: updatedSession.paused,
+                messageTs: session.messageTs,
             },
         });
     } catch (error) {
