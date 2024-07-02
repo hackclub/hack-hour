@@ -257,17 +257,18 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
             }
         });
 
-        // add link to airtable
 
-        if (images) {
-            images.forEach(image => {
-                blocks.push({
-                    "type": "image",
-                    "image_url": image,
-                    "alt_text": "screenshot"
-                });
-            });
-        }
+        // images break the bot...
+
+        // if (images) {
+        //     images.forEach(image => {
+        //         blocks.push({
+        //             "type": "image",
+        //             "image_url": image,
+        //             "alt_text": "screenshot"
+        //         });
+        //     });
+        // }
 
         blocks.push(
             {
