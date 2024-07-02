@@ -5,9 +5,11 @@ import { formatHour, pfps, randomChoice, t } from "../../../../lib/templates.js"
 export class ReviewView {
     public static reviewStart({
         permalink,
+        recId,
         text,
     }: {
         permalink: string,
+        recId: string,
         text: string,
     }): KnownBlock[] {
         return [
@@ -44,7 +46,8 @@ export class ReviewView {
                 "text": {
                     "type": "mrkdwn",
                     "text": 
-`<${permalink}|Preview>`
+`<${permalink}|Preview>
+<https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${recId}|View on Airtable>`
                 },
                 "accessory": {
                     "type": "button",
