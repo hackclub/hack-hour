@@ -117,6 +117,7 @@ export class ChooseSessions {
                                 value: session.id,
                             }
                         }),
+                        max_selected_items: 25,
                         action_id: "sessions",
                     },
                 },
