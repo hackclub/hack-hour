@@ -21,7 +21,10 @@ export const Evidence = {
             ts: messageTs
         });
     
-        if (!evidence || !evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
+        if (!evidence || !evidence.messages) {
+            console.error("No evidence found for messageTs: ", messageTs, " and slackId: ", slackId);
+            return [];
+        }
 
         return evidence.messages.filter(message => message.user === slackId);
     },

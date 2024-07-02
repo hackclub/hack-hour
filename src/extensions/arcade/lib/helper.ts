@@ -15,15 +15,10 @@ const acceptedImageTypes = [
 
 // Take any media sent in the thread and attach it to the session
 export const surfaceEvidence = async (messageTs: string, slackId: string) => {
-    const evidence = await Slack.conversations.replies({
-        channel: Environment.MAIN_CHANNEL,
-        ts: messageTs
-    });
-
-    if (!evidence || !evidence.messages) { throw new Error(`No evidence found for ${messageTs}`); }
+    const evidence = await Evidence.fetch(messageTs, slackId);
 
     //const image = (evidence.messages.filter(message => message.user === slackId && (message.files ? message.files.length > 0 : false))).at(-1);
-    const image = (await Evidence.grabImages(messageTs, slackId)).at(-1);
+    const image = (await Evidence.grabImages(evidence)).at(-1);
 
     // attach the evidence to the session
     if (image) {
