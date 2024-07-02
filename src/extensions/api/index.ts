@@ -440,6 +440,60 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
     return res.status(200).send(response);
 });
 
+/**
+ * Get shop info of a user
+ */
+express.get('/api/shop/:slackId', readLimit, async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+
+    const user = await prisma.user.findUnique({
+        where: {
+            apiKey
+        },
+        include: {
+            slackUser: {
+                select: {
+                    slackId: true
+                }
+            }
+        }
+    });
+
+    if (!user || !user.slackUser?.slackId) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    const airtableUser = await AirtableAPI.User.lookupBySlack(user.slackUser.slackId);
+
+    if (!airtableUser) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    return res.status(200).send({
+        ok: true,
+        data: {
+            spendable: airtableUser.fields["Balance (Hours)"],
+            awaitingApproval: airtableUser.fields["Minutes (Pending Approval)"] / 60,
+            inOrders: airtableUser.fields["In Pending (Minutes)"] / 60,
+            spent: airtableUser.fields["Spent Fulfilled (Minutes)"] / 60,
+        }
+    })
+})
+
 /*
 Write API
 */
@@ -712,6 +766,9 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
     }
 });
 
+/**
+ * Change the goal of an active session
+ */
 express.post('/api/goals/:slackId', limiter, async (req, res) => {
     try {
         if (!req.apiKey) {
