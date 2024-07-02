@@ -78,14 +78,57 @@ export class Session {
     }
 
     public static async changeGoal(session: SessionType, goalId: string) {
+        const oldGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: session?.goalId as string
+            }
+        });
+
+        const newGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: goalId
+            }
+        });
+
         const updatedSession = await prisma.session.update({
             where: {
-                id: session.id
+                id: session.id,
+                goal: {
+                    completed: false
+                },
             },
             data: {
-                goalId: goalId
+                goal: {
+                    connect: {
+                        id: newGoal.id
+                    }
+                }
             }
-        })
+        });
+
+        if (session.completed || session.cancelled) {
+            await prisma.goal.update({
+                where: {
+                    id: oldGoal.id
+                },
+                data: {
+                    minutes: {
+                        decrement: session.elapsed
+                    }
+                }
+            });
+
+            await prisma.goal.update({
+                where: {
+                    id: newGoal.id
+                },
+                data: {
+                    minutes: {
+                        increment: session.elapsed
+                    }
+                }
+            });
+        }
 
         await Promise.all([
             updateController(updatedSession),
