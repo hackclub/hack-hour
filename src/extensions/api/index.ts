@@ -359,6 +359,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
             userId: slackUser.userId,
         },
         select: {
+            id: true,
             name: true,
             minutes: true,
         },
@@ -368,6 +369,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
         ok: true,
         data: result.map(r => {
             return {
+                id: r.id,
                 name: r.name,
                 minutes: r.minutes,
             }
@@ -709,3 +711,79 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
         emitter.emit('error', { error });
     }
 });
+
+express.post('/api/goals/:slackId', limiter, async (req, res) => {
+    try {
+        if (!req.apiKey) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized',
+            });
+        }
+
+        const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+        const session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    apiKey
+                },
+                completed: false,
+                cancelled: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session || !session.user.slackUser?.slackId) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Invalid user or no active session found',
+            });
+        }
+        
+        const result = await prisma.goal.findMany({
+            where: {
+                userId: session.user.slackUser.slackId,
+            },
+            select: {
+                id: true,
+                name: true,
+                minutes: true
+            },
+        });
+
+        if (typeof req.body.id !== 'string' || !result.find(i => i.id === req.body.id)) {
+            return res.status(400).send({
+                ok: false,
+                error: "Invalid Goal ID"
+            })
+        }
+
+        const updatedSession = await Session.changeGoal(session, req.body.id);
+
+        await updateTopLevel(updatedSession);
+
+        return res.status(200).send({
+            ok: true,
+            data: {
+                id: session.id,
+                slackId: session.user.slackUser?.slackId,
+                createdAt: session.createdAt,
+                goal: result.find(i => i.id === req.body.id),
+                messageTs: session.messageTs,
+            },
+        });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+})

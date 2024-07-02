@@ -75,6 +75,19 @@ export class Session {
 
         return updatedSession;
     }
+
+    public static async changeGoal(session: SessionType, goalId: string) {
+        const updatedSession = await prisma.session.update({
+            where: {
+                id: session.id
+            },
+            data: {
+                goalId: goalId
+            }
+        })
+        
+        return updatedSession;
+    }
 }
 
 // TODO: Metadata management
