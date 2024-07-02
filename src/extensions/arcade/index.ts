@@ -1,7 +1,7 @@
 import "./watchers/scrapbook.js";
 import "./watchers/hackhour.js"
 import "./watchers/airtable.js";
-import "./watchers/arcade_announcement.js";
+import "./watchers/protected_channels.js";
 
 import "./slack/index.js";
 import "./slack/sessions.js";

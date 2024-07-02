@@ -2,8 +2,14 @@
 
 import { Slack, app } from "../../../lib/bolt.js";
 
-const channelID = "C07AXU6FCC8";
-const gameoverID = "C07ABG7JW69";
+// const channelID = "C07AXU6FCC8";
+// const gameoverID = "C07ABG7JW69";
+
+const protectedChannels = [
+  "C07AXU6FCC8", // arcade-bulletin
+  "C07ABG7JW69", // game-over
+  "C07AQ75CWQJ", // arcade-shoutouts
+]
 
 const getOwnBotID = async () => {
   const bot = await Slack.auth.test();
@@ -13,39 +19,37 @@ const getOwnBotID = async () => {
 const getUsersInChannel = async (channelID: string) => {
   return await Slack.conversations.members({channelID});
 }
-const ensureChannelJoined = async () => {
+const ensureChannelJoined = async (channelID: string) => {
   const channel = await Slack.conversations.info(channelID);
   if (!channel?.ok) {
     throw new Error(`Failed to get channel info for ${channelID}`);
   }
 
-  const [usersInChannel, gameoverusersInChannel, ownBotID] = await Promise.all([
+  const [usersInChannel, ownBotID] = await Promise.all([
     getUsersInChannel(channelID), 
-    getUsersInChannel(gameoverID),
     getOwnBotID()
   ]);
 
   if (!usersInChannel.includes(ownBotID)) {
     console.error(`⚠️ Bot is not in required channel ${channelID}`);
   }
-  if (!gameoverusersInChannel.includes(ownBotID)) {
-    console.error(`⚠️ Bot is not in required channel ${gameoverID}`);
-  }
 }
 
 // Run this once on startup to ensure the bot is correctly configured in the channel
-setTimeout(ensureChannelJoined, 1000 * 5);
+setTimeout(() => {
+  protectedChannels.forEach(channelID => {
+    ensureChannelJoined(channelID)
+  })
+}, 1000 * 5);
 
 app.event('message', async ({ event }) => {  
   try {
-    if (!(event.channel === channelID || event.channel === gameoverID)) { return; }
+    if (!protectedChannels.includes(event.channel)) { return; }
     if (event.subtype === 'bot_message') { return; }
 
     let user: string | undefined = (event as any).user;
     if (!user) { return; }
 
-    // if (!user?.id) {
-    // }
     const userInfo = await Slack.users.info({user});
 
     if (userInfo.user?.is_admin) { return }
