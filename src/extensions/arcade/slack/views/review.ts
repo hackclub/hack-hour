@@ -202,7 +202,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                     "elements": [
                         {
                             type: "text",
-                            "text": evidence.length > 0 ? evidence : "no evidence provided"
+                            "text": evidence.length > 0 ? evidence : "no messages sent"
                         }
                     ]
                 },
@@ -235,7 +235,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": urls.join('\n')
+                    "text": urls.length > 0 ? urls.join('\n') : "no urls provided"
                 }
             });
         }

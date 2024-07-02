@@ -16,17 +16,22 @@ Required corrections:
 */
 export const Evidence = {
     async fetch(messageTs: string, slackId: string) {
-        const evidence = await Slack.conversations.replies({
-            channel: Environment.MAIN_CHANNEL,
-            ts: messageTs
-        });
-    
-        if (!evidence || !evidence.messages) {
-            console.error("No evidence found for messageTs: ", messageTs, " and slackId: ", slackId);
+        try {
+            const evidence = await Slack.conversations.replies({
+                channel: Environment.MAIN_CHANNEL,
+                ts: messageTs
+            });
+        
+            if (!evidence || !evidence.messages) {
+                console.error("No evidence found for messageTs: ", messageTs, " and slackId: ", slackId);
+                return [];
+            }
+
+            return evidence.messages.filter(message => message.user === slackId);
+        } catch (error) {
+            console.error("Error fetching evidence for messageTs: ", messageTs, " and slackId: ", slackId);
             return [];
         }
-
-        return evidence.messages.filter(message => message.user === slackId);
     },
 
     // Checkers
