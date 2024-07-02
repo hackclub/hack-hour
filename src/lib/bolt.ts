@@ -415,7 +415,11 @@ export const Slack = {
             });
 
             await app.client.conversations.join({
-                channel: "C07AXU6FCC8"
+                channel: "C07AXU6FCC8" // #arcade-bulletin
+            });
+
+            await app.client.conversations.join({
+                channel: "C07AQ75CWQJ" // #arcade-shoutouts
             });
 
             return;
