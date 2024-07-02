@@ -79,6 +79,7 @@ export class Review {
                 ts: review!.ts!,
                 blocks: ReviewView.reviewStart({
                     permalink: permalink?.permalink!,
+                    recId: recordId,
                     text: scrapbook.fields['Text']
                 })
             });
