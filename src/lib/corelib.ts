@@ -3,6 +3,7 @@ import type { Session as SessionType } from "@prisma/client";
 
 import { prisma } from "./prisma.js";
 import { emitter } from "./emitter.js";
+import { updateController, updateTopLevel } from "../extensions/slack/lib/lib.js";
 
 interface SessionAction {
     userId?: string;
@@ -85,6 +86,11 @@ export class Session {
                 goalId: goalId
             }
         })
+
+        await Promise.all([
+            updateController(updatedSession),
+            updateTopLevel(updatedSession)
+        ])
         
         return updatedSession;
     }

@@ -613,8 +613,10 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
         }
     });
 
-    await updateController(session);
-    await updateTopLevel(session);
+    await Promise.all([
+        updateController(session),
+        updateTopLevel(session)
+    ])
 
     emitter.emit('start', session);
 
@@ -826,9 +828,7 @@ express.post('/api/goals/:slackId', limiter, async (req, res) => {
             })
         }
 
-        const updatedSession = await Session.changeGoal(session, req.body.id);
-
-        await updateTopLevel(updatedSession);
+        await Session.changeGoal(session, req.body.id);
 
         return res.status(200).send({
             ok: true,
