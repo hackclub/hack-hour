@@ -213,10 +213,12 @@ review:
     approved:
       - "woo hoo! <@${slackId}> approved your arcade session!! you earned `${minutes}` minutes!!"
     rejected:
-      - "womp womp! <@${slackId}> rejected your arcade session!!"
+      - "womp womp! <@${slackId}> rejected your arcade session!! you can get it re-reviewed by posting a scrap in the thread, but you might want to check the faq again on what counts!"
     rejectedlocked:
       - "womp womp! <@${slackId}> rejected and closed your arcade session!!"
   
   completion:
     reviewed:
-      - "session reviewed!"
+      - "sessions reviewed! reviewer, make sure you leave notes!"
+    rejection:
+      - "looks like there was a rejected session! for rejected sessions, you need to resubmit with a scrap in the thread! (you can't resubmit if the session is locked)"

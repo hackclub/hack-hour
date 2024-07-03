@@ -200,15 +200,15 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                         }
                     ]
                 },
-                {
-                    "type": "rich_text_preformatted",
-                    "elements": [
-                        {
-                            type: "text",
-                            "text": evidence.length > 0 ? evidence : "no messages sent"
-                        }
-                    ]
-                },
+                // {
+                //     "type": "rich_text_preformatted",
+                //     "elements": [
+                //         {
+                //             type: "text",
+                //             "text": evidence.length > 0 ? evidence : "no messages sent"
+                //         }
+                //     ]
+                // },
                 // ...(urls ? [{
                 //     "type": "rich_text_quote",
                 //     "elements": urls.map(url => ({
@@ -238,7 +238,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": urls.length > 0 ? urls.join('\n') : "no urls provided"
+                    "text": `urls:\n${urls.join('\n')}`
                 }
             });
         }
