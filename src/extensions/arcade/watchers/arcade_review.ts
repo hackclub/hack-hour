@@ -56,8 +56,8 @@ const main = async () => {
         } catch(e) {
             console.error(e);
         }
-        await sleep(1000 * 60); // wait 10 seconds
-        // return reviewJob() // run again
+        await sleep(1000 * 60); // wait 1 min
+        return reviewJob() // run again
     }
     reviewJob(); // intentionally not awaiting!
 
@@ -71,8 +71,8 @@ const main = async () => {
         } catch(e) {
             console.error(e)
         }
-        await sleep(1000 * 60); // wait 5 seconds
-        // return approveJob() // run again
+        await sleep(1000 * 5); // wait 5 seconds
+        return approveJob() // run again
     }
     approveJob(); // intentionally not awaiting!
 
