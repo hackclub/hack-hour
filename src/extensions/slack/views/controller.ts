@@ -46,7 +46,7 @@ export class Controller {
         if (session.metadata.firstTime) {
             info.text.text = t('firstTime.controller')
         } else if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes until the session is ended early.`
         } else if (session.cancelled) {
             info.text.text = `You have ended your session early.`
         } else if (session.completed) {
@@ -236,7 +236,7 @@ export class Controller {
         };
 
         if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes untill the session is ended early.`
+            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes until the session is ended early.`
         } else if (session.cancelled) {
             info.text.text = `You have ended your session early.`
         } else if (session.completed) {
