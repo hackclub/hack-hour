@@ -136,7 +136,7 @@ export class Review {
 
                 await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
-                    text: `All sessions reviewed.`,
+                    text: t('review.completion.reviewed'),
                     thread_ts: scrapbook.fields['Scrapbook TS']
                 });
 
@@ -163,7 +163,7 @@ export class Review {
                 if (rejection) {
                     await Slack.chat.postMessage({
                         channel: Environment.SCRAPBOOK_CHANNEL,
-                        text: `Scrapbook rejected.`,
+                        text: t('review.completion.rejected'),
                         thread_ts: scrapbook.fields['Scrapbook TS']
                     });
                 }

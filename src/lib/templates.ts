@@ -67,12 +67,17 @@ type Template =
     'scrapbook.modal.sessions_not_found' |
 
     'review.start' |
+
     'review.preset.approved' |
     'review.preset.rejected' |
     'review.preset.rejectedlocked' |
+
     'review.reviewer.approved' |
     'review.reviewer.rejected' |
-    'review.reviewer.rejectedlocked';
+    'review.reviewer.rejectedlocked' |
+
+    'review.completion.reviewed' |
+    'review.completion.rejected';
 
 interface Data {
     slackId?: string,
