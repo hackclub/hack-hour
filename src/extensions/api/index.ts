@@ -90,7 +90,7 @@ emitter.on('cancel', async (session: SessionType) => {
     await postEndpoints(session);
 });
 
-express.set('trust proxy', true) 
+express.set('trust proxy', true)
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -194,17 +194,10 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
  * Get the latest session
  */
 express.get('/api/session/:slackId', readLimit, async (req, res) => {
-    if (!req.apiKey) {
-        return res.status(401).send({
-            ok: false,
-            error: 'Unauthorized',
-        });
-    }
-
     const slackUser = await prisma.slackUser.findFirst({
         where: {
             user: {
-                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+                userID: req.params.userID,
             },
         },
     });
