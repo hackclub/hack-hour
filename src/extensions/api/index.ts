@@ -194,10 +194,17 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
  * Get the latest session
  */
 express.get('/api/session/:slackId', readLimit, async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
             user: {
-                userID: req.params.userID,
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
             },
         },
     });
@@ -212,7 +219,7 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
     // Grab the latest session
     const result = await prisma.session.findFirst({
         where: {
-            userId: slackUser.userId,
+            userId: req.params.userId,
         },
         orderBy: {
             createdAt: 'desc',
