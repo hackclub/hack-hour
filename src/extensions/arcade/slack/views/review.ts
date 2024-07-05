@@ -351,7 +351,7 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                     // "text": `Approved ${slackId ? `by <@${slackId}>` : ` session!`}`
                     "text": (slackId ? t('review.reviewer.approved', { slackId, 
                         minutes: minutes ?? 0
-                    }) : t('review.preset.approved')) + `
+                    }) : t('review.preset.approved', { minutes })) + `
 view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|here>`
                 },
                 "accessory": {
@@ -388,7 +388,7 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
                 "text": {
                     "type": "mrkdwn",
                     // "text": `Rejected ${slackId ? `by <@${slackId}>` : ` session!`}`
-                    "text": slackId ? t('review.reviewer.rejected', { slackId }) : t('review.preset.rejected') + `
+                    "text": slackId ? t('review.reviewer.rejected', { slackId, minutes }) : t('review.preset.rejected', { minutes }) + `
 view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|here>`
                 },
                 "accessory": {
@@ -425,7 +425,7 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
                 "text": {
                     "type": "mrkdwn",
                     // "text": `Rejected and locked ${slackId ? `by <@${slackId}>` : ` session!`}`
-                    "text": slackId ? t('review.reviewer.rejectedlocked', { slackId }) : t('review.preset.rejectedlocked') + `
+                    "text": slackId ? t('review.reviewer.rejectedlocked', { slackId, minutes }) : t('review.preset.rejectedlocked', { minutes }) + `
 <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|override on airtable>`
                 },
                 "accessory": {
