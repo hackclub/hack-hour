@@ -66,7 +66,7 @@ const main = async () => {
         try {
             const scrapbooks = await getArcadeScrapbooksToApprove();
             for (const scrapbook of scrapbooks) {
-                await Review.finishReview(scrapbook.id);
+                await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
             }
         } catch(e) {
             console.error(e)
@@ -74,7 +74,7 @@ const main = async () => {
         await sleep(1000 * 5); // wait 5 seconds
         return approveJob() // run again
     }
-    approveJob(); // intentionally not awaiting!
+    approveJob() // intentionally not awaiting!
 
     const garbageCollectionJob = async () => {
         console.log('Garbage collecting')
