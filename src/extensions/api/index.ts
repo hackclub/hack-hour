@@ -779,8 +779,8 @@ express.post('/api/setGoal/:slackId', limiter, async (req, res) => {
             }
         });
 
-        updateTopLevel(session)
-        updateController(session)
+        await updateTopLevel(session)
+        await updateController(session)
 
         return res.status(200).send({
             ok: true,
