@@ -2,6 +2,7 @@ import { View, Block } from "@slack/bolt";
 import { Actions, Callbacks } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js"
 import { formatHour } from "../../../lib/templates.js";
+import { updateController, updateTopLevel } from "../lib/lib.js";
 
 export class Goals {
     public static async main(sessionId: string, error: string=''): Promise<View> {

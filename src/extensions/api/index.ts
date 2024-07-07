@@ -368,6 +368,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
         ok: true,
         data: result.map(r => {
             return {
+                id: r.id,
                 name: r.name,
                 minutes: r.minutes
             }
@@ -700,6 +701,95 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
                 createdAt: session.createdAt,
                 paused: updatedSession.paused,
             },
+        });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+});
+/**
+ * Set the goal for a session
+ */
+express.post('/api/setGoal/:slackId', limiter, async (req, res) => {
+    try {
+        if (!req.apiKey) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized',
+            });
+        }
+
+        const goalId = req.body.id;
+
+        if (!goalId || typeof goalId !== 'string' || goalId.length === 0) {
+            return res.status(400).send({
+                ok: false,
+                error: 'Missing or invalid id parameter',
+            });
+        }
+
+        const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+        var session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    apiKey
+                },
+                completed: false,
+                cancelled: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session || !session.user.slackUser?.slackId) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Invalid user or no active session found',
+            });
+        }
+
+        const newGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: goalId
+            }
+        });
+
+        session = await prisma.session.update({
+            where: {
+                id: session.id,
+                goal: {
+                    completed: false
+                },
+            },
+            data: {
+                goal: {
+                    connect: {
+                        id: newGoal.id
+                    }
+                }
+            }
+        });
+
+        updateTopLevel(session)
+        updateController(session)
+
+        return res.status(200).send({
+            ok: true,
+            data: {
+                id: session.id,
+                slackId: session.user.slackUser?.slackId,
+                createdAt: session.createdAt,
+                goal: newGoal.name,
+            }
         });
     } catch (error) {
         emitter.emit('error', { error });
