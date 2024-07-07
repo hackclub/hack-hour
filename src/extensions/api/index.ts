@@ -425,9 +425,12 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
                 createdAt: r.createdAt,
                 time: r.time,
                 elapsed: r.elapsed,
+                messageTs:r.messageTs,
 
                 goal: r.goal.name,
                 ended: r.completed || r.cancelled,
+                banked: r.metadata?.banked,
+                scrapbookId: r.scrapbookId,
 
                 work: r.metadata?.work,
             }
