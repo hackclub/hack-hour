@@ -54,6 +54,7 @@ Example Response:
     "data": {
         "goals": [
             {
+                "id": ""
                 "name": "No Goal",
                 "minutes": 0,
             }
@@ -74,8 +75,11 @@ Example Response:
             "createdAt": "2024-06-23T05:09:04.105Z",
             "time": 60,
             "elapsed": 23,
+            "messageTs": "1720001234.123456"
             "goal": "No Goal",
             "ended": false,
+            "banked": false,
+            "scrapbookId": "",
             "work": "123"
         }
     ]
