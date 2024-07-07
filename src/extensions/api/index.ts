@@ -359,6 +359,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
             userId: slackUser.userId,
         },
         select: {
+            id:true,
             name: true,
             minutes: true,
         },
@@ -368,6 +369,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
         ok: true,
         data: result.map(r => {
             return {
+                id: r.id,
                 name: r.name,
                 minutes: r.minutes
             }
