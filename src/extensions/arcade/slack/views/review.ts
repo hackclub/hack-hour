@@ -88,12 +88,14 @@ export class ReviewView {
         scrapbookId,
         hours,
         sessions,
-        reviewed
+        reviewed,
+        flagged
     }: {
         scrapbookId: string,
         hours: number,
         sessions: number,
-        reviewed: number
+        reviewed: number,
+        flagged: string
     }): KnownBlock[] {
         return [
             {
@@ -105,6 +107,7 @@ export class ReviewView {
 total hours logged: ${formatHour(hours)} hours
 total hours approved: ${formatHour(reviewed)} hours
 sessions: ${sessions}
+flagged: ${flagged}
 ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
                 }                    
             }, 
