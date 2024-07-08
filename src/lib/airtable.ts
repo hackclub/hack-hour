@@ -131,6 +131,8 @@ interface AirtableScrapbookWrite {
     "Review End Time"?: string,
     "Review TS"?: string,
     "Reviewed On": "Hakkuun" | "Airtable Interface" | "Other",
+    readonly "User: Slack ID": [string],
+    readonly "Reviewer: Slack ID": [string],
 };
 
 export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
@@ -435,3 +437,9 @@ export const AirtableAPI = {
         }
     }
 };
+
+export const scrapbookMultifilter = async (filterRules: string[]) => {
+    const filter = `AND(${filterRules.join(', ')})`
+    const records = await AirtableAPI.Scrapbook.filter(filter);
+    return records
+}
