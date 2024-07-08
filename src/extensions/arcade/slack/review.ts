@@ -148,10 +148,14 @@ export class Review {
                     user: reviewerSlackID
                 });
 
-                await app.client.chat.delete({
-                    channel: Environment.REVIEW_CHANNEL,
-                    ts: scrapbook.fields['Review TS']
-                });
+                try {
+                    await app.client.chat.delete({
+                        channel: Environment.REVIEW_CHANNEL,
+                        ts: scrapbook.fields['Review TS']
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
 
                 let rejection = false;
 
@@ -162,6 +166,8 @@ export class Review {
                         console.error(`Session not found: ${sessionId}`);
                         continue;
                     }
+
+                    console.log(session.fields['Status']);
 
                     if (session.fields['Status'] === 'Rejected' || session.fields['Status'] === 'Rejected Locked') {
                         rejection = true;
@@ -404,7 +410,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             button = await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
                 thread_ts: scrapbook.fields['Scrapbook TS'],
-                blocks: ReviewView.approved(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
             });
         } else if (session.fields['Status'] === 'Rejected') {
             button = await Slack.chat.postMessage({
@@ -475,7 +481,7 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'], body.user.id)
+        blocks: ReviewView.approved(sessionId, session.fields['Percentage Approved'] * session.fields['Minutes'], session.fields['Created At'], body.user.id)
     });
 
     // await Slack.chat.postMessage({
@@ -732,13 +738,14 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
 Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
     try {
         const slackId = body.user.id;
+        const messageTs =  (body as any).container.thread_ts;
 
         if (!(await Review.ensureReviewPermission(slackId))) {
-            await Slack.chat.postEphemeral({
-                channel: body.channel?.id!,
-                user: slackId,
+            await respond({
                 text: 'You do not have permission to start a review.',
-                thread_ts: (body as any).message.ts!
+                response_type: 'ephemeral',
+                replace_original: false,
+                thread_ts: messageTs
             });
             return;
         }
@@ -752,6 +759,13 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         ]);
 
         if (records.length === 0) {
+            await Slack.chat.postEphemeral({
+                user: slackId,
+                channel: Environment.SCRAPBOOK_CHANNEL,
+                text: 'No scrapbooks to review',
+                thread_ts: messageTs
+            });
+
             console.error('No scrapbooks to review');
             return;
         }
@@ -841,7 +855,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook.fields['Scrapbook TS'],
-                    blocks: ReviewView.approved(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                    blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
                 });
             } else if (session.fields['Status'] === 'Rejected') {
                 button = await Slack.chat.postMessage({
@@ -879,15 +893,19 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             await AirtableAPI.Session.update(sessionId, {
                 "Review Button TS": button?.ts
             });
-
-            // send a message in the thread where the button is that links to the next session
-            await Slack.chat.postEphemeral({
-                user: body.user.id,
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                thread_ts: scrapbook.fields['Scrapbook TS'],
-                "text": `Review started by <@${body.user.id}>. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
-            })
         }
+
+        // send a message in the thread where the button is that links to the next session
+        console.log('=====================');
+        console.log(messageTs);
+        console.log('=====================');
+
+        await Slack.chat.postEphemeral({
+            user: body.user.id,
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            thread_ts: messageTs,
+            "text": `Review started. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
+        })
     } catch (e) {
         console.error(e);
     }

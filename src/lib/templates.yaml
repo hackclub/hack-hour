@@ -220,5 +220,5 @@ review:
   completion:
     reviewed:
       - "sessions reviewed! reviewer, make sure you leave notes!"
-    rejection:
+    rejected:
       - "looks like there was a rejected session! for rejected sessions, you need to resubmit with a scrap in the thread! (you can't resubmit if the session is locked)"
