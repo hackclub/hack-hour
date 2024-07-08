@@ -107,7 +107,7 @@ export class ReviewView {
 total hours logged: ${formatHour(hours)} hours
 total hours approved: ${formatHour(reviewed)} hours
 sessions: ${sessions}
-flagged: ${flagged}
+flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}
 ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
                 }                    
             }, 
