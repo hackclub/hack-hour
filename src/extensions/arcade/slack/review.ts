@@ -132,7 +132,8 @@ export class Review {
 
             if (scrapbook.fields['Count Unreviewed Sessions'] === 0 && scrapbook.fields['Review TS']) {
                 await AirtableAPI.Scrapbook.update(scrapbook.id, {
-                    "Approved": true
+                    "Approved": true,
+                    "Review End Time": new Date().toISOString(),
                 });
 
                 await Slack.chat.postMessage({
