@@ -113,6 +113,9 @@ error:
     - "ow i hit a wall"
     - "that's all folks!"
     
+  not_full_user:
+    - "looks like you aren't a full user! you need to complete the tutorial first! (you can be promoted to a full user by spending a ticket at the shop)"
+    
 action:
   paused:
     - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
