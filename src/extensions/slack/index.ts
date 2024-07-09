@@ -130,6 +130,21 @@ const hack = async ({ command }: CommandHandler) => {
             }
         }
 
+        // Check if the user is a full user or a MCG
+        const slackUserInfo = await Slack.users.info({
+            user: slackId
+        });
+
+        if (!slackUserInfo.user) {
+            throw new Error(`Failed to fetch user info for ${slackId}`);
+        }
+
+        if (slackUserInfo.user.is_restricted) {
+            await informUser(slackId, t('error.not_full_user'), command.channel_id);
+
+            return;
+        }
+
         if (!command.text || command.text.length == 0) {
             await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.firstTime), command.channel_id);
 
