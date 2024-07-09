@@ -139,7 +139,7 @@ const hack = async ({ command }: CommandHandler) => {
             throw new Error(`Failed to fetch user info for ${slackId}`);
         }
 
-        if (slackUserInfo.user.is_restricted) {
+        if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
             await informUser(slackId, t('error.not_full_user'), command.channel_id);
 
             return;
