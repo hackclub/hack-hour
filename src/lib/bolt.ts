@@ -1,5 +1,6 @@
 import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 import bodyParser from 'body-parser';
+import proxy from 'express-http-proxy';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
 import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
@@ -28,6 +29,8 @@ export const app = new bolt.App({
 });
 
 express.use(bodyParser.json());
+
+app.use('/api', proxy('locahost:5678'));
 
 app.error(async (error) => {
     if (!error.original) {
