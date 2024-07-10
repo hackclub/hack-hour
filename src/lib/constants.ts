@@ -124,6 +124,8 @@ export const Actions = {
     UNDO: 'undo',
     UNSUBMIT: 'unsubmit',
     MAGIC: 'magic',
+
+    NEXT_REVIEW: 'nextreview',
 };
 
 export const Callbacks = {

@@ -39,6 +39,7 @@ type Template =
     'error.not_authorized' |
     'error.cant_go_back' |
     'error.cant_go_next' |
+    'error.not_full_user' |
 
     'airtable.approved' |
     'airtable.rejected' |
