@@ -216,7 +216,7 @@ review:
     approved:
       - "<@${slackId}> approved `${minutes}` minutes!!"
     rejected:
-      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the faq again on what counts!"
+      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the <https://hackclub.slack.com/canvas/C077TSWKER0|FAQ> again on what counts!"
     rejectedlocked:
       - "<@${slackId}> rejected and locked `${minutes}` minutes"
   
