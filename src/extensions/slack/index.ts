@@ -140,7 +140,25 @@ const hack = async ({ command }: CommandHandler) => {
         }
 
         if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
-            await informUser(slackId, t('error.not_full_user'), command.channel_id);
+            // await informUser(slackId, t('error.not_full_user'), command.channel_id);
+            await informUserBlocks(slackId, [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": t('error.not_full_user')
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Make sure you check your dms with arcadius and me & click the upgrade button if you see it! If you need help, ask <@UDK5M9Y13> in <#C077TSWKER0>"
+                        }
+                    ]  
+                }
+            ], command.channel_id);
 
             return;
         }
