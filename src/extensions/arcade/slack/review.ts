@@ -898,11 +898,6 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             });
         }
 
-        // send a message in the thread where the button is that links to the next session
-        console.log('=====================');
-        console.log(messageTs);
-        console.log('=====================');
-
         await Slack.chat.postEphemeral({
             user: body.user.id,
             channel: Environment.SCRAPBOOK_CHANNEL,
@@ -912,4 +907,45 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
     } catch (e) {
         console.error(e);
     }
+});
+
+Slack.action(Actions.SHIPPED, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!(await Review.ensureReviewPermission(slackId))) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
+        });
+        return;
+    }
+
+    const scrapbookId = (body as any).actions[0].value;
+
+    const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookId);
+
+    if (!scrapbook) {
+        console.error(`Scrapbook not found: ${scrapbookId}`);
+
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral',
+            replace_original: false
+        });
+
+        return;
+    }
+
+    await AirtableAPI.Scrapbook.update(scrapbookId, {
+        "Is Shipped?": true
+    });
+
+    await Slack.chat.postEphemeral({
+        user: slackId,
+        channel: Environment.SCRAPBOOK_CHANNEL,
+        text: `It's a shipped project!`,
+        thread_ts: scrapbook.fields['Scrapbook TS']
+    });
 });

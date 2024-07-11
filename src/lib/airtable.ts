@@ -132,6 +132,7 @@ interface AirtableScrapbookWrite {
     "Review End Time"?: string,
     "Review TS"?: string,
     "Reviewed On": "Hakkuun" | "Airtable Interface" | "Other",
+    "Is Shipped?"?: boolean,
     readonly "User: Slack ID": [string],
     readonly "Reviewer: Slack ID": [string],
 };

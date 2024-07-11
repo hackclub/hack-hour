@@ -156,6 +156,17 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                                 "text": "woah bud, this will remove all sessions linked to this scrapbook. are you sure?"
                             }
                         }
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": `is shipped?`,
+                            "emoji": true,
+                        },
+                        "style": "primary",
+                        "action_id": Actions.SHIPPED,
+                        "value": scrapbookId
                     }
                 ]
             }
