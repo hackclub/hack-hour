@@ -183,7 +183,7 @@ firstTime:
 scrapbook:
   prompt:
     select_sessions:
-      - 'oh hey hey i saw your post in scrapbook!! is your project <https://hackclub.slack.com/canvas/C077TSWKER0|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
+      - 'oh hey hey i saw your post in scrapbook!! is your project <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-shipped|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
     complete:
       - 'wow wow, great job!!'
 
@@ -216,7 +216,7 @@ review:
     approved:
       - "<@${slackId}> approved `${minutes}` minutes!!"
     rejected:
-      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the <https://hackclub.slack.com/canvas/C077TSWKER0|FAQ> again on what counts!"
+      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the <https://github.com/hackclub/arcade-constitution|Constitution> again on what counts!"
     rejectedlocked:
       - "<@${slackId}> rejected and locked `${minutes}` minutes"
   
