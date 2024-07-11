@@ -79,6 +79,7 @@ Example Response:
             "goal": "No Goal",
             "ended": false,
             "banked": false,
+            "status": "Approved"
             "scrapbookId": "",
             "work": "123"
         }

@@ -432,6 +432,7 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
                 goal: r.goal.name,
                 ended: r.completed || r.cancelled,
                 banked: r.metadata?.banked,
+                status: r.metadata.airtable?.status,
                 scrapbookId: r.scrapbookId,
 
                 work: r.metadata?.work,
