@@ -255,6 +255,10 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
                 work: result.metadata?.work,
                 messageTs: result.messageTs,
             },
+            rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
+            },
         }
 
         return res.status(200).send(response);
@@ -311,6 +315,10 @@ express.get('/api/stats/:slackId', readLimit, async (req, res) => {
             data: {
                 sessions: result._count,
                 total: result._sum.elapsed,
+            },
+            rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
             },
         }
 
@@ -431,7 +439,11 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
 
                 work: r.metadata?.work,
             }
-        })
+        }),
+        rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
+            },
     }
 
     return res.status(200).send(response);
@@ -574,6 +586,10 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
             slackId: user.slackUser?.slackId,
             createdAt: session.createdAt,
         },
+        rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
+            },
     });
 });
 
@@ -634,6 +650,10 @@ express.post('/api/cancel/:slackId', limiter, async (req, res) => {
                 id: session.id,
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
+            },
+            rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
             },
         });
     } catch (error) {
@@ -699,6 +719,10 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
                 paused: updatedSession.paused,
+            },
+            rateLimit: {
+                remaining: req.rateLimit.remaining,
+                reset: req.rateLimit.resetTime
             },
         });
     } catch (error) {
