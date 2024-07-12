@@ -4,7 +4,6 @@ dotenv.config();
 // A typed wrapper over airtable API
 
 import Airtable from "airtable";
-import { emitter } from './emitter.js';
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -31,20 +30,6 @@ type AirtableUserWrite = {
     "/shop"?: string,
 };
 
-/*
-Balance (Minutes): it considers unfulfilled orders
-Settled Balance (Minutes): Only includes fulfilled orders
-
-Minutes (All): The sum of ALL sessions that belongs to the user (includes rejected)
-Minutes (Approved): sum of approved and banked minutes
-Minutes (Banked): sum of banked minutes (and filters to ensure it has a Scrapbook)
-Initial Banked Minutes: Migrated from Hack Hour
-Initial Order Refunded Minutes: Handles declined orders from Hack Hour
-Total Earned (Minutes): Minutes (Banked) + the two initials
-Total Earned (Hours): just converts minutes to hours
-Spent (Minutes): Cost of fulfilled orders
-Spent Incl. Pending (Minutes): Cost of orders, excluding ones declined.
-*/
 type AirtableUserRead = {
     "Name": string,
     "Internal ID": string,
@@ -279,7 +264,7 @@ export const AirtableAPI = {
 
                 console.log(`[AirtableAPI.User.delete] Took ${Date.now() - now}ms`)
             } catch (error) {
-                emitter.emit("error", error);
+                console.error(error);
             }
         },
 
@@ -319,11 +304,9 @@ export const AirtableAPI = {
 
             const record = await sessions.create([{
                 "fields": session
-            }]).catch(error => { console.error(error); });
+            }]);
 
             console.log(`[AirtableAPI.Session.create] Took ${Date.now() - now}ms`);
-
-            if (!record) { throw new Error("Failed to create session") }
 
             return { id: record[0].id, fields: record[0].fields as AirtableSessionWrite };
         },
@@ -417,9 +400,12 @@ export const AirtableAPI = {
             const records = await scrapbooks.update([{
                 "id": id,
                 "fields": scrapbook as any
-            }]);
+            }])
+                .catch(error => { console.error(error); return null });
 
             console.log(`[AirtableAPI.Scrapbook.update] Took ${Date.now() - now}ms`)
+
+            if (!records) { throw new Error("Failed to update record"); }
 
             return { id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite };
         },

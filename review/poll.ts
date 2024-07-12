@@ -1,7 +1,7 @@
 // This handles figuring out what to post in #arcade-review
 
-import { AirtableAPI } from "../../../lib/airtable.js";
-import { Review } from "../slack/review.js";
+import { AirtableAPI } from "./airtable.js";
+import { Review } from "./index";
 
 const getArcadeScrapbooksToReview = async () => {
     const filterRules = [

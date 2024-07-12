@@ -1,72 +1,23 @@
 import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
-import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
 import { StringIndexed } from "@slack/bolt/dist/types/helpers.js";
 
-import { Commands, Environment } from './constants.js';
-import { emitter } from './emitter.js';
-import { assertVal } from './assert.js';
-import { t } from './templates.js';
-import { AirtableAPI } from './airtable.js';
-
-import proxy from 'express-http-proxy';
-
-const expressReceiver = new bolt.ExpressReceiver({
-    signingSecret: Environment.SLACK_SIGNING_SECRET,
-    endpoints: '/slack/events',
-    processBeforeResponse: true,
-});
-
-export const express = expressReceiver.app;
-
-express.use('/review/slack/events', proxy(`http://localhost:${Environment.REVIEW_PORT}`, {
-    proxyReqPathResolver: (req) => {
-        console.log(req.url)
-        return `${req.url}slack/events`
-    }
-}));
+import { assertVal, Channels, Environment } from './constants.js';
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
-    appToken: Environment.SLACK_APP_TOKEN,
-    clientId: Environment.CLIENT_ID,
-    clientSecret: Environment.CLIENT_SECRET,
-
-    receiver: expressReceiver,
+    signingSecret: Environment.SLACK_SIGNING_SECRET
 });
-
-express.use(bodyParser.json());
 
 app.error(async (error) => {
     if (!error.original) {
-        emitter.emit('error', { error });
+        console.error(error);
     } else {
-        emitter.emit('error', { error });
-        emitter.emit('error', { error: error.original });
+        console.error(error);
+        console.error(error.original);
     }
 });
-
-// while working on the bot, only allow the dev team to use the bot
-export const approvedUsers = [
-    'U0C7B14Q3',
-    'U04QD71QWS0',
-    'UDK5M9Y13',
-    'U078MRX71TJ',
-    'U0777CCQQCF',
-    'U05NX48GL3T',
-    'U078ACL01S7',
-    'U078ZCAHCNL',
-    'U078ZDVC7CY',
-    'U078D5YH5NG',
-    'U0787QYQM53',
-    'U078BK769BL',
-    'U077XBJ3YPR',
-]
-
-export const recordCommands = [
-    Commands.SHOP,
-]
 
 async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
     try {
@@ -82,9 +33,8 @@ async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction:
 
         return result;
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(error);
     }
-
 }
 
 export const Slack = {
@@ -104,55 +54,12 @@ export const Slack = {
 
                 await ack();
 
-                if (Environment.MAINTAINANCE_MODE) {
-                    const user = await app.client.users.info({
-                        user: event.user_id
-                    });
-
-                    if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
-                        return respond(t('maintanenceMode'))
-                    }
-                }
-
-                if (recordCommands.includes(command) && Environment.PROD) {
-                    const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
-
-                    if (airtableUser) {
-                        await AirtableAPI.User.update(airtableUser.id, {
-                            [command]: true
-                        });
-                    }
-                }
-
-                if (Environment.VERBOSE) {
-                    await app.client.chat.postMessage({
-                        channel: Environment.INTERNAL_CHANNEL,
-                        blocks: [
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": `> _<@${event.user_id}> ran \`${command} ${event.text}\`_`
-                                }
-                            },
-                            {
-                                type: "context",
-                                elements: [
-                                    {
-                                        type: "mrkdwn",
-                                        text: `${command} - ran in <#${event.channel_id}>\n${new Date().toString()}`,
-                                    },
-                                ],
-                            },
-                        ]
-                    });
-                }
-
                 await commandHandler(payload);
                 verb = "succeeded"
             } catch (error) {
                 verb = "failed"
-                emitter.emit('error', { error })
+
+                console.error(error);
 
                 payload.respond({
                     text: `An error occurred while processing your command!`,
@@ -181,46 +88,19 @@ export const Slack = {
                     user: body.user.id
                 });
 
-                if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
-                    return respond(t('maintanenceMode'))
-                }
-
-                if (Environment.VERBOSE) {
-                    await app.client.chat.postMessage({
-                        channel: Environment.INTERNAL_CHANNEL,
-                        blocks: [
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": `> _<@${body.user.id}> used ${action.type} "${actionId}"_`
-                                }
-                            },
-                            {
-                                type: "context",
-                                elements: [
-                                    {
-                                        type: "mrkdwn",
-                                        text: `${actionId} - ran in <#${body.channel?.id}>\n${new Date().toString()}`,
-                                    },
-                                ],
-                            },
-                        ]
-                    })
-                }
-
                 verb = "succeeded"
                 listeners.forEach((listener) => {
                     try {
                         listener(payload)
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', { error });
+                        console.error(error);
                     }
                 });
             } catch (error) {
                 verb = "failed"
-                emitter.emit('error', { error });
+
+                console.error(error);
 
                 payload.respond({
                     text: `An error occurred while processing your action!`,
@@ -245,42 +125,19 @@ export const Slack = {
             await ack();
 
             try {
-                if (Environment.VERBOSE) {
-                    await app.client.chat.postMessage({
-                        channel: Environment.INTERNAL_CHANNEL,
-                        blocks: [
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": `> _<@${body?.user?.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view ${callbackId}_`
-                                }
-                            },
-                            {
-                                type: "context",
-                                elements: [
-                                    {
-                                        type: "mrkdwn",
-                                        text: `${callbackId}\n${new Date().toString()} `,
-                                    },
-                                ],
-                            },
-                        ]
-                    })
-                }
-
                 verb = "succeeded"
                 listeners.forEach((listener) => {
                     try {
                         listener(payload)
                     } catch (error) {
                         verb = "failed"
-                        emitter.emit('error', { error });
+                        console.error(error);
                     }
                 });
             } catch (error) {
                 verb = "failed"
-                emitter.emit('error', { error });
+
+                console.error(error);
 
                 payload.respond({
                     text: `An error occurred while processing your view!`,
@@ -295,7 +152,7 @@ export const Slack = {
 
     chat: {
         async delete(options: Parameters<typeof app.client.chat.delete>[0]) {
-            if (options) { options!.token = Environment.ADMIN_TOKEN };
+            if (options) { options.token = Environment.ADMIN_TOKEN };
 
             return await assertVal(await callSlackClient(app.client.chat.delete, options));
         },
@@ -341,7 +198,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', { error });
+                console.error(error);
             }
         },
 
@@ -359,7 +216,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', { error });
+                console.error(error);
             }
         },
 
@@ -377,7 +234,7 @@ export const Slack = {
 
                 return result;
             } catch (error) {
-                emitter.emit('error', { error });
+                console.error(error);
             }
         }
     },
@@ -403,7 +260,7 @@ export const Slack = {
                 return [...members, ...nextMembers]
 
             } catch (error) {
-                emitter.emit('error', { error });
+                console.error(error);
                 return []
             }
         },
@@ -419,48 +276,25 @@ export const Slack = {
 
     helper: {
         async ensureChannels() {
-            await app.client.conversations.join({
-                channel: Environment.MAIN_CHANNEL
-            });
+            for (const channel of Object.values(Channels)) {
+                console.log(`Ensuring channel ${channel} exists...`);
 
-            await app.client.conversations.join({
-                channel: "C07AXU6FCC8" // #arcade-bulletin
-            });
+                if (!channel) {
+                    throw new Error(`Channel ${channel} is not defined!`);
+                }
 
-            await app.client.conversations.join({
-                channel: "C07AQ75CWQJ" // #arcade-shoutouts
-            });
+                const info = await app.client.conversations.info({
+                    channel
+                }).catch((error) => { console.error(error); return { ok: false } });
 
+                if (!info.ok) {
+                    throw new Error(`Channel ${channel} does not exist!`);
+                }
+            }
+            
             return;
         }
     },
-
-    async slog(message: string) {
-        if (Environment.VERBOSE) {
-            await app.client.chat.postMessage({
-                channel: Environment.INTERNAL_CHANNEL,
-                text: message.slice(0, 3000),
-                blocks: [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": `> ${message.slice(0, 3000)}`
-                        }
-                    },
-                    {
-                        "type": "context",
-                        "elements": [
-                            {
-                                "type": "mrkdwn",
-                                "text": `${new Date().toString()}`
-                            }
-                        ]
-                    }
-                ]
-            });
-        }
-    }
 }
 
 await Slack.helper.ensureChannels();
