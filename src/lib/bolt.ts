@@ -10,8 +10,6 @@ import { assertVal } from './assert.js';
 import { t } from './templates.js';
 import { AirtableAPI } from './airtable.js';
 
-import proxy from 'express-http-proxy';
-
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
     endpoints: '/slack/events',
@@ -19,13 +17,6 @@ const expressReceiver = new bolt.ExpressReceiver({
 });
 
 export const express = expressReceiver.app;
-
-express.use('/review/slack/events', proxy(`http://localhost:${Environment.REVIEW_PORT}`, {
-    proxyReqPathResolver: (req) => {
-        console.log(req.url)
-        return `${req.url}slack/events`
-    }
-}));
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,

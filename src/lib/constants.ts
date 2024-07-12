@@ -38,8 +38,6 @@ export const Environment = {
     SHOP_URL: assertEnv('SHOP_URL'),
 
     VERBOSE: (process.env.VERBOSE === 'true'),
-
-    REVIEW_PORT: process.env.REVIEW_PORT || 5876,
 };
 
 // Constants

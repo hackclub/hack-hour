@@ -1,6 +1,6 @@
 import { KnownBlock, RichTextQuote } from "@slack/bolt";
-import { Actions, Environment } from "./constants";
-import { formatHour, pfps, randomChoice, t } from "./templates.js";
+import { Actions, Environment } from "../../../../lib/constants.js";
+import { formatHour, pfps, randomChoice, t } from "../../../../lib/templates.js";
 
 export class ReviewView {
     public static reviewStart({

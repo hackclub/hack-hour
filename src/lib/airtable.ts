@@ -319,11 +319,9 @@ export const AirtableAPI = {
 
             const record = await sessions.create([{
                 "fields": session
-            }]).catch(error => { console.error(error); });
+            }]);
 
             console.log(`[AirtableAPI.Session.create] Took ${Date.now() - now}ms`);
-
-            if (!record) { throw new Error("Failed to create session") }
 
             return { id: record[0].id, fields: record[0].fields as AirtableSessionWrite };
         },
