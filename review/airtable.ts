@@ -26,7 +26,14 @@ type AirtableUserWrite = {
     "Slack ID": string,
     "Initial Banked Minutes"?: number,
     "Inital Order Refunded Minutes"?: number,
+
     "/shop"?: string,
+};
+
+type AirtableUserRead = {
+    "Name": string,
+    "Internal ID": string,
+    "Slack ID": string,
     "Ships": AirtableRecordID[],
     "Sessions": AirtableRecordID[],
     // "Minutes (All)": number,
@@ -393,9 +400,12 @@ export const AirtableAPI = {
             const records = await scrapbooks.update([{
                 "id": id,
                 "fields": scrapbook as any
-            }]);
+            }])
+                .catch(error => { console.error(error); return null });
 
             console.log(`[AirtableAPI.Scrapbook.update] Took ${Date.now() - now}ms`)
+
+            if (!records) { throw new Error("Failed to update record"); }
 
             return { id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite };
         },

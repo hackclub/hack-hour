@@ -7,6 +7,7 @@ import { assertVal, Channels, Environment } from './constants.js';
 
 export const app = new bolt.App({
     token: Environment.SLACK_BOT_TOKEN,
+    signingSecret: Environment.SLACK_SIGNING_SECRET
 });
 
 app.error(async (error) => {
@@ -276,11 +277,15 @@ export const Slack = {
     helper: {
         async ensureChannels() {
             for (const channel of Object.values(Channels)) {
+                console.log(`Ensuring channel ${channel} exists...`);
+
                 if (!channel) {
                     throw new Error(`Channel ${channel} is not defined!`);
                 }
 
-                const info = await Slack.conversations.info(channel);
+                const info = await app.client.conversations.info({
+                    channel
+                }).catch((error) => { console.error(error); return { ok: false } });
 
                 if (!info.ok) {
                     throw new Error(`Channel ${channel} does not exist!`);

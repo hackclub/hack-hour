@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({});
+
 export function assertVal<T>(val: T): NonNullable<T> {
     if (val === null || val === undefined) {
         throw new Error(`Expected value to be non-null, but got ${val}`);
@@ -13,17 +16,33 @@ export const Environment = {
 
     PROD: process.env.PROD == 'true',
 
-    PORT: process.env.PORT || 3000
+    PORT: process.env.REVIEW_PORT || 5876
 };
 
 export const Channels = Environment.PROD ? {
-    REVIEW: '',
-    SCRAPBOOK: ''
+    REVIEW: 'C07CXLLPA5N',
+    SCRAPBOOK: 'C01504DCLVD',
+    MAIN: 'C06SBHMQU8G'
 } : {
     REVIEW: 'C079KPS2M5E',
-    SCRAPBOOK: 'C063RPGKRL2'
+    SCRAPBOOK: 'C063RPGKRL2',
+    MAIN: 'C06S6E7CXK7'
 };
 
 export const Commands = {};
 
-export const Actions = {};
+export const Actions = {
+    START_REVIEW: 'start_review',
+    
+    MAGIC: 'magic',
+    UNSUBMIT: 'unsubmit',
+    SHIPPED: 'shipped',
+    
+    APPROVE: 'approve',
+    REJECT: 'reject',
+    REJECT_LOCK: 'reject_lock',
+
+    UNDO: 'undo',
+
+    NEXT_REVIEW: 'next_review',
+};
