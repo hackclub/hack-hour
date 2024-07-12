@@ -6,7 +6,8 @@
     "prisma_deploy": "prisma migrate deploy",
     "debug": "npm run prisma_deploy && tsx ./src/entry.ts",
     "debug_reset": "prisma migrate reset",
-    "start": "npm run prisma_deploy && tsx ./src/entry.ts",
+    "start": "npm run hackhour & npm run review",
+    "hackhour": "npm run prisma_deploy && tsx ./src/entry.ts",
     "review": "tsx ./review/entry.ts",
     "generate:airtable": "dotenv -- bash -c 'npx airtable-typegen $AIRTABLE_BASE -o review/airtable_types.ts -t Users,Sessions,Scrapbook,Reviewers'"
   },
