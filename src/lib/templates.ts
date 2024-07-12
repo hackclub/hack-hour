@@ -115,8 +115,6 @@ export const templates: {
     [key in Template]: string[]
 } = flatten(templatesRaw);
 
-console.log(templates);
-
 export const pfps = {
     question: ":rac_question:",
     info: ":rac_info:",
