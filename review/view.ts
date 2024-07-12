@@ -462,7 +462,7 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "ready for the next review?"
+                    "text": "ready for the next review? (CLICK YES ONLY ONCE)"
                 }
             },
             {
