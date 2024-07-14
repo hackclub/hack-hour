@@ -1,13 +1,13 @@
 import { KnownBlock } from "@slack/bolt";
-import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../../lib/airtable.js";
-import { Slack, app } from "../../../lib/bolt.js";
-import { Actions, Environment } from "../../../lib/constants.js";
-import { pfps, t } from "../../../lib/templates.js";
-import { ReviewView } from "./views/review.js";
-import { prisma } from "../../../lib/prisma.js";
-import { reactOnContent } from "../../slack/lib/emoji.js";
+import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../lib/airtable.js";
+import { Slack, app } from "../../lib/bolt.js";
+import { Actions, Environment } from "../../lib/constants.js";
+import { pfps, t } from "../../lib/templates.js";
+import { ReviewView } from "./view.js";
+import { prisma } from "../../lib/prisma.js";
+import { reactOnContent } from "../slack/lib/emoji.js";
 import getUrls from "get-urls";
-import { Evidence } from "../lib/evidence.js";
+import { Evidence } from "../arcade/lib/evidence.js";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();

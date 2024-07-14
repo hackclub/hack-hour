@@ -25,7 +25,7 @@ if (process.env.ARCADE) {
 import "./extensions/api/index.js";
 import "./extensions/slack/index.js";
 
-import main from './extensions/arcade/watchers/arcade_review.js';
+import main from './extensions/review/arcade_review.js';
 
 try {
     await prisma.$connect();
