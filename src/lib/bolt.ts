@@ -1,4 +1,4 @@
-import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
+import bolt, { SlackEventMiddlewareArgs, SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -277,6 +277,59 @@ export const Slack = {
                     text: `An error occurred while processing your view!`,
                     response_type: "ephemeral"
                 })
+            }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+        })
+    },
+
+    async event<T extends string>(event: T, ...listeners: Middleware<SlackEventMiddlewareArgs<T>, StringIndexed>[]) {
+        app.event(event, async (payload) => {
+            const now = new Date();
+            let verb = ""
+
+            try {
+                const { event } = payload;
+
+                console.log(`[${now.toISOString()}] received event "${event.type}"`)
+
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _Received event "${event.type}"_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${event.type}\n${new Date().toString()} `,
+                                    },
+                                ],
+                            },
+                        ]
+                    })
+                }
+
+                verb = "succeeded"
+                listeners.forEach((listener) => {
+                    try {
+                        listener(payload)
+                    } catch (error) {
+                        verb = "failed"
+                        emitter.emit('error', { error });
+                    }
+                });
+            } catch (error) {
+                verb = "failed"
+                emitter.emit('error', { error });
             }
 
             const duration = new Date().getTime() - now.getTime();

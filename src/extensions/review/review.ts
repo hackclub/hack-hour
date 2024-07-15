@@ -23,6 +23,35 @@ async function getReviewerCache() {
     return slackReviewerCache;
 }
 
+// Rewrite
+export class Review2 {
+    public static async assign({
+        scrapbookID,
+        reviewerSlackId
+    }: {
+        scrapbookID: string,
+        reviewerSlackId: string
+    }) {
+        try {
+            const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = "${reviewerSlackId}"`)
+            const reviewer = reviewers[0] || null;
+            if (!reviewer) {
+                throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
+            }
+            await AirtableAPI.Scrapbook.update(scrapbookID, {
+                "Review Start Time": new Date().toISOString(),
+                "Reviewer": [reviewer.id]
+            });
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+
+
+}
+
+// Original
 export class Review {
     public static async ensureReviewPermission(reviewerSlackId: string) {
         try {
@@ -740,7 +769,7 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
 Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
     try {
         const slackId = body.user.id;
-        const messageTs =  (body as any).container.thread_ts;
+        const messageTs = (body as any).container.thread_ts;
 
         if (!(await Review.ensureReviewPermission(slackId))) {
             await respond({
@@ -948,4 +977,45 @@ Slack.action(Actions.SHIPPED, async ({ body, respond }) => {
         text: `It's a shipped project!`,
         thread_ts: scrapbook.fields['Scrapbook TS']
     });
+});
+
+Slack.event('reaction_added', async ({ event }) => {
+    const reaction = event.reaction;
+    const user = event.item_user;
+    const message_ts = event.item.ts;
+
+    // if the reaction is :ship: and the message is in the scrapbook channel, mark the scrapbook as shipped
+    if (reaction !== 'ship') {
+        return;
+    }
+
+    if (!['U0C7B14Q3', 'U04QD71QWS0'].includes(user)) {
+        return;
+    }
+
+    const scrapbook = await AirtableAPI.Scrapbook.filter(`{Scrapbook TS} = '${message_ts}'`)
+        .catch((error) => {
+            console.error(error);
+            return [];
+        });
+
+    if (scrapbook.length === 0) {
+        return;
+    }
+
+    await AirtableAPI.Scrapbook.update(scrapbook[0].id, {
+        "Is Shipped?": true
+    })
+        .catch((error) => {
+            console.error(error)
+        });
+
+    await Slack.reactions.add({
+        channel: Environment.SCRAPBOOK_CHANNEL,
+        name: 'white_check_mark',
+        timestamp: message_ts
+    })
+        .catch((error) => {
+            console.error(error)
+        });
 });
