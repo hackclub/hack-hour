@@ -23,34 +23,6 @@ async function getReviewerCache() {
     return slackReviewerCache;
 }
 
-// Rewrite
-export class Review2 {
-    public static async assign({
-        scrapbookID,
-        reviewerSlackId
-    }: {
-        scrapbookID: string,
-        reviewerSlackId: string
-    }) {
-        try {
-            const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = "${reviewerSlackId}"`)
-            const reviewer = reviewers[0] || null;
-            if (!reviewer) {
-                throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
-            }
-            await AirtableAPI.Scrapbook.update(scrapbookID, {
-                "Review Start Time": new Date().toISOString(),
-                "Reviewer": [reviewer.id]
-            });
-        }
-        catch (e) {
-            console.error(e);
-        }
-    }
-
-
-}
-
 // Original
 export class Review {
     public static async ensureReviewPermission(reviewerSlackId: string) {
@@ -77,10 +49,9 @@ export class Review {
         } catch (e) {
             console.error(e)
         }
-
     }
 
-    public static async init(recordId: string, reviewerSlackId: string | null = null) {
+    public static async createTicket(recordId: string, reviewerSlackId: string | null = null) {
         // New session to review! post in #arcade-reivew!
         // optionally if reviewerSlackId is provided, assign that reviewer instantly
         try {
@@ -122,11 +93,6 @@ export class Review {
         } catch (e) {
             console.error(e);
         }
-
-        // update the "review channel" post with a review button
-        // pressing the button triggers handleStartButton()
-        // post in scrapbook thread "review has been started by"
-        // post in scrapbook thread "list of sessions + approve/reject buttons"
     }
 
     public static async assignReviewer({ scrapbookID, reviewerSlackId }: {
@@ -146,6 +112,76 @@ export class Review {
         }
         catch (e) {
             console.error(e);
+        }
+    }
+
+    public static async populate({ 
+            scrapbook,
+            scrapbookRecId 
+        }: { 
+            scrapbook: AirtableScrapbookRead,
+            scrapbookRecId: string 
+        }) {
+        const sessionIds = await AirtableAPI.Session.fromScrapbook(scrapbookRecId);
+
+        for (const sessionId of sessionIds) {
+            const session = await AirtableAPI.Session.find(sessionId);
+    
+            if (!session) {
+                console.error(`Session not found: ${sessionId}`);
+    
+                await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    text: `Session not found: ${sessionId}`,
+                    thread_ts: scrapbook['Scrapbook TS']
+                });
+    
+                continue;
+            }
+    
+            let button;
+            if (session.fields['Status'] === 'Approved') {
+                button = await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    thread_ts: scrapbook['Scrapbook TS'],
+                    blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
+                });
+            } else if (session.fields['Status'] === 'Rejected') {
+                button = await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    thread_ts: scrapbook['Scrapbook TS'],
+                    blocks: ReviewView.rejected(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                });
+            } else if (session.fields['Status'] === 'Rejected Locked') {
+                button = await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    thread_ts: scrapbook['Scrapbook TS'],
+                    blocks: ReviewView.rejectedLock(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                });
+            } else {
+                const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
+    
+                button = await Slack.chat.postMessage({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    text: `Review session`,
+                    blocks: ReviewView.session({
+                        createdAt: session.fields['Created At'],
+                        minutes: session.fields['Minutes'],
+                        link: session.fields['Code URL'],
+                        recId: session.id,
+    
+                        text: session.fields['Work'],
+                        evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
+                        urls: await Evidence.grabLinks(evidence),
+                        images: await Evidence.grabImageURLs(evidence)
+                    }),
+                    thread_ts: scrapbook['Scrapbook TS']
+                });
+            }
+    
+            await AirtableAPI.Session.update(sessionId, {
+                "Review Button TS": button?.ts
+            });
         }
     }
 
@@ -419,67 +455,10 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
         ]
     });
 
-    const sessionIds = await AirtableAPI.Session.fromScrapbook(scrapbook.id);
-
-    for (const sessionId of sessionIds) {
-        const session = await AirtableAPI.Session.find(sessionId);
-
-        if (!session) {
-            console.error(`Session not found: ${sessionId}`);
-
-            await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                text: `Session not found: ${sessionId}`,
-                thread_ts: scrapbook.fields['Scrapbook TS']
-            });
-
-            continue;
-        }
-
-        let button;
-        if (session.fields['Status'] === 'Approved') {
-            button = await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                thread_ts: scrapbook.fields['Scrapbook TS'],
-                blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
-            });
-        } else if (session.fields['Status'] === 'Rejected') {
-            button = await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                thread_ts: scrapbook.fields['Scrapbook TS'],
-                blocks: ReviewView.rejected(sessionId, session.fields['Minutes'], session.fields['Created At'])
-            });
-        } else if (session.fields['Status'] === 'Rejected Locked') {
-            button = await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                thread_ts: scrapbook.fields['Scrapbook TS'],
-                blocks: ReviewView.rejectedLock(sessionId, session.fields['Minutes'], session.fields['Created At'])
-            });
-        } else {
-            const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
-
-            button = await Slack.chat.postMessage({
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                text: `Review session`,
-                blocks: ReviewView.session({
-                    createdAt: session.fields['Created At'],
-                    minutes: session.fields['Minutes'],
-                    link: session.fields['Code URL'],
-                    recId: session.id,
-
-                    text: session.fields['Work'],
-                    evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
-                    urls: await Evidence.grabLinks(evidence),
-                    images: await Evidence.grabImageURLs(evidence)
-                }),
-                thread_ts: scrapbook.fields['Scrapbook TS']
-            });
-        }
-
-        await AirtableAPI.Session.update(sessionId, {
-            "Review Button TS": button?.ts
-        });
-    }
+    await Review.populate({ 
+        scrapbook: scrapbook.fields,
+        scrapbookRecId: scrapbook.id 
+    });
 });
 
 Slack.action(Actions.APPROVE, async ({ body, respond }) => {
@@ -803,6 +782,13 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
 
         const scrapbook = records[0];
 
+        await Slack.chat.postEphemeral({
+            user: body.user.id,
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            thread_ts: messageTs,
+            "text": `Review started. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
+        })
+
         // start the review process, like the start review button
 
         if (scrapbook.fields['Reviewed On'] !== 'Other') {
@@ -865,74 +851,11 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             ]
         });
 
-        const sessionIds = await AirtableAPI.Session.fromScrapbook(scrapbook.id);
+        await Review.populate({ 
+            scrapbook: scrapbook.fields,
+            scrapbookRecId: scrapbook.id 
+        });
 
-        for (const sessionId of sessionIds) {
-            const session = await AirtableAPI.Session.find(sessionId);
-
-            if (!session) {
-                console.error(`Session not found: ${sessionId}`);
-
-                await Slack.chat.postMessage({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    text: `Session not found: ${sessionId}`,
-                    thread_ts: scrapbook.fields['Scrapbook TS']
-                });
-
-                continue;
-            }
-
-            let button;
-            if (session.fields['Status'] === 'Approved') {
-                button = await Slack.chat.postMessage({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    thread_ts: scrapbook.fields['Scrapbook TS'],
-                    blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
-                });
-            } else if (session.fields['Status'] === 'Rejected') {
-                button = await Slack.chat.postMessage({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    thread_ts: scrapbook.fields['Scrapbook TS'],
-                    blocks: ReviewView.rejected(sessionId, session.fields['Minutes'], session.fields['Created At'])
-                });
-            } else if (session.fields['Status'] === 'Rejected Locked') {
-                button = await Slack.chat.postMessage({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    thread_ts: scrapbook.fields['Scrapbook TS'],
-                    blocks: ReviewView.rejectedLock(sessionId, session.fields['Minutes'], session.fields['Created At'])
-                });
-            } else {
-                const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
-
-                button = await Slack.chat.postMessage({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    text: `Review session`,
-                    blocks: ReviewView.session({
-                        createdAt: session.fields['Created At'],
-                        minutes: session.fields['Minutes'],
-                        link: session.fields['Code URL'],
-                        recId: session.id,
-
-                        text: session.fields['Work'],
-                        evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
-                        urls: await Evidence.grabLinks(evidence),
-                        images: await Evidence.grabImageURLs(evidence)
-                    }),
-                    thread_ts: scrapbook.fields['Scrapbook TS']
-                });
-            }
-
-            await AirtableAPI.Session.update(sessionId, {
-                "Review Button TS": button?.ts
-            });
-        }
-
-        await Slack.chat.postEphemeral({
-            user: body.user.id,
-            channel: Environment.SCRAPBOOK_CHANNEL,
-            thread_ts: messageTs,
-            "text": `Review started. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
-        })
     } catch (e) {
         console.error(e);
     }

@@ -51,7 +51,7 @@ const main = async () => {
             const scrapbook = scrapbooks[0];
 
             if (scrapbook) {
-                await Review.init(scrapbook.id);
+                await Review.createTicket(scrapbook.id);
             }
         } catch(e) {
             console.error(e);

@@ -6,9 +6,6 @@ dotenv.config();
 import Airtable from "airtable";
 import { emitter } from './emitter.js';
 
-Airtable.configure({
-    apiKey: process.env.AIRTABLE_TOKEN
-});
 
 if (!process.env.AIRTABLE_BASE) { throw new Error("No Airtable base provided"); }
 
