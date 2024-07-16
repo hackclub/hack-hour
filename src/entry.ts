@@ -7,7 +7,7 @@ import { prisma } from './lib/prisma.js';
 import { emitter } from './lib/emitter.js';
 import { app } from './lib/bolt.js'
 
-import './clock.js';
+// import './clock.js';
 
 // // Programmatically import index.ts from each extension in the extensions folder
 // const extensions = await fs.promises.readdir('./src/extensions');
@@ -18,12 +18,12 @@ import './clock.js';
 //     await import(`./extensions/${extension}/index.js`);
 // }));
 
-if (process.env.ARCADE) {
-    await import("./extensions/arcade/index.js");
-}
+// if (process.env.ARCADE) {
+//     await import("./extensions/arcade/index.js");
+// }
 
-import "./extensions/api/index.js";
-import "./extensions/slack/index.js";
+// import "./extensions/api/index.js";
+// import "./extensions/slack/index.js";
 import './extensions/review/index.js';
 
 try {

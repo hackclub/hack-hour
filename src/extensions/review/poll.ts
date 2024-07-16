@@ -35,7 +35,6 @@ const getArcadeScrapbooksToGarbageCollect = async () => {
     const filterRules = [
         'NOT(Approved = TRUE())',
         'NOT(BLANK() = {Review TS})',
-        // `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
 }
 
