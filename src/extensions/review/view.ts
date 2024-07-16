@@ -1,6 +1,7 @@
 import { KnownBlock, RichTextQuote } from "@slack/bolt";
 import { Actions, Environment } from "../../lib/constants.js";
 import { formatHour, pfps, randomChoice, t } from "../../lib/templates.js";
+
 export class View {
     public static ticket({
         postBody,
@@ -95,6 +96,59 @@ export class View {
         ];
     }
 
+    public static isShip(
+        { scrapbookRecordId }: { scrapbookRecordId: string }
+    ): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Is this project a ship?",
+                    "emoji": true
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Yes (Shipped)",
+                            "emoji": true
+                        },
+                        "action_id": Actions.SHIP,
+                        "value": scrapbookRecordId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "No (WIP)",
+                            "emoji": true
+                        },
+                        "action_id": Actions.WIP,
+                        "value": scrapbookRecordId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Magic Happening :sparkles:",
+                            "emoji": true
+                        },
+                        "action_id": Actions.MAGIC,
+                        "value": scrapbookRecordId
+                    }
+                ]
+            }
+        ]
+    }
+
     public static userOverview({
         scrapbookId,
         hours,
@@ -166,17 +220,6 @@ flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}`
                                 "text": "woah bud, this will remove all sessions linked to this scrapbook. are you sure?"
                             }
                         }
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": `is shipped?`,
-                            "emoji": true,
-                        },
-                        "style": "primary",
-                        "action_id": Actions.SHIPPED,
-                        "value": scrapbookId
                     }
                 ]
             }
@@ -291,7 +334,7 @@ flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}`
                 ]
             }, {
             "type": "divider"
-            }
+        }
         );
 
         // images break the bot...
@@ -319,7 +362,7 @@ flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}`
         sessionId: string,
         minutes: number,
         createdAt: string,
-        slackId: string | null
+        slackId?: string
     }) {
         return [
             {
@@ -370,7 +413,7 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         sessionId: string,
         minutes: number,
         createdAt: string,
-        slackId: string | null
+        slackId?: string
     }) {
         return [
             {
@@ -418,7 +461,7 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         sessionId: string,
         minutes: number,
         createdAt: string,
-        slackId: string | null
+        slackId?: string
     }) {
         return [
             {
