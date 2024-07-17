@@ -15,17 +15,22 @@ export class View {
         text: string,
     }): KnownBlock[] {
         return [
-            // {
-            //     "type": "header",
-            //     "text": {
-            //         "type": "plain_text",
-            //         "text": "This is a header block",
-            //         "emoji": true
-            //     }
-            // },
             {
                 "type": "rich_text",
                 "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "text",
+                                "text": "Review scrapbook by ",
+                            },
+                            {
+                                "type": "user",
+                                "user_id": slackId
+                            }
+                        ]
+                    },
                     {
                         "type": "rich_text_quote",
                         "elements": [
