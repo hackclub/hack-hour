@@ -19,6 +19,7 @@ import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
+import { KnownBlock } from "@slack/bolt";
 
 /*
 Session Creation
@@ -141,12 +142,19 @@ const hack = async ({ command }: CommandHandler) => {
 
         if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
             // await informUser(slackId, t('error.not_full_user'), command.channel_id);
+            const airtable = await AirtableAPI.User.lookupBySlack(slackId);            
+
             await informUserBlocks(slackId, [
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": t('error.not_full_user')
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "text": "Go to DM",
+                        "url": `https://hackclub.slack.com/archives/${airtable?.fields['dmChannel']}`,
                     }
                 },
                 {
@@ -158,7 +166,7 @@ const hack = async ({ command }: CommandHandler) => {
                         }
                     ]  
                 }
-            ], command.channel_id);
+            ] as KnownBlock[], command.channel_id);
 
             return;
         }
