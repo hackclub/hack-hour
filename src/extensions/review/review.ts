@@ -26,7 +26,7 @@ async function getReviewerCache() {
 
 // Original
 export class Review {
-    public static async ensureReviewPermission(reviewerSlackId: string) {
+    public static async isReviewer(reviewerSlackId: string) {
         try {
             const [reviewers, slackUsers] = await Promise.all([
                 AirtableAPI.Reviewer.filter(`AND({Slack ID} = '${reviewerSlackId}', {TEMP: Beta system} = TRUE())`),
@@ -367,7 +367,7 @@ export class Review {
 Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -460,7 +460,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -516,7 +516,7 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
 Slack.action(Actions.REJECT, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -570,7 +570,7 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
 Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
 
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
@@ -625,7 +625,7 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
 Slack.action(Actions.UNDO, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -670,7 +670,7 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
 Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -703,7 +703,7 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
 Slack.action(Actions.MAGIC, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
@@ -746,7 +746,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         const slackId = body.user.id;
         const messageTs = (body as any).container.thread_ts;
 
-        if (!(await Review.ensureReviewPermission(slackId))) {
+        if (!(await Review.isReviewer(slackId))) {
             await respond({
                 text: 'You do not have permission to start a review.',
                 response_type: 'ephemeral',
@@ -860,7 +860,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
 Slack.action(Actions.SHIPPED, async ({ body, respond }) => {
     const slackId = body.user.id;
 
-    if (!(await Review.ensureReviewPermission(slackId))) {
+    if (!(await Review.isReviewer(slackId))) {
         await Slack.chat.postEphemeral({
             channel: body.channel?.id!,
             user: slackId,
