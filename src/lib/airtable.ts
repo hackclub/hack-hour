@@ -113,7 +113,7 @@ type AirtableSessionRead = {
     "User: Slack ID": [string],
 };
 
-interface AirtableScrapbookWrite {
+export interface AirtableScrapbookWrite {
     "Scrapbook TS": string,
     "Scrapbook URL": string,
     "Sessions": AirtableRecordID[],
@@ -135,11 +135,11 @@ interface AirtableScrapbookWrite {
 };
 
 export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
-    "Count Approved Sessions": number,
-    "Count Unreviewed Sessions": number,
-    "Linked Sessions Count": number,
-    "Review Button TSs": string[],
-    "User: Slack ID": [string],
+    readonly "Count Approved Sessions": number,
+    readonly "Count Unreviewed Sessions": number,
+    readonly "Linked Sessions Count": number,
+    readonly "Review Button TSs": string[],
+    readonly "User: Slack ID": [string],
 };
 
 type AirtableAPIRead = {

@@ -8,6 +8,7 @@ import { prisma } from "../../lib/prisma.js";
 import { reactOnContent } from "../slack/lib/emoji.js";
 import getUrls from "get-urls";
 import { Evidence } from "../arcade/lib/evidence.js";
+import { ScrapbookCache } from "./batch.js";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -55,13 +56,12 @@ export class Review {
         // New session to review! post in #arcade-reivew!
         // optionally if reviewerSlackId is provided, assign that reviewer instantly
         try {
-
             const review = await Slack.chat.postMessage({
                 channel: Environment.REVIEW_CHANNEL,
                 text: t('loading'),
             });
 
-            const scrapbook = await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
+            const scrapbook = await ScrapbookCache.update(recordId, { "Review TS": review?.ts });
 
             if (reviewerSlackId) {
                 this.assignReviewer({ scrapbookID: recordId, reviewerSlackId });
@@ -105,7 +105,7 @@ export class Review {
             if (!reviewer) {
                 throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
             }
-            await AirtableAPI.Scrapbook.update(scrapbookID, {
+            await ScrapbookCache.update(scrapbookID, {
                 "Review Start Time": new Date().toISOString(),
                 "Reviewer": [reviewer.id]
             });
@@ -187,7 +187,7 @@ export class Review {
 
     public static async finishReview(scrapbookID: string, reviewerSlackID: string) {
         try {
-            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+            const scrapbook = await ScrapbookCache.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -196,7 +196,7 @@ export class Review {
             }
 
             if (scrapbook.fields['Count Unreviewed Sessions'] === 0 && scrapbook.fields['Review TS']) {
-                await AirtableAPI.Scrapbook.update(scrapbook.id, {
+                await ScrapbookCache.update(scrapbook.id, {
                     "Approved": true,
                     "Review End Time": new Date().toISOString(),
                 });
@@ -255,7 +255,7 @@ export class Review {
 
     public static async garbageCollection(scrapbookID: string) {
         try {
-            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+            const scrapbook = await ScrapbookCache.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -281,7 +281,7 @@ export class Review {
                 });
             }
 
-            await AirtableAPI.Scrapbook.update(scrapbook.id, {
+            await ScrapbookCache.update(scrapbook.id, {
                 "Review Start Time": undefined,
                 "Reviewer": [],
             });
@@ -298,7 +298,7 @@ export class Review {
 
     public static async unsubmit(scrapbookID: string) {
         try {
-            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
+            const scrapbook = await ScrapbookCache.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -411,7 +411,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 
     await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
 
-    await AirtableAPI.Scrapbook.update(scrapbook.id, {
+    await ScrapbookCache.update(scrapbook.id, {
         "Reviewed On": "Hakkuun"
     });
 
@@ -687,7 +687,7 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
     const scrapbookId = (body as any).actions[0].value;
 
     // Check if the scrapbook exists
-    const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookId);
+    const scrapbook = await ScrapbookCache.find(scrapbookId);
 
     if (!scrapbook) {
         console.error(`Scrapbook not found: ${scrapbookId}`);
@@ -719,7 +719,7 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
 
     const scrapbookId = (body as any).actions[0].value;
 
-    const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookId);
+    const scrapbook = await ScrapbookCache.find(scrapbookId);
 
     if (!scrapbook) {
         console.error(`Scrapbook not found: ${scrapbookId}`);
@@ -733,7 +733,7 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
         return;
     }
 
-    await AirtableAPI.Scrapbook.update(scrapbookId, {
+    await ScrapbookCache.update(scrapbookId, {
         "Magic Happening": true
     });
 
@@ -805,7 +805,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
 
         await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
 
-        await AirtableAPI.Scrapbook.update(scrapbook.id, {
+        await ScrapbookCache.update(scrapbook.id, {
             "Reviewed On": "Hakkuun"
         });
 
@@ -876,7 +876,7 @@ Slack.action(Actions.SHIPPED, async ({ body, respond }) => {
 
     const scrapbookId = (body as any).actions[0].value;
 
-    const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookId);
+    const scrapbook = await ScrapbookCache.find(scrapbookId);
 
     if (!scrapbook) {
         console.error(`Scrapbook not found: ${scrapbookId}`);
@@ -890,7 +890,7 @@ Slack.action(Actions.SHIPPED, async ({ body, respond }) => {
         return;
     }
 
-    await AirtableAPI.Scrapbook.update(scrapbookId, {
+    await ScrapbookCache.update(scrapbookId, {
         "Is Shipped?": true
     });
 
@@ -926,7 +926,7 @@ Slack.event('reaction_added', async ({ event }) => {
         return;
     }
 
-    await AirtableAPI.Scrapbook.update(scrapbook[0].id, {
+    await ScrapbookCache.update(scrapbook[0].id, {
         "Is Shipped?": true
     })
         .catch((error) => {
