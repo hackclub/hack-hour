@@ -63,13 +63,17 @@ export const recordCommands = [
     Commands.SHOP,
 ]
 
-async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
+async function callSlackClient<T extends (...args: any[]) => Promise<any>>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
     try {
         const now = new Date();
 
         console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
 
-        const result = await asyncFunction(...args);
+        const result = asyncFunction(...args) 
+            .then((result) => result)
+            .catch((error) => {
+                console.error(error);
+            });
  
         const diff = new Date().getTime() - now.getTime();
 
@@ -77,9 +81,8 @@ async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction:
 
         return result;
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(error);
     }
-
 }
 
 export const Slack = {
@@ -440,7 +443,11 @@ export const Slack = {
 
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            return await assertVal(await callSlackClient(app.client.reactions.add, options));
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.add, options))
+            } catch (error) {
+                console.error(error);
+            }
         }
     },
 
