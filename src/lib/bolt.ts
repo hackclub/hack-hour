@@ -55,6 +55,10 @@ export const approvedUsers = [
     'U077XBJ3YPR',
 ]
 
+export const buggedUsers = [
+    'U0794S6UVCM'
+]
+
 export const recordCommands = [
     Commands.SHOP,
 ]
@@ -103,6 +107,10 @@ export const Slack = {
                     if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
                         return respond(t('maintanenceMode'))
                     }
+                }
+
+                if (buggedUsers.includes(event.user_id)) {
+                    return respond(t('maintanenceMode'))
                 }
 
                 if (recordCommands.includes(command) && Environment.PROD) {
@@ -173,6 +181,10 @@ export const Slack = {
                 });
 
                 if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                    return respond(t('maintanenceMode'))
+                }
+
+                if (buggedUsers.includes(body.user.id)) {
                     return respond(t('maintanenceMode'))
                 }
 
