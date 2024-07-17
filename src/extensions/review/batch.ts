@@ -62,7 +62,8 @@ export class ScrapbookCache {
 
         // delete this.cache[recId];
         // return;
-        return await AirtableAPI.Scrapbook.update(recId, this.cache[recId].fields);
+        
+        return await AirtableAPI.Scrapbook.find(recId);
     }
 
     public static async refresh(recId: string) {
