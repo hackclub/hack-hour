@@ -141,7 +141,6 @@ const hack = async ({ command }: CommandHandler) => {
         }
 
         if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
-            // await informUser(slackId, t('error.not_full_user'), command.channel_id);
             const airtable = await AirtableAPI.User.lookupBySlack(slackId);            
 
             await informUserBlocks(slackId, [
@@ -153,7 +152,10 @@ const hack = async ({ command }: CommandHandler) => {
                     },
                     "accessory": {
                         "type": "button",
-                        "text": "Go to DM",
+                        "text": {
+                            "text": "Go to DM",
+                            "type": "plain_text",
+                        },
                         "url": `https://hackclub.slack.com/archives/${airtable?.fields['dmChannel']}`,
                     }
                 },
