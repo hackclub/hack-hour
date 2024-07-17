@@ -24,7 +24,6 @@ async function getReviewerCache() {
 
 const reviewersInReview: string[] = [];
 
-// Original
 export class Review {
     public static async isReviewer(reviewerSlackId: string) {
         try {
@@ -348,7 +347,7 @@ export class Review {
 
                 const dbSession = await prisma.session.findUnique({
                     where: {
-                        id: sessionId
+                        id: session.fields['Session ID']
                     }
                 });
 
