@@ -121,15 +121,6 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": `magic happening :sparkles:`,
-                        },
-                        "action_id": Actions.MAGIC,
-                        "value": scrapbookId
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
                             "text": `unsubmit :bangbang:`,
                             "emoji": true,
                         },
@@ -156,21 +147,63 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                                 "text": "woah bud, this will remove all sessions linked to this scrapbook. are you sure?"
                             }
                         }
+                    }
+                ]
+            }
+        ];
+    }
+
+    public static isShip(
+        { recId }: { recId: string }
+    ): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Is this project a ship?",
+                    "emoji": true
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Yes (Shipped)",
+                            "emoji": true
+                        },
+                        "action_id": Actions.SHIP,
+                        "value": recId
                     },
                     {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": `is shipped?`,
-                            "emoji": true,
+                            "text": "No (WIP)",
+                            "emoji": true
                         },
-                        "style": "primary",
-                        "action_id": Actions.SHIPPED,
-                        "value": scrapbookId
+                        "action_id": Actions.WIP,
+                        "value": recId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Magic Happening :sparkles:",
+                            "emoji": true
+                        },
+                        "action_id": Actions.MAGIC,
+                        "value": recId
                     }
                 ]
             }
-        ];
+        ]
     }
 
     public static session({
