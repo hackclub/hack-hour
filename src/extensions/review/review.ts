@@ -1,12 +1,10 @@
-import { KnownBlock } from "@slack/bolt";
 import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../lib/airtable.js";
 import { Slack, app } from "../../lib/bolt.js";
 import { Actions, Environment } from "../../lib/constants.js";
-import { pfps, t } from "../../lib/templates.js";
-import { ReviewView } from "./view.js";
+import { t } from "../../lib/templates.js";
+import { View } from "./view.js";
 import { prisma } from "../../lib/prisma.js";
 import { reactOnContent } from "../slack/lib/emoji.js";
-import getUrls from "get-urls";
 import { Evidence } from "../arcade/lib/evidence.js";
 import { ScrapbookCache } from "./batch.js";
 
@@ -61,7 +59,7 @@ export class Review {
                 text: t('loading'),
             });
 
-            const scrapbook = await ScrapbookCache.update(recordId, { "Review TS": review?.ts });
+            const scrapbook = await AirtableAPI.Scrapbook.update(recordId, { "Review TS": review?.ts });
 
             const permalink = await Slack.chat.getPermalink({
                 channel: Environment.SCRAPBOOK_CHANNEL,
@@ -73,7 +71,7 @@ export class Review {
             await Slack.chat.update({
                 channel: Environment.REVIEW_CHANNEL,
                 ts: review!.ts!,
-                blocks: ReviewView.reviewStart({
+                blocks: View.newTicket({
                     slackId: scrapbook.fields['User: Slack ID'][0],
                     permalink: permalink?.permalink!,
                     recId: recordId,
@@ -103,7 +101,8 @@ export class Review {
             }
             await ScrapbookCache.update(scrapbookID, {
                 "Review Start Time": new Date().toISOString(),
-                "Reviewer": [reviewer.id]
+                "Reviewer": [reviewer.id],
+                "Reviewed On": "Hakkuun"
             });
         }
         catch (e) {
@@ -140,19 +139,31 @@ export class Review {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
-                    blocks: ReviewView.approved(sessionId, session.fields['Approved Minutes'], session.fields['Created At'])
+                    blocks: View.approved({
+                        sessionId, 
+                        minutes: session.fields['Approved Minutes'], 
+                        createdAt: session.fields['Created At']
+                    })
                 });
             } else if (session.fields['Status'] === 'Rejected') {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
-                    blocks: ReviewView.rejected(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                    blocks: View.rejected({
+                        sessionId, 
+                        minutes: session.fields['Minutes'], 
+                        createdAt: session.fields['Created At']
+                    })
                 });
             } else if (session.fields['Status'] === 'Rejected Locked') {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
-                    blocks: ReviewView.rejectedLock(sessionId, session.fields['Minutes'], session.fields['Created At'])
+                    blocks: View.rejectedLock({
+                        sessionId, 
+                        minutes: session.fields['Minutes'], 
+                        createdAt: session.fields['Created At']
+                    })
                 });
             } else {
                 const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
@@ -160,7 +171,7 @@ export class Review {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     text: `Review session`,
-                    blocks: ReviewView.session({
+                    blocks: View.session({
                         createdAt: session.fields['Created At'],
                         minutes: session.fields['Minutes'],
                         link: session.fields['Code URL'],
@@ -205,7 +216,7 @@ export class Review {
 
                 await Slack.chat.postEphemeral({
                     channel: Environment.SCRAPBOOK_CHANNEL,
-                    blocks: ReviewView.gimme(),
+                    blocks: View.gimme(),
                     thread_ts: scrapbook.fields['Scrapbook TS'],
                     user: reviewerSlackID
                 });
@@ -219,7 +230,7 @@ export class Review {
                     console.error(e);
                 }
 
-                let rejection = false;
+                ScrapbookCache.forcePush(scrapbook.id);
 
                 for (const sessionId of scrapbook.fields['Sessions']) {
                     const session = await AirtableAPI.Session.find(sessionId);
@@ -229,19 +240,13 @@ export class Review {
                         continue;
                     }
 
-                    console.log(session.fields['Status']);
-
                     if (session.fields['Status'] === 'Rejected' || session.fields['Status'] === 'Rejected Locked') {
-                        rejection = true;
+                        await Slack.chat.postMessage({
+                            channel: Environment.SCRAPBOOK_CHANNEL,
+                            text: t('review.completion.rejected'),
+                            thread_ts: scrapbook.fields['Scrapbook TS']
+                        });
                     }
-                }
-
-                if (rejection) {
-                    await Slack.chat.postMessage({
-                        channel: Environment.SCRAPBOOK_CHANNEL,
-                        text: t('review.completion.rejected'),
-                        thread_ts: scrapbook.fields['Scrapbook TS']
-                    });
                 }
             }
         } catch (e) {
@@ -407,17 +412,13 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
 
     await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId: body.user.id });
 
-    await ScrapbookCache.update(scrapbook.id, {
-        "Reviewed On": "Hakkuun"
-    });
-
     const user = await AirtableAPI.User.find(scrapbook.fields['User'][0]);
 
     await Slack.chat.postMessage({
         channel: Environment.SCRAPBOOK_CHANNEL,
         text: `<@${body.user.id}> has started the review.`,
         thread_ts: scrapbook.fields['Scrapbook TS'],
-        blocks: ReviewView.scrapbookOverview({
+        blocks: View.scrapbookOverview({
             slackId: body.user.id,
             scrapbookId: scrapbook.id,
         })
@@ -428,7 +429,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         text: `User overview`,
         thread_ts: scrapbook.fields['Scrapbook TS'],
-        blocks: ReviewView.userOverview({
+        blocks: View.userOverview({
             scrapbookId: scrapbook.id,
             hours: (user?.fields['Minutes (All)'] ?? -1),
             sessions: scrapbook.fields['Sessions'].length,
@@ -487,7 +488,12 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.approved(sessionId, session.fields['Percentage Approved'] * session.fields['Minutes'], session.fields['Created At'], body.user.id)
+        blocks: View.approved({
+            sessionId, 
+            minutes: session.fields['Percentage Approved'] * session.fields['Minutes'], 
+            createdAt: session.fields['Created At'], 
+            slackId: body.user.id
+        })
     });
 
     // await Slack.chat.postMessage({
@@ -542,7 +548,12 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.rejected(sessionId, session.fields['Minutes'], session.fields['Created At'], body.user.id)
+        blocks: View.rejected({
+            sessionId, 
+            minutes: session.fields['Minutes'], 
+            createdAt: session.fields['Created At'], 
+            slackId: body.user.id
+        })
     });
 
     // await Slack.chat.postMessage({
@@ -597,7 +608,12 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.rejectedLock(sessionId, session.fields['Minutes'], session.fields['Created At'], body.user.id)
+        blocks: View.rejectedLock({
+            sessionId, 
+            minutes: session.fields['Minutes'], 
+            createdAt: session.fields['Created At'], 
+            slackId: body.user.id
+        })
     });
 
     // await Slack.chat.postMessage({
@@ -653,7 +669,7 @@ Slack.action(Actions.UNDO, async ({ body, respond }) => {
     await Slack.chat.update({
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
-        blocks: ReviewView.session({
+        blocks: View.session({
             createdAt: session.fields['Created At'],
             minutes: session.fields['Minutes'],
             link: session.fields['Code URL'],
@@ -745,7 +761,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
     try {
         const slackId = body.user.id;
         const messageTs = (body as any).container.thread_ts;
-
+         
         if (!(await Review.isReviewer(slackId))) {
             await respond({
                 text: 'You do not have permission to start a review.',
@@ -777,6 +793,20 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         }
 
         const scrapbook = records[0];
+
+        await Slack.chat.update({
+            channel: Environment.REVIEW_CHANNEL,
+            ts: scrapbook.fields['Review TS'],
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Review started by <@${body.user.id}>. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
+                    }
+                },
+            ]
+        });
 
         await Slack.chat.postEphemeral({
             user: body.user.id,
@@ -811,7 +841,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             channel: Environment.SCRAPBOOK_CHANNEL,
             text: `<@${body.user.id}> has started the review.`,
             thread_ts: scrapbook.fields['Scrapbook TS'],
-            blocks: ReviewView.scrapbookOverview({
+            blocks: View.scrapbookOverview({
                 slackId: body.user.id,
                 scrapbookId: scrapbook.id,
             })
@@ -822,7 +852,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             channel: Environment.SCRAPBOOK_CHANNEL,
             text: `User overview`,
             thread_ts: scrapbook.fields['Scrapbook TS'],
-            blocks: ReviewView.userOverview({
+            blocks: View.userOverview({
                 scrapbookId: scrapbook.id,
                 hours: (user?.fields['Minutes (All)'] ?? -1),
                 sessions: scrapbook.fields['Sessions'].length,
@@ -832,20 +862,6 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         })
 
         const ts = scrapbook.fields['Review TS'];
-
-        await Slack.chat.update({
-            channel: Environment.REVIEW_CHANNEL,
-            ts,
-            blocks: [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": `Review started by <@${body.user.id}>. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
-                    }
-                },
-            ]
-        });
 
         await Review.populate({ 
             scrapbook: scrapbook.fields,

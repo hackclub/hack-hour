@@ -2,8 +2,8 @@ import { KnownBlock, RichTextQuote } from "@slack/bolt";
 import { Actions, Environment } from "../../lib/constants.js";
 import { formatHour, pfps, randomChoice, t } from "../../lib/templates.js";
 
-export class ReviewView {
-    public static reviewStart({
+export class View {
+    public static newTicket({
         slackId,
         permalink,
         recId,
@@ -343,7 +343,12 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
         return blocks;
     }
 
-    public static approved(sessionId: string, minutes: number, createdAt: string, slackId: string | null = null) {
+    public static approved({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
             {
                 "type": "header",
@@ -382,7 +387,12 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         ]
     }
 
-    public static rejected(sessionId: string, minutes: number, createdAt: string, slackId: string | null = null) {
+    public static rejected({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
             {
                 "type": "header",
@@ -419,7 +429,12 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         ]
     }
 
-    public static rejectedLock(sessionId: string, minutes: number, createdAt: string, slackId: string | null = null) {
+    public static rejectedLock({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
             {
                 "type": "header",
