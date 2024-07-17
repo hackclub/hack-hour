@@ -389,7 +389,7 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] opening view"`)
+                console.log(`[${now.toISOString()}] opening view`)
 
                 const result = await app.client.views.open(options);
 
