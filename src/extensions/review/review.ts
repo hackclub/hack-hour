@@ -22,6 +22,8 @@ async function getReviewerCache() {
     return slackReviewerCache;
 }
 
+const reviewersInReview: string[] = [];
+
 // Original
 export class Review {
     public static async isReviewer(reviewerSlackId: string) {
@@ -104,44 +106,46 @@ export class Review {
                 "Reviewer": [reviewer.id],
                 "Reviewed On": "Hakkuun"
             });
+
+            reviewersInReview.push(reviewerSlackId);
         }
         catch (e) {
             console.error(e);
         }
     }
 
-    public static async populate({ 
-            scrapbook,
-            scrapbookRecId 
-        }: { 
-            scrapbook: AirtableScrapbookRead,
-            scrapbookRecId: string 
-        }) {
+    public static async populate({
+        scrapbook,
+        scrapbookRecId
+    }: {
+        scrapbook: AirtableScrapbookRead,
+        scrapbookRecId: string
+    }) {
         const sessionIds = await AirtableAPI.Session.fromScrapbook(scrapbookRecId);
 
         for (const sessionId of sessionIds) {
             const session = await AirtableAPI.Session.find(sessionId);
-    
+
             if (!session) {
                 console.error(`Session not found: ${sessionId}`);
-    
+
                 await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     text: `Session not found: ${sessionId}`,
                     thread_ts: scrapbook['Scrapbook TS']
                 });
-    
+
                 continue;
             }
-    
+
             let button;
             if (session.fields['Status'] === 'Approved') {
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
                     blocks: View.approved({
-                        sessionId, 
-                        minutes: session.fields['Approved Minutes'], 
+                        sessionId,
+                        minutes: session.fields['Approved Minutes'],
                         createdAt: session.fields['Created At']
                     })
                 });
@@ -150,8 +154,8 @@ export class Review {
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
                     blocks: View.rejected({
-                        sessionId, 
-                        minutes: session.fields['Minutes'], 
+                        sessionId,
+                        minutes: session.fields['Minutes'],
                         createdAt: session.fields['Created At']
                     })
                 });
@@ -160,14 +164,14 @@ export class Review {
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     thread_ts: scrapbook['Scrapbook TS'],
                     blocks: View.rejectedLock({
-                        sessionId, 
-                        minutes: session.fields['Minutes'], 
+                        sessionId,
+                        minutes: session.fields['Minutes'],
                         createdAt: session.fields['Created At']
                     })
                 });
             } else {
                 const evidence = await Evidence.fetch(session.fields['Message TS'], session.fields['User: Slack ID'][0]);
-    
+
                 button = await Slack.chat.postMessage({
                     channel: Environment.SCRAPBOOK_CHANNEL,
                     text: `Review session`,
@@ -176,7 +180,7 @@ export class Review {
                         minutes: session.fields['Minutes'],
                         link: session.fields['Code URL'],
                         recId: session.id,
-    
+
                         text: session.fields['Work'],
                         evidence: (await Evidence.grabMessageText(evidence)).join('\n'),
                         urls: await Evidence.grabLinks(evidence),
@@ -185,7 +189,7 @@ export class Review {
                     thread_ts: scrapbook['Scrapbook TS']
                 });
             }
-    
+
             await AirtableAPI.Session.update(sessionId, {
                 "Review Button TS": button?.ts
             });
@@ -248,6 +252,8 @@ export class Review {
                         });
                     }
                 }
+
+                reviewersInReview.splice(reviewersInReview.indexOf(reviewerSlackID), 1);
             }
         } catch (e) {
             console.error(e);
@@ -382,6 +388,15 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
         return;
     }
 
+    if (reviewersInReview.includes(slackId)) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You are already reviewing a scrapbook.',
+        });
+        return;
+    }
+
     const ts = (body as any).message.ts!;
 
     const records = await AirtableAPI.Scrapbook.filter(`{Review TS} = '${ts}'`);
@@ -464,56 +479,72 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             recId: scrapbook.id
         }),
         thread_ts: scrapbook.fields['Scrapbook TS'],
-    });    
+    });
 });
 
 // 2. Determine if the scrapbook post is a WIP or a SHIP
 Slack.action(Actions.SHIP, async ({ body, respond }) => {
-    const recId = (body as any).actions[0].value;
+    try {
+        const recId = (body as any).actions[0].value;
+        const messageTs = (body as any).message.ts;
 
-    const scrapbook = await AirtableAPI.Scrapbook.find(recId);
+        const scrapbook = await AirtableAPI.Scrapbook.find(recId);
 
-    if (!scrapbook) {
-        console.error(`Scrapbook not found: ${recId}`);
-        return;
+        if (!scrapbook) {
+            console.error(`Scrapbook not found: ${recId}`);
+            return;
+        }
+
+        await ScrapbookCache.update(recId, {
+            "Is Shipped?": true,
+            "Update type": "Ship"
+        });
+
+        await Slack.reactions.add({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            name: 'ship',
+            timestamp: messageTs
+        });
+
+        await Review.populate({
+            scrapbook: scrapbook.fields,
+            scrapbookRecId: recId
+        });
+    } catch (e) {
+        console.error(e);
     }
-
-    await ScrapbookCache.update(recId, {
-        "Is Shipped?": true
-    });
-
-    await Slack.reactions.add({
-        channel: Environment.SCRAPBOOK_CHANNEL,
-        name: 'ship',
-        timestamp: scrapbook.fields['Scrapbook TS']
-    });
-
-    await Review.populate({
-        scrapbook: scrapbook.fields,
-        scrapbookRecId: recId
-    });
 });
 
 Slack.action(Actions.WIP, async ({ body, respond }) => {
-    const recId = (body as any).actions[0].value;
+    try {
+        const recId = (body as any).actions[0].value;
+        const messageTs = (body as any).message.ts;
 
-    const scrapbook = await AirtableAPI.Scrapbook.find(recId);
+        const scrapbook = await AirtableAPI.Scrapbook.find(recId);
 
-    if (!scrapbook) {
-        console.error(`Scrapbook not found: ${recId}`);
-        return;
+        if (!scrapbook) {
+            console.error(`Scrapbook not found: ${recId}`);
+            return;
+        }
+
+        await ScrapbookCache.update(recId, {
+            "Is Shipped?": true,
+            "Update type": "WIP"
+        });
+
+        await Slack.reactions.add({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            name: 'hammer_and_wrench',
+            timestamp: messageTs
+        });
+
+        await Review.populate({
+            scrapbook: scrapbook.fields,
+            scrapbookRecId: recId
+        });
+    } catch (e) {
+        console.error(e);
     }
-
-    await Slack.reactions.add({
-        channel: Environment.SCRAPBOOK_CHANNEL,
-        name: 'hammer_and_wrench',
-        timestamp: scrapbook.fields['Scrapbook TS']
-    });
-
-    await Review.populate({
-        scrapbook: scrapbook.fields,
-        scrapbookRecId: recId
-    });
 });
 
 Slack.action(Actions.MAGIC, async ({ body, respond }) => {
@@ -588,9 +619,9 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
         blocks: View.approved({
-            sessionId, 
-            minutes: session.fields['Percentage Approved'] * session.fields['Minutes'], 
-            createdAt: session.fields['Created At'], 
+            sessionId,
+            minutes: session.fields['Percentage Approved'] * session.fields['Minutes'],
+            createdAt: session.fields['Created At'],
             slackId: body.user.id
         })
     });
@@ -648,9 +679,9 @@ Slack.action(Actions.REJECT, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
         blocks: View.rejected({
-            sessionId, 
-            minutes: session.fields['Minutes'], 
-            createdAt: session.fields['Created At'], 
+            sessionId,
+            minutes: session.fields['Minutes'],
+            createdAt: session.fields['Created At'],
             slackId: body.user.id
         })
     });
@@ -708,9 +739,9 @@ Slack.action(Actions.REJECT_LOCK, async ({ body, respond }) => {
         channel: Environment.SCRAPBOOK_CHANNEL,
         ts: (body as any).message.ts!,
         blocks: View.rejectedLock({
-            sessionId, 
-            minutes: session.fields['Minutes'], 
-            createdAt: session.fields['Created At'], 
+            sessionId,
+            minutes: session.fields['Minutes'],
+            createdAt: session.fields['Created At'],
             slackId: body.user.id
         })
     });
@@ -787,12 +818,22 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
     try {
         const slackId = body.user.id;
         const messageTs = (body as any).container.thread_ts;
-         
+
         if (!(await Review.isReviewer(slackId))) {
             await respond({
                 text: 'You do not have permission to start a review.',
                 response_type: 'ephemeral',
                 replace_original: false,
+                thread_ts: messageTs
+            });
+            return;
+        }
+
+        if (reviewersInReview.includes(slackId)) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You are already reviewing a scrapbook.',
                 thread_ts: messageTs
             });
             return;
@@ -893,7 +934,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         //     scrapbook: scrapbook.fields,
         //     scrapbookRecId: scrapbook.id 
         // });
-        
+
         await Slack.chat.postMessage({
             channel: Environment.SCRAPBOOK_CHANNEL,
             blocks: View.isShip({

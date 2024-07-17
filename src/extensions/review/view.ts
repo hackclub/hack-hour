@@ -86,15 +86,15 @@ export class View {
                     "text": t('review.start', { slackId })
                 }
             },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": `https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${scrapbookId}`
-                    }
-                ]
-            }
+            // {
+            //     "type": "context",
+            //     "elements": [
+            //         {
+            //             "type": "mrkdwn",
+            //             "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${scrapbookId}|view on airtable>`
+            //         }
+            //     ]
+            // }
         ];
     }
 

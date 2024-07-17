@@ -133,6 +133,7 @@ export interface AirtableScrapbookWrite {
     "Review TS"?: string,
     "Reviewed On": "Hakkuun" | "Airtable Interface" | "Other",
     "Is Shipped?"?: boolean,
+    "Update type": "WIP" | "Ship",
     readonly "User: Slack ID": [string],
     readonly "Reviewer: Slack ID": [string],
 };
