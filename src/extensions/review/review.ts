@@ -52,7 +52,7 @@ export class Review {
         }
     }
 
-    public static async createTicket(recordId: string, reviewerSlackId: string | null = null) {
+    public static async createTicket(recordId: string) {
         // New session to review! post in #arcade-reivew!
         // optionally if reviewerSlackId is provided, assign that reviewer instantly
         try {
@@ -62,10 +62,6 @@ export class Review {
             });
 
             const scrapbook = await ScrapbookCache.update(recordId, { "Review TS": review?.ts });
-
-            if (reviewerSlackId) {
-                this.assignReviewer({ scrapbookID: recordId, reviewerSlackId });
-            }
 
             const permalink = await Slack.chat.getPermalink({
                 channel: Environment.SCRAPBOOK_CHANNEL,
