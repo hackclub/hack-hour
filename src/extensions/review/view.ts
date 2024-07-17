@@ -164,6 +164,15 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                         }
                     }
                 ]
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${scrapbookId}|view on airtable>`
+                    }
+                ]
             }
         ];
     }

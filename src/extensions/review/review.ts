@@ -194,7 +194,7 @@ export class Review {
 
     public static async finishReview(scrapbookID: string, reviewerSlackID: string) {
         try {
-            const scrapbook = await ScrapbookCache.find(scrapbookID);
+            const scrapbook = await ScrapbookCache.refresh(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
