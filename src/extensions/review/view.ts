@@ -126,6 +126,16 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                         "type": "button",
                         "text": {
                             "type": "plain_text",
+                            "text": "Magic Happening :sparkles:",
+                            "emoji": true
+                        },
+                        "action_id": Actions.MAGIC,
+                        "value": scrapbookId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
                             "text": `unsubmit :bangbang:`,
                             "emoji": true,
                         },
@@ -194,16 +204,6 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                             "emoji": true
                         },
                         "action_id": Actions.WIP,
-                        "value": recId
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Magic Happening :sparkles:",
-                            "emoji": true
-                        },
-                        "action_id": Actions.MAGIC,
                         "value": recId
                     }
                 ]

@@ -435,7 +435,7 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             hours: (user?.fields['Minutes (All)'] ?? -1),
             sessions: scrapbook.fields['Sessions'].length,
             reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
-            flagged: user?.fields['Fraud'] ?? 'error'
+            flagged: user?.fields['Fraud Formula'] ?? 'error'
         })
     })
 
@@ -883,7 +883,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 hours: (user?.fields['Minutes (All)'] ?? -1),
                 sessions: scrapbook.fields['Sessions'].length,
                 reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
-                flagged: user?.fields['Fraud'] ?? 'error'
+                flagged: user?.fields['Fraud Formula'] ?? 'error'
             })
         })
 
@@ -992,7 +992,7 @@ Slack.event('reaction_added', async ({ event }) => {
         return;
     }
 
-    if (!['U0C7B14Q3', 'U04QD71QWS0'].includes(user)) {
+    if (!['U0C7B14Q3', 'U04QD71QWS0', 'U01MPHKFZ7S'].includes(user)) {
         return;
     }
 

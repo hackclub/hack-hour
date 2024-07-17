@@ -68,7 +68,7 @@ type AirtableUserRead = {
     "Minutes (Rejected)": number,
     // "Preexisting": boolean,
     "API Authorization": boolean,
-    readonly "Fraud": string
+    readonly "Fraud Formula": string
 };
 
 type AirtableReviewerRead = {

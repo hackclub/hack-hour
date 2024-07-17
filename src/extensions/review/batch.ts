@@ -61,4 +61,16 @@ export class ScrapbookCache {
         delete this.cache[recId];
         return;
     }
+
+    public static async refresh(recId: string) {
+        this.forcePush(recId);
+        delete this.cache[recId];
+        return this.find(recId);
+    }
 }
+
+setTimeout(async () => {
+    for (const recId of Object.keys(ScrapbookCache.cache)) {
+        await ScrapbookCache.refresh(recId);
+    }
+});
