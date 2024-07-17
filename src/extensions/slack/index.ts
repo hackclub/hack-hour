@@ -153,7 +153,7 @@ const hack = async ({ command }: CommandHandler) => {
                     "accessory": {
                         "type": "button",
                         "text": {
-                            "text": "Go to DM",
+                            "text": "Go to Tutorial",
                             "type": "plain_text",
                         },
                         "url": `https://hackclub.slack.com/archives/${airtable?.fields['dmChannel']}`,
