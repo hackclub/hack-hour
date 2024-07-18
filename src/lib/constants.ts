@@ -126,6 +126,8 @@ export const Actions = {
     MAGIC: 'magic',
 
     NEXT_REVIEW: 'nextreview',
+    SHIP: 'ship',
+    WIP: 'wip',
 };
 
 export const Callbacks = {

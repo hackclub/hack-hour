@@ -51,14 +51,12 @@ Example Response:
 ```json
 {
     "ok": true,
-    "data": {
-        "goals": [
-            {
-                "name": "No Goal",
-                "minutes": 0,
-            }
-        ]
-    }
+    "data": [
+        {
+            "name": "No Goal",
+            "minutes": 0
+        }
+    ]
 }
 ```
 

@@ -68,7 +68,7 @@ type AirtableUserRead = {
     "Minutes (Rejected)": number,
     // "Preexisting": boolean,
     "API Authorization": boolean,
-    readonly "Fraud": string
+    readonly "Fraud Formula": string
 };
 
 type AirtableReviewerRead = {
@@ -116,7 +116,7 @@ type AirtableSessionRead = {
     "User: Slack ID": [string],
 };
 
-interface AirtableScrapbookWrite {
+export interface AirtableScrapbookWrite {
     "Scrapbook TS": string,
     "Scrapbook URL": string,
     "Sessions": AirtableRecordID[],
@@ -132,16 +132,18 @@ interface AirtableScrapbookWrite {
     "Review End Time"?: string,
     "Review TS"?: string,
     "Reviewed On": "Hakkuun" | "Airtable Interface" | "Other",
+    "Is Shipped?"?: boolean,
+    "Update type": "WIP" | "Ship",
     readonly "User: Slack ID": [string],
     readonly "Reviewer: Slack ID": [string],
 };
 
 export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
-    "Count Approved Sessions": number,
-    "Count Unreviewed Sessions": number,
-    "Linked Sessions Count": number,
-    "Review Button TSs": string[],
-    "User: Slack ID": [string],
+    readonly "Count Approved Sessions": number,
+    readonly "Count Unreviewed Sessions": number,
+    readonly "Linked Sessions Count": number,
+    readonly "Review Button TSs": string[],
+    readonly "User: Slack ID": [string],
 };
 
 type AirtableAPIRead = {

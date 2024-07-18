@@ -1,4 +1,4 @@
-import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
+import bolt, { SlackEventMiddlewareArgs, SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -55,17 +55,25 @@ export const approvedUsers = [
     'U077XBJ3YPR',
 ]
 
+export const buggedUsers = [
+    'U0794S6UVCM'
+]
+
 export const recordCommands = [
     Commands.SHOP,
 ]
 
-async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
+async function callSlackClient<T extends (...args: any[]) => Promise<any>>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
     try {
         const now = new Date();
 
         console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
 
-        const result = await asyncFunction(...args);
+        const result = asyncFunction(...args) 
+            .then((result) => result)
+            .catch((error) => {
+                console.error(error);
+            });
  
         const diff = new Date().getTime() - now.getTime();
 
@@ -73,9 +81,8 @@ async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction:
 
         return result;
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(error);
     }
-
 }
 
 export const Slack = {
@@ -103,6 +110,10 @@ export const Slack = {
                     if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
                         return respond(t('maintanenceMode'))
                     }
+                }
+
+                if (buggedUsers.includes(event.user_id)) {
+                    return respond(t('maintanenceMode'))
                 }
 
                 if (recordCommands.includes(command) && Environment.PROD) {
@@ -173,6 +184,10 @@ export const Slack = {
                 });
 
                 if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                    return respond(t('maintanenceMode'))
+                }
+
+                if (buggedUsers.includes(body.user.id)) {
                     return respond(t('maintanenceMode'))
                 }
 
@@ -284,6 +299,59 @@ export const Slack = {
         })
     },
 
+    async event<T extends string>(event: T, ...listeners: Middleware<SlackEventMiddlewareArgs<T>, StringIndexed>[]) {
+        app.event(event, async (payload) => {
+            const now = new Date();
+            let verb = ""
+
+            try {
+                const { event } = payload;
+
+                console.log(`[${now.toISOString()}] received event "${event.type}"`)
+
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _Received event "${event.type}"_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${event.type}\n${new Date().toString()} `,
+                                    },
+                                ],
+                            },
+                        ]
+                    })
+                }
+
+                verb = "succeeded"
+                listeners.forEach((listener) => {
+                    try {
+                        listener(payload)
+                    } catch (error) {
+                        verb = "failed"
+                        emitter.emit('error', { error });
+                    }
+                });
+            } catch (error) {
+                verb = "failed"
+                emitter.emit('error', { error });
+            }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+        })
+    },
+
     chat: {
         async delete(options: Parameters<typeof app.client.chat.delete>[0]) {
             if (options) { options!.token = Environment.ADMIN_TOKEN };
@@ -324,7 +392,7 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] opening view"`)
+                console.log(`[${now.toISOString()}] opening view`)
 
                 const result = await app.client.views.open(options);
 
@@ -375,7 +443,19 @@ export const Slack = {
 
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            return await assertVal(await callSlackClient(app.client.reactions.add, options));
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.add, options))
+            } catch (error) {
+                console.error(error);
+            }
+        },
+
+        async remove(options: Parameters<typeof app.client.reactions.remove>[0]) {
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.remove, options))
+            } catch (error) {
+                console.error(error);
+            }
         }
     },
 

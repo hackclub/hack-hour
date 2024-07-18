@@ -1,7 +1,7 @@
 // This handles figuring out what to post in #arcade-review
 
-import { AirtableAPI } from "../../../lib/airtable.js";
-import { Review } from "../slack/review.js";
+import { AirtableAPI } from "../../lib/airtable.js";
+import { Review } from "./review.js";
 
 const getArcadeScrapbooksToReview = async () => {
     const filterRules = [
@@ -51,7 +51,7 @@ const main = async () => {
             const scrapbook = scrapbooks[0];
 
             if (scrapbook) {
-                await Review.init(scrapbook.id);
+                await Review.createTicket(scrapbook.id);
             }
         } catch(e) {
             console.error(e);
@@ -61,17 +61,18 @@ const main = async () => {
     }
     reviewJob(); // intentionally not awaiting!
 
+    let inApproval = false;
     const approveJob = async (): Promise<void> => {
         console.log('Checking completion of reviews')
-        try {
-            const scrapbooks = await getArcadeScrapbooksToApprove();
-            for (const scrapbook of scrapbooks) {
-                await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
+            try {
+                const scrapbooks = await getArcadeScrapbooksToApprove();
+                for (const scrapbook of scrapbooks) {
+                    await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
+                }
+            } catch(e) {
+                console.error(e)
             }
-        } catch(e) {
-            console.error(e)
-        }
-        await sleep(1000 * 5); // wait 5 seconds
+        await sleep(1000 * 15); // wait 60 seconds
         return approveJob() // run again
     }
     approveJob() // intentionally not awaiting!

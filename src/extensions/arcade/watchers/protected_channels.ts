@@ -55,13 +55,11 @@ app.event('message', async ({ event }) => {
 
     const thread_ts = (event as any)?.thread_ts || "";
 
-    if (event.channel == "C07AQ75CWQJ") {
-      if (thread_ts) {
-        return;
-      }        
-    }    
-    
-    // not an admin, delete the message
+    if (thread_ts) {
+      return;
+    }        
+
+      // not an admin, delete the message
     await Slack.chat.delete({channel: event.channel, ts: event.ts});
 
     await Slack.chat.postEphemeral({

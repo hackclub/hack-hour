@@ -68,7 +68,7 @@ toplevel:
     - <@${slackId}> is drinking some coffee!
 
 evidence_reminder:
-  - show me some scraps!! commit links for code, pics/vids for anything else!!
+  - show me some scraps!! link me some git commits, i need them to feed my raccoon babies 🥺
 
 error:
   #context: attempting to start a new session while already in one
@@ -163,7 +163,7 @@ firstTime:
       when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
 
   tutorial_step_2: # i had no clue what to name this
-    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!* _(in this thread)_"
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!!* that means links to commits in a public git repo, showing code, pics, or other files that tell the story of your project… <https://github.com/hackclub/site/commit/24bc32d13a958d665c331e0040077de232966ac2|like this>!! .\n\npost your scrap links here in your session thread (you need at least one for your minutes to count). this time, *just post a screenshot of this thread!!* _(in this thread)_"
 
   popup:
     footer:
@@ -175,7 +175,7 @@ firstTime:
 
   walkthrough:
     no_evidence:
-      - 'hey hey! you need to show me some scraps!! commit links for code, pics/vids for anything else!!'
+      - 'hey hey! you need to show me some scraps!! commit links with code, pics, vids, or other files for anything else!!'
 
     complete:
       - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
