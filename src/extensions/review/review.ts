@@ -1,4 +1,4 @@
-import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../lib/airtable.js";
+import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter, scrapbooks as ScrapbookBase, AirtableScrapbookWrite } from "../../lib/airtable.js";
 import { Slack, app } from "../../lib/bolt.js";
 import { Actions, Environment } from "../../lib/constants.js";
 import { t } from "../../lib/templates.js";
@@ -7,6 +7,7 @@ import { prisma } from "../../lib/prisma.js";
 import { reactOnContent } from "../slack/lib/emoji.js";
 import { Evidence } from "../arcade/lib/evidence.js";
 import { ScrapbookCache } from "./batch.js";
+import { FieldSet } from "airtable";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -261,7 +262,7 @@ export class Review {
 
     public static async garbageCollection(scrapbookID: string) {
         try {
-            const scrapbook = await ScrapbookCache.find(scrapbookID);
+            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -269,33 +270,34 @@ export class Review {
                 return;
             }
 
-            for (const sessionId of scrapbook.fields['Sessions']) {
-                const session = await AirtableAPI.Session.find(sessionId);
+            // Get all the bot messages in the thread
+            const messages = (await Slack.conversations.replies({
+                channel: Environment.SCRAPBOOK_CHANNEL,
+                ts: scrapbook.fields['Scrapbook TS']
+            })).messages;
 
-                if (!session) {
-                    console.error(`Session not found: ${sessionId}`);
-                    continue;
+            if (messages) {
+                for (const message of messages) {
+                    if (message.user == 'U078FB76K5F' && message.ts) {
+                        await Slack.chat.delete({
+                            channel: Environment.SCRAPBOOK_CHANNEL,
+                            ts: message.ts
+                        });
+                    }
                 }
-
-                await app.client.chat.delete({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    ts: session.fields['Review Button TS']!
-                });
-
-                await AirtableAPI.Session.update(sessionId, {
-                    "Review Button TS": undefined
-                });
             }
-
-            await ScrapbookCache.update(scrapbook.id, {
-                "Review Start Time": undefined,
-                "Reviewer": [],
-            });
 
             await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
                 text: `kicking reviewer out for being too sleepy`,
                 thread_ts: scrapbook.fields['Scrapbook TS']
+            });
+
+            await AirtableAPI.Scrapbook.update(scrapbookID, {
+                'Review Start Time': '1970-01-01T00:00:00.000Z',
+                'Review TS': '',
+                'Reviewed On': 'Other',
+                'Reviewer': [],
             });
         } catch (e) {
             console.error(e);

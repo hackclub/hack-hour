@@ -35,8 +35,13 @@ const getArcadeScrapbooksToGarbageCollect = async () => {
     const filterRules = [
         'NOT(Approved = TRUE())',
         'NOT(BLANK() = {Review TS})',
+        'NOT(BLANK() = Reviewer)',
+        // `DATETIME_DIFF(NOW(), {Review Start Time}, 'minutes') > 1`
         // `RECORD_ID() = 'recKjFPT8CMeZV3F2'` // test record
     ]
+    const filter = `AND(${filterRules.join(', ')})`
+    const records = await AirtableAPI.Scrapbook.filter(filter)
+    return records
 }
 
 async function sleep(ms: number) {
@@ -53,7 +58,7 @@ const main = async () => {
             if (scrapbook) {
                 await Review.createTicket(scrapbook.id);
             }
-        } catch(e) {
+        } catch (e) {
             console.error(e);
         }
         await sleep(1000 * 60); // wait 1 min
@@ -61,25 +66,36 @@ const main = async () => {
     }
     reviewJob(); // intentionally not awaiting!
 
-    let inApproval = false;
     const approveJob = async (): Promise<void> => {
         console.log('Checking completion of reviews')
-            try {
-                const scrapbooks = await getArcadeScrapbooksToApprove();
-                for (const scrapbook of scrapbooks) {
-                    await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
-                }
-            } catch(e) {
-                console.error(e)
+        try {
+            const scrapbooks = await getArcadeScrapbooksToApprove();
+            for (const scrapbook of scrapbooks) {
+                await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
             }
+        } catch (e) {
+            console.error(e)
+        }
         await sleep(1000 * 15); // wait 60 seconds
         return approveJob() // run again
     }
     approveJob() // intentionally not awaiting!
 
     const garbageCollectionJob = async () => {
-        console.log('Garbage collecting')
+        console.log('Garbage collecting reviews')
+        try {
+            const scrapbooks = await getArcadeScrapbooksToGarbageCollect();
+            for (const scrapbook of scrapbooks) {
+                console.log(`Garbage collecting ${scrapbook.id}`)
+                await Review.garbageCollection(scrapbook.id);
+            }
+        } catch (e) {
+            console.error(e)
+        }
+        await sleep(1000 * 60 * 5); // wait 5 minute
+        return garbageCollectionJob() // run again
     }
+    garbageCollectionJob(); // intentionally not awaiting!
 }
 
 export default main

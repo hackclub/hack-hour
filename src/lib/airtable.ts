@@ -15,7 +15,7 @@ if (!process.env.AIRTABLE_BASE) { throw new Error("No Airtable base provided"); 
 const base = Airtable.base(process.env.AIRTABLE_BASE);
 const users = base("Users");
 const sessions = base("Sessions");
-const scrapbooks = base("Scrapbook");
+export const scrapbooks = base("Scrapbook");
 const reviewers = base("Reviewers");
 const api = base("API");
 
