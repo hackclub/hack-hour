@@ -20,8 +20,8 @@
   "homepage": "https://github.com/techpixel/hackhour#readme",
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "5.10.2",
-    "prisma": "5.10.2",
+    "@prisma/client": "^5.17.0",
+    "prisma": "5.17.0",
     "@slack/bolt": "^3.17.1",
     "airtable": "^0.12.2",
     "body-parser": "^1.20.2",
