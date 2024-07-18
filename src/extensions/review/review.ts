@@ -486,11 +486,45 @@ Slack.action(Actions.SHIP, async ({ body, respond }) => {
     try {
         const recId = (body as any).actions[0].value;
         const messageTs = (body as any).message.ts;
+        const slackId = body.user.id;
+
+        if (!(await Review.isReviewer(slackId))) {
+
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
 
         const scrapbook = await AirtableAPI.Scrapbook.find(recId);
 
         if (!scrapbook) {
             console.error(`Scrapbook not found: ${recId}`);
+            return;
+        }
+
+        if (scrapbook.fields['Update type']) {
+            if (scrapbook.fields['Update type'] === 'WIP') {
+                await Slack.reactions.remove({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    name: 'hammer_and_wrench',
+                    timestamp: messageTs
+                });
+
+                await ScrapbookCache.update(recId, {
+                    "Is Shipped?": false,
+                    "Update type": 'Ship'
+                });
+
+                await Slack.reactions.add({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    name: 'ship',
+                    timestamp: messageTs
+                });
+            }
             return;
         }
 
@@ -516,13 +550,46 @@ Slack.action(Actions.SHIP, async ({ body, respond }) => {
 
 Slack.action(Actions.WIP, async ({ body, respond }) => {
     try {
+        const slackId = body.user.id;
         const recId = (body as any).actions[0].value;
         const messageTs = (body as any).message.ts;
+
+        if (!(await Review.isReviewer(slackId))) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
 
         const scrapbook = await AirtableAPI.Scrapbook.find(recId);
 
         if (!scrapbook) {
             console.error(`Scrapbook not found: ${recId}`);
+            return;
+        }
+
+        if (scrapbook.fields['Update type']) {
+            if (scrapbook.fields['Update type'] === 'Ship') {
+                await Slack.reactions.remove({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    name: 'ship',
+                    timestamp: messageTs
+                });
+
+                await ScrapbookCache.update(recId, {
+                    "Is Shipped?": false,
+                    "Update type": 'WIP'
+                });
+
+                await Slack.reactions.add({
+                    channel: Environment.SCRAPBOOK_CHANNEL,
+                    name: 'hammer_and_wrench',
+                    timestamp: messageTs
+                });
+            }
             return;
         }
 

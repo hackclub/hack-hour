@@ -448,6 +448,14 @@ export const Slack = {
             } catch (error) {
                 console.error(error);
             }
+        },
+
+        async remove(options: Parameters<typeof app.client.reactions.remove>[0]) {
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.remove, options))
+            } catch (error) {
+                console.error(error);
+            }
         }
     },
 
