@@ -18,14 +18,16 @@ const expressReceiver = new bolt.ExpressReceiver({
 
 export const express = expressReceiver.app;
 
+console.log(`authorizing app`)
 export const app = new bolt.App({
-    token: Environment.SLACK_BOT_TOKEN,
-    appToken: Environment.SLACK_APP_TOKEN,
-    clientId: Environment.CLIENT_ID,
-    clientSecret: Environment.CLIENT_SECRET,
+        token: Environment.SLACK_BOT_TOKEN,
+        appToken: Environment.SLACK_APP_TOKEN,
+        clientId: Environment.CLIENT_ID,
+        clientSecret: Environment.CLIENT_SECRET,
 
-    receiver: expressReceiver,
-});
+        receiver: expressReceiver,
+    });
+console.log(`successfully authorized app`)
 
 express.use(bodyParser.json());
 
@@ -534,4 +536,9 @@ export const Slack = {
     }
 }
 
-await Slack.helper.ensureChannels();
+try {
+    await Slack.helper.ensureChannels();
+} catch (error) {
+    console.log(`Failed to ensure channels`)
+    console.error(error)
+}
