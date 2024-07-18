@@ -19,6 +19,7 @@ import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
+import { KnownBlock } from "@slack/bolt";
 
 /*
 Session Creation
@@ -128,6 +129,48 @@ const hack = async ({ command }: CommandHandler) => {
 
                 return;
             }
+        }
+
+        // Check if the user is a full user or a MCG
+        const slackUserInfo = await Slack.users.info({
+            user: slackId
+        });
+
+        if (!slackUserInfo.user) {
+            throw new Error(`Failed to fetch user info for ${slackId}`);
+        }
+
+        if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
+            const airtable = await AirtableAPI.User.lookupBySlack(slackId);            
+
+            await informUserBlocks(slackId, [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": t('error.not_full_user')
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "text": "Go to Tutorial",
+                            "type": "plain_text",
+                        },
+                        "url": `https://hackclub.slack.com/archives/${airtable?.fields['dmChannel']}`,
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Make sure you check your dms with arcadius and me & click the upgrade button if you see it! If you need help, ask <@UDK5M9Y13> in <#C077TSWKER0>"
+                        }
+                    ]  
+                }
+            ] as KnownBlock[], command.channel_id);
+
+            return;
         }
 
         if (!command.text || command.text.length == 0) {

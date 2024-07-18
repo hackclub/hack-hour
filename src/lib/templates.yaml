@@ -68,7 +68,7 @@ toplevel:
     - <@${slackId}> is drinking some coffee!
 
 evidence_reminder:
-  - show me some scraps!! commit links for code, pics/vids for anything else!!
+  - show me some scraps!! link me some git commits, i need them to feed my raccoon babies 🥺
 
 error:
   #context: attempting to start a new session while already in one
@@ -112,6 +112,9 @@ error:
   cant_go_next:
     - "ow i hit a wall"
     - "that's all folks!"
+    
+  not_full_user:
+    - "looks like you aren't a full user! you need to complete the tutorial first! (you can be promoted to a full user by spending a ticket at the shop)"
     
 action:
   paused:
@@ -160,7 +163,7 @@ firstTime:
       when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
 
   tutorial_step_2: # i had no clue what to name this
-    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!* _(in this thread)_"
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!!* that means links to commits in a public git repo, showing code, pics, or other files that tell the story of your project… <https://github.com/hackclub/site/commit/24bc32d13a958d665c331e0040077de232966ac2|like this>!! .\n\npost your scrap links here in your session thread (you need at least one for your minutes to count). this time, *just post a screenshot of this thread!!* _(in this thread)_"
 
   popup:
     footer:
@@ -172,7 +175,7 @@ firstTime:
 
   walkthrough:
     no_evidence:
-      - 'hey hey! you need to show me some scraps!! commit links for code, pics/vids for anything else!!'
+      - 'hey hey! you need to show me some scraps!! commit links with code, pics, vids, or other files for anything else!!'
 
     complete:
       - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
@@ -180,7 +183,7 @@ firstTime:
 scrapbook:
   prompt:
     select_sessions:
-      - 'oh hey hey i saw your post in scrapbook!! is your project <https://hackclub.slack.com/canvas/C077TSWKER0|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
+      - 'oh hey hey i saw your post in scrapbook!! is your project <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-shipped|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
     complete:
       - 'wow wow, great job!!'
 
@@ -211,14 +214,14 @@ review:
 
   reviewer:  
     approved:
-      - "woo hoo! <@${slackId}> approved your arcade session!! you earned `${minutes}` minutes!!"
+      - "<@${slackId}> approved `${minutes}` minutes!!"
     rejected:
-      - "womp womp! <@${slackId}> rejected your arcade session!! you can get it re-reviewed by posting a scrap in the thread, but you might want to check the faq again on what counts!"
+      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the <https://github.com/hackclub/arcade-constitution|Constitution> again on what counts!"
     rejectedlocked:
-      - "womp womp! <@${slackId}> rejected and closed your arcade session!!"
+      - "<@${slackId}> rejected and locked `${minutes}` minutes"
   
   completion:
     reviewed:
       - "sessions reviewed! reviewer, make sure you leave notes!"
-    rejection:
+    rejected:
       - "looks like there was a rejected session! for rejected sessions, you need to resubmit with a scrap in the thread! (you can't resubmit if the session is locked)"
