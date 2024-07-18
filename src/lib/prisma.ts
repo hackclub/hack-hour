@@ -1,4 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg
+
 import cuid2 from '@paralleldrive/cuid2';
 
 declare global {
