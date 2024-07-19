@@ -28,7 +28,7 @@ const ensureChannelJoined = async (channelID: string) => {
   ]);
 
   if (!usersInChannel.includes(ownBotID)) {
-    console.error(`⚠️ Bot is not in required channel ${channelID}`);
+    console.error(`[Error] ⚠️ Bot is not in required channel ${channelID}`);
   }
 }
 
@@ -69,6 +69,6 @@ app.event('message', async ({ event }) => {
       text: "This is a read-only channel. Only admins can post here."
     });
   } catch (error) {
-    console.error(error);
+    console.error('[Error]', error);
   }
 });

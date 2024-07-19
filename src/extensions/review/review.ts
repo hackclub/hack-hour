@@ -67,8 +67,6 @@ export class Review {
                 message_ts: scrapbook.fields['Scrapbook TS']
             });
 
-            console.log(permalink?.permalink);
-
             await Slack.chat.update({
                 channel: Environment.REVIEW_CHANNEL,
                 ts: review!.ts!,
@@ -318,10 +316,6 @@ export class Review {
                 thread_ts: scrapbook.fields['Scrapbook TS']
             });
 
-            console.log(
-                scrapbook.fields['Review TS'],
-                Environment.REVIEW_CHANNEL
-            )
             await app.client.chat.delete({
                 channel: Environment.REVIEW_CHANNEL,
                 ts: scrapbook.fields['Review TS']
@@ -667,7 +661,6 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
         return;
     }
 
-    console.log(JSON.stringify(body, null, 2))
     const sessionId = (body as any).actions[0].value;
 
     const session = await AirtableAPI.Session.find(sessionId);

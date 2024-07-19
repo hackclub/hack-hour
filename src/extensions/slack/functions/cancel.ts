@@ -50,10 +50,6 @@ Slack.view(Callbacks.CANCEL, async ({ body, view }) => {
             }
         });
 
-        console.log(session);
-        console.log(slackId);
-        console.log(session?.user.slackUser?.slackId);
-
         if (!session || slackId !== session.user.slackUser?.slackId) {
             informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, messageTs, pfps['threat']);
 

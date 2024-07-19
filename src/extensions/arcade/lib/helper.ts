@@ -45,8 +45,6 @@ export const surfaceEvidence = async (messageTs: string, slackId: string) => {
             }
         });
 
-        console.log(`woah, pretty picture! ${image.permalink}`)
-
         await updateTopLevel(updatedSession);
     }
 };

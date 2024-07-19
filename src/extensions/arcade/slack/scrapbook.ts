@@ -82,10 +82,9 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         await Slack.views.update({
             view_id: view?.view?.id,
             view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-        }).catch((err) => console.log(err));
+        }).catch((err) => console.error('[Error]', err));
     } catch (error) {
-        console.log(error);
-        emitter.emit("error", error);
+        console.error('[Error]', error);
     }
 });
 

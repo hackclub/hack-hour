@@ -45,7 +45,7 @@ async function sleep(ms: number) {
 
 const main = async () => {
     const reviewJob = async (): Promise<void> => {
-        console.log('Getting scrapbooks to review')
+        console.log('[Review Job] Getting scrapbooks to review')
         try {
             const scrapbooks = await getArcadeScrapbooksToReview();
             const scrapbook = scrapbooks[0];
@@ -54,7 +54,7 @@ const main = async () => {
                 await Review.createTicket(scrapbook.id);
             }
         } catch(e) {
-            console.error(e);
+            console.error('[Error]', e);
         }
         await sleep(1000 * 60); // wait 1 min
         return reviewJob() // run again
@@ -63,14 +63,14 @@ const main = async () => {
 
     let inApproval = false;
     const approveJob = async (): Promise<void> => {
-        console.log('Checking completion of reviews')
+        console.log('[Approve Job] Checking completion of reviews')
             try {
                 const scrapbooks = await getArcadeScrapbooksToApprove();
                 for (const scrapbook of scrapbooks) {
                     await Review.finishReview(scrapbook.id, scrapbook.fields['Reviewer: Slack ID'][0]);
                 }
             } catch(e) {
-                console.error(e)
+                console.error('[Error]', e);
             }
         await sleep(1000 * 15); // wait 60 seconds
         return approveJob() // run again
@@ -78,7 +78,7 @@ const main = async () => {
     approveJob() // intentionally not awaiting!
 
     const garbageCollectionJob = async () => {
-        console.log('Garbage collecting')
+        console.log('[Garbage Collection] Garbage collecting')
     }
 }
 

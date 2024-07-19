@@ -32,7 +32,7 @@ const log = async (message: string) => {
         channel: Environment.INTERNAL_CHANNEL,
         text: message
     });
-    console.log(message);
+    console.log('[Slack Log]', message);
 }
 
 const hack = async ({ command }: CommandHandler) => {
@@ -673,7 +673,7 @@ emitter.on('resume', async (session: Session) => {
 });
 
 emitter.on('init', async () => {
-    console.log('Slack initialized!');
+    console.log('[Slack Init] Slack initialized!');
 
     if (Environment.PROD) {
         const message = t('init', {
@@ -745,7 +745,7 @@ emitter.on('init', async () => {
 emitter.on('error', async (errorRef) => {
     try {
         const error = errorRef.error;
-        console.log(error)
+        console.error('[Error]', error)
 
         return;
 
@@ -787,8 +787,7 @@ emitter.on('error', async (errorRef) => {
             ]
         });
     } catch (error) {
-        // emitter.emit('error', { error });
-        console.log(error)
+        console.error('[Error]', error)
     }
 });
 
