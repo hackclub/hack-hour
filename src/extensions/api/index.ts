@@ -90,7 +90,7 @@ emitter.on('cancel', async (session: SessionType) => {
     await postEndpoints(session);
 });
 
-express.set('trust proxy', true) 
+express.set('trust proxy', true)
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -297,7 +297,10 @@ express.get('/api/stats/:slackId', readLimit, async (req, res) => {
     const result = await prisma.session.aggregate({
         where: {
             userId: slackUser.userId,
-            completed: true,
+            OR: [
+                {completed: true},
+                {cancelled: true}
+            ]
         },
         _sum: {
             elapsed: true,
