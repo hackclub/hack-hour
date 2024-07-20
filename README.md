@@ -53,8 +53,9 @@ Example Response:
     "ok": true,
     "data": [
         {
+            "id": "id",
             "name": "No Goal",
-            "minutes": 0,
+            "minutes": 0
         }
     ]
 }
@@ -133,22 +134,22 @@ Example Response:
 }
 ```
 
-### POST `/api/setGoal/:slackId`
-Set the goal for current session for the user
+### POST `/api/setGoal/:slackId` 
+Set the goal for current session for the user 
 
-Requires an authorization header with the api key, as such: `Authorization Bearer <apikey>`
+Requires an authorization header with the api key, as such: `Authorization Bearer <apikey>` 
 
-Example Response:
+Example Response: 
 ```json
-{
-    "ok": true,
-    "data": {
-        "id": "sessionId",
-        "slackId": "slackId",
-        "createdAt": "createdAt",
-        "goal": "newGoal"
-    }
-}
+{ 
+    "ok": true, 
+    "data": { 
+        "id": "sessionId", 
+        "slackId": "slackId", 
+        "createdAt": "createdAt", 
+        "goal": "newGoal" 
+    } 
+} 
 ```
 
 ## API - No Auth
