@@ -757,11 +757,18 @@ express.post('/api/setGoal/:slackId', limiter, async (req, res) => {
             });
         }
 
-        const newGoal = await prisma.goal.findUniqueOrThrow({
+        const newGoal = await prisma.goal.findUnique({
             where: {
                 id: goalId
             }
         });
+
+        if(!newGoal) {
+            return res.status(400).send({
+                ok: false,
+                error: "No goal could be found with the provided ID"
+            })
+        }
 
         session = await prisma.session.update({
             where: {
