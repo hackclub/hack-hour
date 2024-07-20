@@ -107,8 +107,7 @@ const registerSession = async (session: Session) => {
 
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
-        console.log(`Fetched or created user ${user.metadata.airtable.id}`);
-        log(`Fetched or created user ${user.metadata.airtable.id}`);
+        console.log(`[registerSession] Fetched or created user ${user.metadata.airtable.id}`);
 
         const { activity, evidenced } = await Evidence.check({ 
             messageTs: session.messageTs, 
@@ -138,8 +137,7 @@ const registerSession = async (session: Session) => {
             "First Time": session.metadata.firstTime ? true : false,
         });
 
-        console.log(`Registered session ${session.id} for ${user.metadata.airtable.id} in the Airtable`);
-        log(`Registered session ${session.id} for ${user.metadata.airtable.id} in the Airtable`);
+        console.log(`[registerSession] Registered session ${session.id} for ${user.metadata.airtable.id} in the Airtable`);
 
         const updatedSession = await prisma.session.findUniqueOrThrow({
             where: {
@@ -272,8 +270,7 @@ app.event("message", async ({ event }) => {
                     message_ts: session.messageTs
                 }))?.permalink;
 
-                console.log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
-                log(`Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
+                console.error(`[Error] Session ${permalink ? permalink : session.messageTs} not found in Airtable`);
 
                 return;
             }
@@ -335,8 +332,7 @@ app.event("message", async ({ event }) => {
                     "Evidenced": evidenced
                 });
 
-                console.log(`Session ${session.id} updated to Re-review`);
-                log(`Session ${session.id} updated to Re-review`);
+                console.log(`[Activity] Session ${session.id} updated to Re-review`);
             } else {
                 await AirtableAPI.Session.update(session.metadata.airtable.id, {
                     "Activity": activity,

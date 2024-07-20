@@ -1,4 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg
+
 import cuid2 from '@paralleldrive/cuid2';
 
 declare global {
@@ -42,10 +44,11 @@ declare global {
 export const prisma = new PrismaClient().$extends({
     query: {
         async $allOperations({ model, operation, args, query }) {
+            console.log(`[prisma.${model}.${operation}] starting operation`)
             const before = Date.now()
             const result = await query(args)
             const after = Date.now()
-            console.log(`Query ${model}.${operation} took ${after - before}ms`)
+            console.log(`[prisma.${model}.${operation}] took ${after - before}ms`)
             return result
         },
     },

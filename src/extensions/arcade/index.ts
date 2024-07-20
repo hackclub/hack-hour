@@ -11,5 +11,5 @@ import "./slack/walkthrough.js"
 import { emitter } from "../../lib/emitter.js";
 
 emitter.on('init', () => {
-    console.log('🕹️ Arcade Initialized!')
+    console.log('[Arcade] 🕹️ Arcade Initialized!')
 })

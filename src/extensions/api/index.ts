@@ -95,7 +95,7 @@ express.set('trust proxy', true)
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    console.log(`User agent: ${req.headers['user-agent']}`)
+    console.log(`[API] User agent: ${req.headers['user-agent']}`)
 
     if (authHeader) {
         const apiKey = authHeader.split(' ')[1];

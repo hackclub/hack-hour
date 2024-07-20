@@ -24,8 +24,7 @@ if (process.env.ARCADE) {
 
 import "./extensions/api/index.js";
 import "./extensions/slack/index.js";
-
-import main from './extensions/arcade/watchers/arcade_review.js';
+import './extensions/review/index.js';
 
 try {
     await prisma.$connect();
@@ -33,11 +32,9 @@ try {
 
     emitter.emit("init", server);
 
-    main();    
-
-    console.log(`⏳ Let the Hack Houring Begin! Running on port ${process.env.PORT || 3000}...`);
+    console.log(`[Server] ⏳ Let the Hack Houring Begin! Running on port ${process.env.PORT || 3000}...`);
 } catch (error) {
-    console.error(error);
+    console.error('[Error]', error);
 
     emitter.emit("error", error);
 

@@ -39,6 +39,7 @@ type Template =
     'error.not_authorized' |
     'error.cant_go_back' |
     'error.cant_go_next' |
+    'error.not_full_user' |
 
     'airtable.approved' |
     'airtable.rejected' |
@@ -113,8 +114,6 @@ function flatten(obj: any, prefix: string = '') {
 export const templates: {
     [key in Template]: string[]
 } = flatten(templatesRaw);
-
-console.log(templates);
 
 export const pfps = {
     question: ":rac_question:",

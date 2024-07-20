@@ -1,29 +1,36 @@
 import { KnownBlock, RichTextQuote } from "@slack/bolt";
-import { Actions, Environment } from "../../../../lib/constants.js";
-import { formatHour, pfps, randomChoice, t } from "../../../../lib/templates.js";
+import { Actions, Environment } from "../../lib/constants.js";
+import { formatHour, pfps, randomChoice, t } from "../../lib/templates.js";
 
-export class ReviewView {
-    public static reviewStart({
+export class View {
+    public static newTicket({
+        slackId,
         permalink,
         recId,
         text,
     }: {
+        slackId: string,
         permalink: string,
         recId: string,
         text: string,
     }): KnownBlock[] {
         return [
-            // {
-            //     "type": "header",
-            //     "text": {
-            //         "type": "plain_text",
-            //         "text": "This is a header block",
-            //         "emoji": true
-            //     }
-            // },
             {
                 "type": "rich_text",
                 "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "text",
+                                "text": "Review scrapbook by ",
+                            },
+                            {
+                                "type": "user",
+                                "user_id": slackId
+                            }
+                        ]
+                    },
                     {
                         "type": "rich_text_quote",
                         "elements": [
@@ -78,16 +85,31 @@ export class ReviewView {
                     // "text": `Review started by <@${body.user.id}>.`
                     "text": t('review.start', { slackId })
                 }
-            }
+            },
+            // {
+            //     "type": "context",
+            //     "elements": [
+            //         {
+            //             "type": "mrkdwn",
+            //             "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${scrapbookId}|view on airtable>`
+            //         }
+            //     ]
+            // }
         ];
     }
 
     public static userOverview({
         scrapbookId,
-        hours
+        hours,
+        sessions,
+        reviewed,
+        flagged
     }: {
         scrapbookId: string,
-        hours: number
+        hours: number,
+        sessions: number,
+        reviewed: number,
+        flagged: string
     }): KnownBlock[] {
         return [
             {
@@ -96,8 +118,11 @@ export class ReviewView {
                     "type": "mrkdwn",
                     "text":
 `*User Overview* ${pfps['info']}
-user's number of hours: ${formatHour(hours)}
-${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
+total hours logged: ${formatHour(hours)} hours
+total hours approved: ${formatHour(reviewed)} hours
+sessions: ${sessions}
+flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}
+${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
                 }                    
             }, 
             {
@@ -110,7 +135,8 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": `magic happening :sparkles:`,
+                            "text": "Magic Happening :sparkles:",
+                            "emoji": true
                         },
                         "action_id": Actions.MAGIC,
                         "value": scrapbookId
@@ -147,8 +173,60 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                         }
                     }
                 ]
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl7FAJtLixWxWC2L/viwjGIE5EEQdBwLs7/${scrapbookId}|view on airtable>`
+                    }
+                ]
             }
         ];
+    }
+
+    public static isShip(
+        { recId }: { recId: string }
+    ): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Is this project a ship?",
+                    "emoji": true
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Yes (Shipped)",
+                            "emoji": true
+                        },
+                        "action_id": Actions.SHIP,
+                        "value": recId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "No (WIP)",
+                            "emoji": true
+                        },
+                        "action_id": Actions.WIP,
+                        "value": recId
+                    }
+                ]
+            }
+        ]
     }
 
     public static session({
@@ -243,18 +321,27 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
             });
         }
 
+        // blocks.push({
+        //     "type": "section",
+        //     "text": {
+        //         "type": "mrkdwn",
+        //         "text": `view session: <${link}|here>`
+        //     }
+        // }, {
+        //     "type": "section",
+        //     "text": {
+        //         "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${recId}|override on airtable>`,
+        //         "type": "mrkdwn"
+        //     }
+        // });
         blocks.push({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": `view session: <${link}|here>`
-            }
-        }, {
-            "type": "section",
-            "text": {
-                "text": `<https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${recId}|override on airtable>`,
-                "type": "mrkdwn"
-            }
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": `<${link}|open in slack> • <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${recId}|override on airtable>`
+                }
+            ]
         });
 
 
@@ -298,7 +385,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": `close ${pfps['ded']}`,    
+                            "text": `reject & lock ${pfps['ded']}`,    
                             "emoji": true
                         },
                         "value": recId,
@@ -312,8 +399,26 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
         return blocks;
     }
 
-    public static approved(sessionId: string, slackId: string | null = null, minutes: number | null = null) {
+    public static approved({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": `${new Date(createdAt).toDateString().toLowerCase()} - ${minutes} minutes ${randomChoice([
+                        pfps['woah'],
+                        pfps['cute'],
+                        pfps['thumbs'],
+                        pfps['info']
+                    ])}`,
+                    "emoji": true
+                }
+            },  
             {
                 "type": "section",
                 "text": {
@@ -321,7 +426,7 @@ ${hours <= 5 ? `woah, looks like they're just getting started! ${pfps['woah']}` 
                     // "text": `Approved ${slackId ? `by <@${slackId}>` : ` session!`}`
                     "text": (slackId ? t('review.reviewer.approved', { slackId, 
                         minutes: minutes ?? 0
-                    }) : t('review.preset.approved')) + `
+                    }) : t('review.preset.approved', { minutes })) + `
 view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|here>`
                 },
                 "accessory": {
@@ -338,14 +443,32 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         ]
     }
 
-    public static rejected(sessionId: string, slackId: string | null = null) {
+    public static rejected({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": `${new Date(createdAt).toDateString().toLowerCase()} - ${minutes} minutes ${randomChoice([
+                        pfps['woah'],
+                        pfps['cute'],
+                        pfps['thumbs'],
+                        pfps['info']
+                    ])}`,
+                    "emoji": true
+                }
+            },  
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     // "text": `Rejected ${slackId ? `by <@${slackId}>` : ` session!`}`
-                    "text": slackId ? t('review.reviewer.rejected', { slackId }) : t('review.preset.rejected') + `
+                    "text": slackId ? t('review.reviewer.rejected', { slackId, minutes }) : t('review.preset.rejected', { minutes }) + `
 view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|here>`
                 },
                 "accessory": {
@@ -362,15 +485,33 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
         ]
     }
 
-    public static rejectedLock(sessionId: string, slackId: string | null = null) {
+    public static rejectedLock({
+        sessionId,
+        minutes,
+        createdAt,
+        slackId
+    }: {sessionId: string, minutes: number, createdAt: string, slackId?: string}) {
         return [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": `${new Date(createdAt).toDateString().toLowerCase()} - ${minutes} minutes ${randomChoice([
+                        pfps['woah'],
+                        pfps['cute'],
+                        pfps['thumbs'],
+                        pfps['info']
+                    ])}`,
+                    "emoji": true
+                }
+            },  
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     // "text": `Rejected and locked ${slackId ? `by <@${slackId}>` : ` session!`}`
-                    "text": slackId ? t('review.reviewer.rejectedlocked', { slackId }) : t('review.preset.rejectedlocked') + `
-view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|here>`
+                    "text": slackId ? t('review.reviewer.rejectedlocked', { slackId, minutes }) : t('review.preset.rejectedlocked', { minutes }) + `
+<https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2MTPRpa9uSB/${sessionId}|override on airtable>`
                 },
                 "accessory": {
                     "type": "button",
@@ -383,6 +524,32 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
                     "action_id": Actions.UNDO
                 }
             },
+        ]
+    }
+
+    public static gimme(): KnownBlock[] {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "ready for the next review? (CLICK YES ONLY ONCE)"
+                }
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": `yes ${pfps['cute']}`,
+                            "emoji": true
+                        },
+                        "action_id": Actions.NEXT_REVIEW
+                    }
+                ]
+            }
         ]
     }
 }
