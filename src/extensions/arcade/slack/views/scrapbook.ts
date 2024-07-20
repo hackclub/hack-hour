@@ -114,7 +114,10 @@ export class ChooseSessions {
                                     text: `${work} - ${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}`,
                                     emoji: true,
                                 },
-                                description: `Goal: ${session.goal.name}`,
+                                description: {
+                                    type: "plain_text",
+                                    text: `Goal: ${session.goal.name}`,
+                                },
                                 value: session.id,
                             }
                         }),
