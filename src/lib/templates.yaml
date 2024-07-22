@@ -7,6 +7,7 @@ init:
   - '∗rustles through trash∗ <#${main}>'
   - '∗rustles through rubbish∗ <#${main}>'
   - '∗rustles through scraps∗ <#${main}>'
+  - '∗eyes the nearest pile of scraps∗ <#${main}>'
 
 update:
   - _∗twitch∗_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
@@ -37,6 +38,8 @@ complete:
   - you're a rockstar <@${slackId}>!! you finished!
   - legendary <@${slackId}>! you're done!
   - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
+  - zoinks, <@${slackId}>! another hour down!!
+  - HOUR you doing, <@${slackId}>!? that's one more!
 
 cancel:
   - <@${slackId}> ended their arcade session early!
@@ -47,6 +50,7 @@ pause:
   - <@${slackId}> is taking five!!
   - <@${slackId}> is on a break! _∗snuffle∗_
   - <@${slackId}> is getting coffee!! _coffee!!_
+  
 
 encouragement:
   - 'You have `${minutes}` ${minutes_units} remaining! Keep it up!'
@@ -54,6 +58,8 @@ encouragement:
   - "You have `${minutes}` ${minutes_units} remaining! You've got this!"
   - 'You have `${minutes}` ${minutes_units} remaining! You are ducktastic!'
   - 'You have `${minutes}` ${minutes_units} remaining! Wizard!'
+  - "Only `${minutes}` ${minutes_units} to go! If anyone can do it it's you!!"
+  - "You have `${minutes}` ${minutes_units} remaining! I minute!!"
 
 toplevel:
   main:
@@ -102,12 +108,14 @@ error:
 
   not_authorized:
     - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
+    - "i'm sorry dave, i'm afraid i can't do that. _*scamper*_"
 
   cant_go_back:
     - "i tried, i really did, but there's literally nothing here"
     - "knock knock. who's there? not you"
     - "nope. not happening"
     - "why are you like this?"
+    - "nuh uh >:("
   
   cant_go_next:
     - "ow i hit a wall"
@@ -131,6 +139,7 @@ detect:
     - thanks for sharing, thanks for sharing!! 
     - scraps!! oh my god i love scraps _∗twitch∗_
     - _∗gentle purring∗_ with enough scraps like this i can build a whole new nest…
+    - gizmos... gadgets... whatchamacallits... whosawhatsits...
 
 airtable:
   approved:
@@ -199,6 +208,7 @@ loading:
   - "if you can read this, i'm going through a lot right now... (heavy load, please be patient) :spin-loading:"
   - "if you can read this, i'm dancing as fast as i can... (heavy load, please be patient) :spin-loading:"
   - "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:" 
+  - "if you can read this, i have a lot on my plate now... (heavy load, please be patient) :spin-loading:"
   
 review:
   start:
