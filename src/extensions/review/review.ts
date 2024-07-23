@@ -892,10 +892,10 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             await Slack.chat.postEphemeral({
                 channel: body.channel?.id!,
                 user: slackId,
-                text: 'You are already reviewing a scrapbook.',
+                text: 'You are already reviewing a scrapbook, continue with caution. Proceeding anyways...',
                 thread_ts: messageTs
             });
-            return;
+            //return;
         }
 
         // get a random unreviewed scrapbook
