@@ -40,6 +40,7 @@ type Template =
     'error.cant_go_back' |
     'error.cant_go_next' |
     'error.not_full_user' |
+    'error.no_scrapbook' |
 
     'airtable.approved' |
     'airtable.rejected' |

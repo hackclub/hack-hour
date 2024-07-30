@@ -179,6 +179,14 @@ const hack = async ({ command }: CommandHandler) => {
             return;
         }
 
+        const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
+
+        if (airtableUser?.fields['Scrapbook'].length == 0 && airtableUser?.fields['Sessions'].length >= 50) {
+            await informUser(slackId, t('error.no_scrapbook'), command.channel_id);
+
+            return;
+        }
+
         const topLevel = await Slack.chat.postMessage({
             channel: Environment.MAIN_CHANNEL,
             text: t('loading'),

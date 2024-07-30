@@ -49,7 +49,7 @@ type AirtableUserRead = {
     "Name": string,
     "Internal ID": string,
     "Slack ID": string,
-    "Ships": AirtableRecordID[],
+    "Scrapbook": AirtableRecordID[],
     "Sessions": AirtableRecordID[],
     // "Minutes (All)": number,
     "Minutes (Approved)": number,
