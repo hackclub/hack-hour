@@ -436,22 +436,22 @@ export const AirtableAPI = {
             return { id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite };
         },
     },
-    API: {
-        async getAllActive(): Promise<{ id: AirtableRecordID, fields: AirtableAPIRead }[]> {
-            console.log(`[AirtableAPI.API.getAllActive] Finding all active APIs`)
+    // API: {
+    //     async getAllActive(): Promise<{ id: AirtableRecordID, fields: AirtableAPIRead }[]> {
+    //         console.log(`[AirtableAPI.API.getAllActive] Finding all active APIs`)
 
-            const now = Date.now();
+    //         const now = Date.now();
 
-            const records = await api.select({
-                filterByFormula: `{Active} = 1`
-            }).all();
+    //         const records = await api.select({
+    //             filterByFormula: `{Active} = 1`
+    //         }).all();
 
-            console.log(`[AirtableAPI.API.getAllActive] Took ${Date.now() - now}ms`)
+    //         console.log(`[AirtableAPI.API.getAllActive] Took ${Date.now() - now}ms`)
 
-            // Return a list of endpoints
-            return records.map(record => ({ id: record.id, fields: record.fields as AirtableAPIRead }));
-        }
-    }
+    //         // Return a list of endpoints
+    //         return records.map(record => ({ id: record.id, fields: record.fields as AirtableAPIRead }));
+    //     }
+    // }
 };
 
 export const scrapbookMultifilter = async (filterRules: string[]) => {
