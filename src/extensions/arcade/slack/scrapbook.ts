@@ -142,7 +142,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             await Slack.chat.postMessage({
                 user: body.user.id,
                 channel: body.user.id,
-                text: "An error occurred while linking the session to the scrapbook post. Please try again. This is the link to the post: " + permalink?.permalink ?? "",
+                text: "An error occurred while linking the session to the scrapbook post. Please try again. This is the link to the post: " + (permalink?.permalink ?? ""),
             });
 
             continue;

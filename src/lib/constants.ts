@@ -119,6 +119,7 @@ export const Actions = {
 
     START_REVIEW: 'startreview',
     APPROVE: 'approve',
+    APPROVEMIN: 'approvemin',
     REJECT: 'reject',
     REJECT_LOCK: 'rejectlock',
     UNDO: 'undo',
@@ -132,7 +133,6 @@ export const Actions = {
 
 export const Callbacks = {
     //  EXTEND_HOUR: 'extendhour',
-
     MAIN_GOAL: 'maingoal',
     CREATE_GOAL: 'callback_creategoal',
     DELETE_GOAL: 'callback_deletegoal',
