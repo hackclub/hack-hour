@@ -1,4 +1,4 @@
-import { KnownBlock, RichTextQuote } from "@slack/bolt";
+import { KnownBlock, ModalView, RichTextQuote } from "@slack/bolt";
 import { Actions, Environment } from "../../lib/constants.js";
 import { formatHour, pfps, randomChoice, t } from "../../lib/templates.js";
 
@@ -552,4 +552,110 @@ view session: <https://airtable.com/app4kCWulfB02bV8Q/tbl2q5GGdwv252A7q/viwe3w2M
             }
         ]
     }
+
+    public static approveMinutesModal({ sessionId } : { sessionId: string }): ModalView {
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Approve Minutes",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Approve 100% (60/60min)",
+                                "emoji": true
+                            },
+                            "value": "100",
+                            "action_id": Actions.APPROVEMIN
+                        }
+                    ]
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Approve 75% (45/60min)",
+                                "emoji": true
+                            },
+                            "value": "75",
+                            "action_id": Actions.APPROVEMIN
+                        }
+                    ]
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Approve 50% (30/60min)",
+                                "emoji": true
+                            },
+                            "value": "50",
+                            "action_id": Actions.APPROVEMIN
+                        }
+                    ]
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Approve 25% (15/60min)",
+                                "emoji": true
+                            },
+                            "value": "25",
+                            "action_id": Actions.APPROVEMIN
+                        }
+                    ]
+                }
+            ],
+            "private_metadata": sessionId,
+        };
+    }
+
+    public static approveMinutesMessageModal({ minutes } : { minutes: number }): ModalView {
+        return {
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Approve Minutes",
+                "emoji": true
+            },
+            "close": {
+                "type": "plain_text",
+                "text": "Close",
+                "emoji": true
+            },
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Approving ${minutes}%! (${(minutes/100)*60}/60min)`
+                    }
+                }
+            ]
+        };
+    }
+
+    
 }
