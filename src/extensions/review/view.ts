@@ -365,12 +365,47 @@ ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": `approve ${pfps['cute']}`,
+                            "text": "Approve 100% (60/60min)",
                             "emoji": true
                         },
-                        "value": recId, 
-                        "action_id": Actions.APPROVE
+                        "value": "100",
+                        "action_id": Actions.APPROVEMIN100
                     },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Approve 75% (45/60min)",
+                            "emoji": true
+                        },
+                        "value": "75",
+                        "action_id": Actions.APPROVEMIN75
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Approve 50% (30/60min)",
+                            "emoji": true
+                        },
+                        "value": "50",
+                        "action_id": Actions.APPROVEMIN50
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Approve 25% (15/60min)",
+                            "emoji": true
+                        },
+                        "value": "25",
+                        "action_id": Actions.APPROVEMIN25
+                    }
+                ]
+            },
+            {
+                "type": "actions",
+                "elements": [
                     {
                         "type": "button",
                         "text": {

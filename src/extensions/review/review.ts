@@ -713,30 +713,205 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
     // await Review.finishReview(session.fields['Scrapbook'][0], slackId);
 });
 
-Slack.action(Actions.APPROVEMIN, async ({ body, respond }) => {
+Slack.action(Actions.APPROVEMIN100, async ({ body, respond }) => {
     try {
-        const sessionID = (body as any).view.private_metadata;
+        // const sessionID = (body as any).view.private_metadata;
+        const messageTs = (body as any).message.ts;
         const minutes = parseInt( (body as any).actions[0].value );
 
-        console.log(sessionID, minutes);
+        // const session = await AirtableAPI.Session.find(sessionID);
+        const sessions = await AirtableAPI.Session.filter(`{Review Button TS} = '${messageTs}'`);
 
-        const session = await AirtableAPI.Session.find(sessionID);
-
-        if (!session) {
-            console.error(`Session not found: ${sessionID}`);
+        if (!sessions || sessions.length === 0) {
+            console.error(`Session not found: ${messageTs}`);
             return;
         }
+
+        const session = sessions[0];
+        const sessionID = session.id;
 
         await AirtableAPI.Session.update(sessionID, {
             "Status": "Approved",
             "Percentage Approved": minutes/100,
         } as any);
 
-        await Slack.views.update({
-            view_id: (body as any).view.id,
-            view: View.approveMinutesMessageModal({ minutes })
+        await Slack.chat.update({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            ts: session.fields['Review Button TS']!,
+            blocks: View.approved({
+                sessionId: sessionID,
+                minutes: (minutes/100) * session.fields['Minutes'],
+                createdAt: session.fields['Created At'],
+                slackId: body.user.id
+            })
         });
-        
+
+        // await Slack.chat.postMessage({
+        //     channel: Environment.MAIN_CHANNEL,
+        //     thread_ts: session.fields['Message TS'],
+        //     text: t('airtable.approved', {
+        //         slackId: session.fields['User: Slack ID'][0],
+        //         minutes: session.fields['Approved Minutes']
+        //     })
+        // });
+
+        if (session.fields['Scrapbook'].length === 0) {
+            console.error(`Scrapbook not found for session: ${sessionID}`);
+
+            await respond({
+                text: 'Scrapbook post not found in airtable.',
+                response_type: 'ephemeral'
+            });
+
+            return;
+        }
+
+        await Review.finishReview(session.fields['Scrapbook'][0], body.user.id);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+Slack.action(Actions.APPROVEMIN75, async ({ body, respond }) => {
+    try {
+        // const sessionID = (body as any).view.private_metadata;
+        const messageTs = (body as any).message.ts;
+        const minutes = parseInt( (body as any).actions[0].value );
+
+        // const session = await AirtableAPI.Session.find(sessionID);
+        const sessions = await AirtableAPI.Session.filter(`{Review Button TS} = '${messageTs}'`);
+
+        if (!sessions || sessions.length === 0) {
+            console.error(`Session not found: ${messageTs}`);
+            return;
+        }
+
+        const session = sessions[0];
+        const sessionID = session.id;
+
+        await AirtableAPI.Session.update(sessionID, {
+            "Status": "Approved",
+            "Percentage Approved": minutes/100,
+        } as any);
+
+        await Slack.chat.update({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            ts: session.fields['Review Button TS']!,
+            blocks: View.approved({
+                sessionId: sessionID,
+                minutes: (minutes/100) * session.fields['Minutes'],
+                createdAt: session.fields['Created At'],
+                slackId: body.user.id
+            })
+        });
+
+        // await Slack.chat.postMessage({
+        //     channel: Environment.MAIN_CHANNEL,
+        //     thread_ts: session.fields['Message TS'],
+        //     text: t('airtable.approved', {
+        //         slackId: session.fields['User: Slack ID'][0],
+        //         minutes: session.fields['Approved Minutes']
+        //     })
+        // });
+
+        if (session.fields['Scrapbook'].length === 0) {
+            console.error(`Scrapbook not found for session: ${sessionID}`);
+
+            await respond({
+                text: 'Scrapbook post not found in airtable.',
+                response_type: 'ephemeral'
+            });
+
+            return;
+        }
+
+        await Review.finishReview(session.fields['Scrapbook'][0], body.user.id);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+Slack.action(Actions.APPROVEMIN50, async ({ body, respond }) => {
+    try {
+        // const sessionID = (body as any).view.private_metadata;
+        const messageTs = (body as any).message.ts;
+        const minutes = parseInt( (body as any).actions[0].value );
+
+        // const session = await AirtableAPI.Session.find(sessionID);
+        const sessions = await AirtableAPI.Session.filter(`{Review Button TS} = '${messageTs}'`);
+
+        if (!sessions || sessions.length === 0) {
+            console.error(`Session not found: ${messageTs}`);
+            return;
+        }
+
+        const session = sessions[0];
+        const sessionID = session.id;
+
+        await AirtableAPI.Session.update(sessionID, {
+            "Status": "Approved",
+            "Percentage Approved": minutes/100,
+        } as any);
+
+        await Slack.chat.update({
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            ts: session.fields['Review Button TS']!,
+            blocks: View.approved({
+                sessionId: sessionID,
+                minutes: (minutes/100) * session.fields['Minutes'],
+                createdAt: session.fields['Created At'],
+                slackId: body.user.id
+            })
+        });
+
+        // await Slack.chat.postMessage({
+        //     channel: Environment.MAIN_CHANNEL,
+        //     thread_ts: session.fields['Message TS'],
+        //     text: t('airtable.approved', {
+        //         slackId: session.fields['User: Slack ID'][0],
+        //         minutes: session.fields['Approved Minutes']
+        //     })
+        // });
+
+        if (session.fields['Scrapbook'].length === 0) {
+            console.error(`Scrapbook not found for session: ${sessionID}`);
+
+            await respond({
+                text: 'Scrapbook post not found in airtable.',
+                response_type: 'ephemeral'
+            });
+
+            return;
+        }
+
+        await Review.finishReview(session.fields['Scrapbook'][0], body.user.id);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+Slack.action(Actions.APPROVEMIN25, async ({ body, respond }) => {
+    try {
+        // const sessionID = (body as any).view.private_metadata;
+        const messageTs = (body as any).message.ts;
+        const minutes = parseInt( (body as any).actions[0].value );
+
+        // const session = await AirtableAPI.Session.find(sessionID);
+        const sessions = await AirtableAPI.Session.filter(`{Review Button TS} = '${messageTs}'`);
+
+        if (!sessions || sessions.length === 0) {
+            console.error(`Session not found: ${messageTs}`);
+            return;
+        }
+
+        const session = sessions[0];
+        const sessionID = session.id;
+
+        await AirtableAPI.Session.update(sessionID, {
+            "Status": "Approved",
+            "Percentage Approved": minutes/100,
+        } as any);
+
         await Slack.chat.update({
             channel: Environment.SCRAPBOOK_CHANNEL,
             ts: session.fields['Review Button TS']!,
