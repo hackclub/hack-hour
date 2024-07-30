@@ -715,6 +715,18 @@ Slack.action(Actions.APPROVE, async ({ body, respond }) => {
 
 Slack.action(Actions.APPROVEMIN100, async ({ body, respond }) => {
     try {
+        const slackId = body.user.id;
+
+        if (!(await Review.isReviewer(slackId))) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
+
         // const sessionID = (body as any).view.private_metadata;
         const messageTs = (body as any).message.ts;
         const minutes = parseInt( (body as any).actions[0].value );
@@ -774,6 +786,18 @@ Slack.action(Actions.APPROVEMIN100, async ({ body, respond }) => {
 
 Slack.action(Actions.APPROVEMIN75, async ({ body, respond }) => {
     try {
+        const slackId = body.user.id;
+
+        if (!(await Review.isReviewer(slackId))) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
+
         // const sessionID = (body as any).view.private_metadata;
         const messageTs = (body as any).message.ts;
         const minutes = parseInt( (body as any).actions[0].value );
@@ -833,6 +857,18 @@ Slack.action(Actions.APPROVEMIN75, async ({ body, respond }) => {
 
 Slack.action(Actions.APPROVEMIN50, async ({ body, respond }) => {
     try {
+        const slackId = body.user.id;
+
+        if (!(await Review.isReviewer(slackId))) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
+
         // const sessionID = (body as any).view.private_metadata;
         const messageTs = (body as any).message.ts;
         const minutes = parseInt( (body as any).actions[0].value );
@@ -892,6 +928,18 @@ Slack.action(Actions.APPROVEMIN50, async ({ body, respond }) => {
 
 Slack.action(Actions.APPROVEMIN25, async ({ body, respond }) => {
     try {
+        const slackId = body.user.id;
+
+        if (!(await Review.isReviewer(slackId))) {
+            await Slack.chat.postEphemeral({
+                channel: body.channel?.id!,
+                user: slackId,
+                text: 'You do not have permission to start a review.',
+                thread_ts: (body as any).message.ts!
+            });
+            return;
+        }
+
         // const sessionID = (body as any).view.private_metadata;
         const messageTs = (body as any).message.ts;
         const minutes = parseInt( (body as any).actions[0].value );
