@@ -181,7 +181,6 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.Reviewer.filter] Took ${Date.now() - now}ms`)
 
             return records.map(record => ({ id: record.id, fields: record.fields as AirtableReviewerRead }));
-
         }
     },
     User: {
@@ -361,6 +360,20 @@ export const AirtableAPI = {
             }).all();
 
             return records.map(record => record.id);
+        },
+
+        async filter(filter: string): Promise<{ id: AirtableRecordID, fields: AirtableSessionRead }[]> {
+            console.log(`[AirtableAPI.Session.filter] Looking up ${filter}`)
+
+            const now = Date.now();
+
+            const records = await sessions.select({
+                filterByFormula: filter
+            }).all();
+
+            console.log(`[AirtableAPI.Session.filter] Took ${Date.now() - now}ms`)
+
+            return records.map(record => ({ id: record.id, fields: record.fields as AirtableSessionRead }));
         }
     },
     Scrapbook: {
