@@ -443,7 +443,8 @@ Slack.action(Actions.START_REVIEW, async ({ body, respond }) => {
             hours: (user?.fields['Minutes (All)'] ?? -1),
             sessions: scrapbook.fields['Sessions'].length,
             reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
-            flagged: user?.fields['Fraud Formula'] ?? 'error'
+            flagged: user?.fields['Fraud Formula'] ?? 'error',
+            category: user?.fields['User Category'] ?? 'error'
         })
     })
 
@@ -1274,7 +1275,8 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 hours: (user?.fields['Minutes (All)'] ?? -1),
                 sessions: scrapbook.fields['Sessions'].length,
                 reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
-                flagged: user?.fields['Fraud Formula'] ?? 'error'
+                flagged: user?.fields['Fraud Formula'] ?? 'error',
+                category: user?.fields['User Category'] ?? 'error'
             })
         })
 
