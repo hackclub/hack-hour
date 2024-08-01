@@ -4,7 +4,6 @@ dotenv.config();
 // A typed wrapper over airtable API
 
 import Airtable from "airtable";
-import { emitter } from './emitter.js';
 
 Airtable.configure({
     apiKey: process.env.AIRTABLE_TOKEN
@@ -279,7 +278,7 @@ export const AirtableAPI = {
 
                 console.log(`[AirtableAPI.User.delete] Took ${Date.now() - now}ms`)
             } catch (error) {
-                emitter.emit("error", error);
+                console.error(error);
             }
         },
 
