@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
+  
 // A typed wrapper over airtable API
 
 import Airtable from "airtable";

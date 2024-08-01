@@ -3,8 +3,8 @@ dotenv.config();
 // A typed wrapper over airtable API
 import Airtable from "airtable";
 
-const AIRTABLE_TOKEN = '';
-const AIRTABLE_BASE = '';
+const AIRTABLE_TOKEN = 'patDtl8D2woEp0lyc.2dda65e74fdd99224c365391942afa893729899e0bddcff78420f870a7621098';
+const AIRTABLE_BASE = 'app1VxI7f3twOIs2g';
 
 Airtable.configure({
     apiKey: AIRTABLE_TOKEN
