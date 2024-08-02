@@ -9,8 +9,13 @@ import Bottleneck from "bottleneck";
 
 // Span the requests out a bit, maybe like 1 per 15 seconds
 const limiter = new Bottleneck({
-    minTime: 15 * 1000,
-    maxConcurrent: 1
+    // sane defaults
+    maxConcurrent: 2,
+    minTime: 100,
+    // additional resevior logic based on slack's docs
+    reservoir: 20,
+    reservoirRefreshAmount: 10,
+    reservoirRefreshInterval: 10 * 1000,
 });
 
 async function pollSyncSessions() {
@@ -23,7 +28,7 @@ async function pollSyncSessions() {
             const record = airtableSession.id;
 
             console.log(`[Airtable Poll] Received session ${record} from Airtable`);
-        
+
             const session = await prisma.session.findFirstOrThrow({
                 where: {
                     metadata: {
