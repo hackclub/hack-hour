@@ -103,13 +103,15 @@ export class View {
         hours,
         sessions,
         reviewed,
-        flagged
+        flagged,
+        category
     }: {
         scrapbookId: string,
         hours: number,
         sessions: number,
         reviewed: number,
-        flagged: string
+        flagged: string,
+        category: string
     }): KnownBlock[] {
         return [
             {
@@ -122,6 +124,7 @@ total hours logged: ${formatHour(hours)} hours
 total hours approved: ${formatHour(reviewed)} hours
 sessions: ${sessions}
 flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}
+user category: ${category}
 ${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
                 }                    
             }, 
