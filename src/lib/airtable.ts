@@ -68,6 +68,7 @@ type AirtableUserRead = {
     // "Preexisting": boolean,
     "API Authorization": boolean,
     readonly "Fraud Formula": string
+    readonly "User Category": string,
 };
 
 type AirtableReviewerRead = {
