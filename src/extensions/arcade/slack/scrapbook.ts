@@ -172,6 +172,6 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     await Slack.chat.postMessage({
         channel: scrapbook.flowChannel,
         text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
-            } been marked as banked.`,
+            } been marked as banked for review.`,
     });
 });
