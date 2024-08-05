@@ -159,7 +159,7 @@ export function formatHour(minutes: number | undefined | null): string {
 
     const hours = minutes / 60
 
-    return hours.toFixed(1);
+    return hours.toFixed(2);
 }
 
 export async function arcadeUrl(slackId: string) {
