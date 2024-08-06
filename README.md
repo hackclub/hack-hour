@@ -161,7 +161,17 @@ Get all items from the shop with stock if applicable
 
 Example Response:
 ```json
-[{“name”:”USB-C Charger”,”smallName”:”(30W)”,”description”:”Small, uses the latest GaN technology, & charges fast - pretty sweet!”,”hours”:6,”imageURL”:”https://cloud-lit9nkas9-hack-club-bot.vercel.app/051t9lfjeuml._ac_sl1500_.png”,”stock”:47} … ]
+[
+  {
+    "name": "USB-C Charger",
+    "smallName": "(30W)",
+    "description": "Small, uses the latest GaN technology, & charges fast - pretty sweet!",
+    "hours": 6,
+    "imageURL": "https://cloud-lit9nkas9-hack-club-bot.vercel.app/051t9lfjeuml._ac_sl1500_.png",
+    "stock": 47
+  }
+  // etc
+]
 ```
 
 
