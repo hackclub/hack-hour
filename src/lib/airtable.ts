@@ -181,7 +181,20 @@ export const AirtableAPI = {
             console.log(`[AirtableAPI.Reviewer.filter] Took ${Date.now() - now}ms`)
 
             return records.map(record => ({ id: record.id, fields: record.fields as AirtableReviewerRead }));
-        }
+        },
+        async create(user: Partial<AirtableReviewerRead>): Promise<{ id: AirtableRecordID, fields: AirtableReviewerRead }> {
+            console.log(`[AirtableAPI.Reviewer.create] Creating ${user}`)
+
+            const now = Date.now();
+
+            const record = await reviewers.create([{
+                "fields": user
+            }]);
+
+            console.log(`[AirtableAPI.Reviewer.create] Took ${Date.now() - now}ms`)
+
+            return { id: record[0].id, fields: record[0].fields as AirtableReviewerRead };
+        },        
     },
     User: {
         async find(record: string): Promise<{ id: AirtableRecordID, fields: AirtableUserRead } | null> {

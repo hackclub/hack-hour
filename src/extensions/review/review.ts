@@ -33,21 +33,25 @@ const reviewersInReview: string[] = [];
 export class Review {
     public static async isReviewer(reviewerSlackId: string) {
         try {
-            const [reviewers, slackUsers] = await Promise.all([
-                AirtableAPI.Reviewer.filter(`AND({Slack ID} = '${reviewerSlackId}', {TEMP: Beta system} = TRUE())`),
-                getReviewerCache()
-            ])
-
-            const reviewer = reviewers[0] || null;
-
-            if (!reviewer) {
-                console.warn(`No reviewer found with Slack ID ${reviewerSlackId}`);
-                return false
-            }
+            const slackUsers = await getReviewerCache();
 
             if (!slackUsers || !slackUsers.includes(reviewerSlackId)) {
                 console.warn(`Reviewer ${reviewerSlackId} is not in the review channel`);
                 return false
+            }
+
+            // Check if they're in the airtable
+            const reviewers = await AirtableAPI.Reviewer.filter(`{Slack ID} = "${reviewerSlackId}"`);
+
+            if (reviewers.length === 0) {
+                const name = await Slack.users.info({ user: reviewerSlackId });
+
+                console.warn(`Reviewer ${reviewerSlackId} is not in the airtable`);
+                // Create their entry
+                await AirtableAPI.Reviewer.create({
+                    "Slack ID": reviewerSlackId,
+                    "Name": name.user?.real_name || name.user?.name || reviewerSlackId,
+                });
             }
 
             // all good, continue...
@@ -736,7 +740,7 @@ const approveMinutes: Parameters<typeof Slack.action>[1] = async ({ body, respon
 
         // const sessionID = (body as any).view.private_metadata;
         const messageTs = (body as any).message.ts;
-        const minutes = parseInt( (body as any).actions[0].value );
+        const minutes = parseInt((body as any).actions[0].value);
 
         // const session = await AirtableAPI.Session.find(sessionID);
         const sessions = await AirtableAPI.Session.filter(`{Review Button TS} = '${messageTs}'`);
@@ -751,7 +755,7 @@ const approveMinutes: Parameters<typeof Slack.action>[1] = async ({ body, respon
 
         await AirtableAPI.Session.update(sessionID, {
             "Status": "Approved",
-            "Percentage Approved": minutes/100,
+            "Percentage Approved": minutes / 100,
         } as any);
 
         await Slack.chat.update({
@@ -759,7 +763,7 @@ const approveMinutes: Parameters<typeof Slack.action>[1] = async ({ body, respon
             ts: session.fields['Review Button TS']!,
             blocks: View.approved({
                 sessionId: sessionID,
-                minutes: (minutes/100) * session.fields['Minutes'],
+                minutes: (minutes / 100) * session.fields['Minutes'],
                 createdAt: session.fields['Created At'],
                 slackId: body.user.id
             })
