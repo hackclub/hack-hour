@@ -20,14 +20,11 @@ import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
 import { KnownBlock } from "@slack/bolt";
-
-import AsyncLock from 'async-lock';
+import { lock } from "../../lib/lock.js";
 
 /*
 Session Creation
 */
-
-const lock = new AsyncLock();
 
 type CommandHandler = Parameters<Parameters<typeof Slack.command>[1]>[0];
 
