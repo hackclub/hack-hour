@@ -37,9 +37,10 @@ const log = async (message: string) => {
 }
 
 const hack = async ({ command }: CommandHandler) => {
-    await lock.acquire('hack', async () => {
-        try {
-            const slackId = command.user_id;
+    try {
+        const slackId = command.user_id;
+
+        await lock.acquire('hack_' + slackId, async () => {
 
             let slackUser = await prisma.slackUser.upsert(
                 {
@@ -262,13 +263,11 @@ const hack = async ({ command }: CommandHandler) => {
                 channel: Environment.MAIN_CHANNEL,
                 ts: assertVal(topLevel!.ts)
             });
-        } catch (error) {
-            emitter.emit('error', { error });
-        }
-    })
-        .catch((error) => {
-            console.error('[Error]', error);
-        });
+        })
+            .catch((error) => { console.error(`[Error] ${error}`) });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
 };
 
 Slack.command(Commands.HACK, hack);
