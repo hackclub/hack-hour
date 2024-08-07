@@ -19,12 +19,18 @@ const limiter = new Bottleneck({
 });
 
 async function pollSyncSessions() {
+    let sessionCount = 0;
+    const maxSessionCount = 100; // only update 100 sessions at a time
     try {
         const airtableSessions = await AirtableAPI.Session.filter(`DATETIME_DIFF(NOW(), LAST_MODIFIED_TIME(), 'days') < 1`).catch(console.error);
 
         if (!airtableSessions) { throw new Error('Failed to fetch sessions from Airtable'); }
 
         for (const airtableSession of airtableSessions) {
+
+            if (sessionCount >= maxSessionCount) { break; }
+            sessionCount++;
+
             const record = airtableSession.id;
 
             console.log(`[Airtable Poll] Received session ${record} from Airtable`);
@@ -98,7 +104,7 @@ async function pollSyncSessions() {
 
             // Send a message in that thread saying it was updated
             if (session.metadata.airtable!.status === "Approved") {
-                limiter.schedule(() => Slack.chat.postMessage({
+                await limiter.schedule(() => Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     thread_ts: session.messageTs,
                     text: t('airtable.approved', {
@@ -109,7 +115,7 @@ async function pollSyncSessions() {
             } else if (
                 session.metadata.airtable!.status === "Rejected"
             ) {
-                limiter.schedule(() => Slack.chat.postMessage({
+                await limiter.schedule(() => Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     thread_ts: session.messageTs,
                     text: t('airtable.rejected', {
@@ -119,7 +125,7 @@ async function pollSyncSessions() {
             } else if (
                 session.metadata.airtable!.status === "Rejected Locked"
             ) {
-                limiter.schedule(() => Slack.chat.postMessage({
+                await limiter.schedule(() => Slack.chat.postMessage({
                     channel: Environment.MAIN_CHANNEL,
                     thread_ts: session.messageTs,
                     text: t('airtable.rejectedlocked', {
@@ -134,8 +140,8 @@ async function pollSyncSessions() {
 }
 
 async function main() {
-    pollSyncSessions();
-    await new Promise(resolve => setTimeout(resolve, 1000 * 60 * 60));
+    await pollSyncSessions();
+    await new Promise(resolve => setTimeout(resolve, 1000 * 60));
     main();
 }
 
