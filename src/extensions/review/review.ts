@@ -6,19 +6,12 @@ import { View } from "./view.js";
 import { prisma } from "../../lib/prisma.js";
 import { reactOnContent } from "../slack/lib/emoji.js";
 import { Evidence } from "../arcade/lib/evidence.js";
-import { ScrapbookCache } from "./batch.js";
-
-import Bottleneck from "bottleneck";
+import { ScrapbookAccess } from "./batch.js";
 
 import { lock } from "../../lib/lock.js";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
-
-const limiter = new Bottleneck({
-    maxConcurrent: 1,
-    minTime: 1000
-});
 
 async function getReviewerCache() {
     const noCache = !slackReviewerCache || slackReviewerCache.length == 0;
@@ -111,7 +104,7 @@ export class Review {
             if (!reviewer) {
                 throw new Error(`No reviewer found with Slack ID ${reviewerSlackId}`);
             }
-            await ScrapbookCache.update(scrapbookID, {
+            await ScrapbookAccess.update(scrapbookID, {
                 "Review Start Time": new Date().toISOString(),
                 "Reviewer": [reviewer.id],
                 "Reviewed On": "Hakkuun"
@@ -268,7 +261,7 @@ export class Review {
 
     public static async finishReview(scrapbookID: string, reviewerSlackID: string) {
         try {
-            const scrapbook = await ScrapbookCache.refresh(scrapbookID);
+            const scrapbook = await ScrapbookAccess.refresh(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -277,7 +270,7 @@ export class Review {
             }
 
             if (scrapbook.fields['Count Unreviewed Sessions'] === 0 && scrapbook.fields['Review TS']) {
-                await ScrapbookCache.update(scrapbook.id, {
+                await ScrapbookAccess.update(scrapbook.id, {
                     "Approved": true,
                     "Review End Time": new Date().toISOString(),
                 });
@@ -304,7 +297,7 @@ export class Review {
                     console.error(e);
                 }
 
-                ScrapbookCache.forcePush(scrapbook.id);
+                ScrapbookAccess.forcePush(scrapbook.id);
 
                 for (const sessionId of scrapbook.fields['Sessions']) {
                     const session = await AirtableAPI.Session.find(sessionId);
@@ -332,7 +325,7 @@ export class Review {
 
     public static async garbageCollection(scrapbookID: string) {
         try {
-            const scrapbook = await ScrapbookCache.find(scrapbookID);
+            const scrapbook = await ScrapbookAccess.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -358,7 +351,7 @@ export class Review {
                 });
             }
 
-            await ScrapbookCache.update(scrapbook.id, {
+            await ScrapbookAccess.update(scrapbook.id, {
                 "Review Start Time": undefined,
                 "Reviewer": [],
             });
@@ -375,7 +368,7 @@ export class Review {
 
     public static async unsubmit(scrapbookID: string) {
         try {
-            const scrapbook = await ScrapbookCache.find(scrapbookID);
+            const scrapbook = await ScrapbookAccess.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -523,7 +516,7 @@ Slack.action(Actions.SHIP, async ({ body, respond }) => {
                     timestamp: messageTs
                 });
 
-                await ScrapbookCache.update(recId, {
+                await ScrapbookAccess.update(recId, {
                     "Is Shipped?": false,
                     "Update type": 'Ship'
                 });
@@ -537,7 +530,7 @@ Slack.action(Actions.SHIP, async ({ body, respond }) => {
             return;
         }
 
-        await ScrapbookCache.update(recId, {
+        await ScrapbookAccess.update(recId, {
             "Is Shipped?": true,
             "Update type": "Ship"
         });
@@ -588,7 +581,7 @@ Slack.action(Actions.WIP, async ({ body, respond }) => {
                     timestamp: messageTs
                 });
 
-                await ScrapbookCache.update(recId, {
+                await ScrapbookAccess.update(recId, {
                     "Is Shipped?": false,
                     "Update type": 'WIP'
                 });
@@ -602,7 +595,7 @@ Slack.action(Actions.WIP, async ({ body, respond }) => {
             return;
         }
 
-        await ScrapbookCache.update(recId, {
+        await ScrapbookAccess.update(recId, {
             "Is Shipped?": true,
             "Update type": "WIP"
         });
@@ -637,7 +630,7 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
 
     const scrapbookId = (body as any).actions[0].value;
 
-    const scrapbook = await ScrapbookCache.find(scrapbookId);
+    const scrapbook = await ScrapbookAccess.find(scrapbookId);
 
     if (!scrapbook) {
         console.error(`Scrapbook not found: ${scrapbookId}`);
@@ -651,7 +644,7 @@ Slack.action(Actions.MAGIC, async ({ body, respond }) => {
         return;
     }
 
-    await ScrapbookCache.update(scrapbookId, {
+    await ScrapbookAccess.update(scrapbookId, {
         "Magic Happening": true
     });
 
@@ -1071,7 +1064,7 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
     const scrapbookId = (body as any).actions[0].value;
 
     // Check if the scrapbook exists
-    const scrapbook = await ScrapbookCache.find(scrapbookId);
+    const scrapbook = await ScrapbookAccess.find(scrapbookId);
 
     if (!scrapbook) {
         console.error(`Scrapbook not found: ${scrapbookId}`);
@@ -1112,7 +1105,7 @@ Slack.event('reaction_added', async ({ event }) => {
         return;
     }
 
-    await ScrapbookCache.update(scrapbook[0].id, {
+    await ScrapbookAccess.update(scrapbook[0].id, {
         "Is Shipped?": true
     })
         .catch((error) => {

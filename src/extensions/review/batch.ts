@@ -1,7 +1,14 @@
 import Airtable from "airtable";
 import { AirtableAPI, AirtableScrapbookRead, AirtableScrapbookWrite } from "../../lib/airtable.js";
 
-export class ScrapbookCache {
+import Bottleneck from "bottleneck";
+
+const limiter = new Bottleneck({
+    maxConcurrent: 1,
+    minTime: 1000
+});
+
+export class ScrapbookAccess {
     // Cahche wrapper over slack
     public static cache: {
         [recId: string]: {
@@ -24,7 +31,9 @@ export class ScrapbookCache {
         // this.cache[recId] = record;
 
         // return record;
-        return await AirtableAPI.Scrapbook.find(recId);
+        return await limiter.schedule(async () => {
+            return await AirtableAPI.Scrapbook.find(recId);
+        });
     }
 
     public static async update(recId: string, record: Partial<AirtableScrapbookWrite>) {
@@ -50,7 +59,10 @@ export class ScrapbookCache {
         // }
 
         // return this.cache[recId];
-        return await AirtableAPI.Scrapbook.update(recId, record);
+
+        return await limiter.schedule(async () => {
+            return await AirtableAPI.Scrapbook.update(recId, record);
+        });
     }
 
     public static async forcePush(recId: string) {
@@ -63,19 +75,24 @@ export class ScrapbookCache {
         // delete this.cache[recId];
         // return;
         
-        return await AirtableAPI.Scrapbook.find(recId);
+        return await limiter.schedule(async () => {
+            return await AirtableAPI.Scrapbook.find(recId);
+        });
     }
 
     public static async refresh(recId: string) {
         // this.forcePush(recId);
         // delete this.cache[recId];
         // return this.find(recId);
-        return await AirtableAPI.Scrapbook.find(recId);
+
+        return await limiter.schedule(async () => {
+            return await AirtableAPI.Scrapbook.find(recId);
+        });
     }
 }
 
 // setTimeout(async () => {
-//     for (const recId of Object.keys(ScrapbookCache.cache)) {
-//         await ScrapbookCache.refresh(recId);
+//     for (const recId of Object.keys(ScrapbookAccess.cache)) {
+//         await ScrapbookAccess.refresh(recId);
 //     }
 // }, 1000);
