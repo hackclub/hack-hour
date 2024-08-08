@@ -37,10 +37,10 @@ const log = async (message: string) => {
 }
 
 const hack = async ({ command }: CommandHandler) => {
-    await lock.acquire('hack', async () => {
-        try {
-            const slackId = command.user_id;
+    const slackId = command.user_id;
 
+    await lock.acquire('hack' + slackId, async () => {
+        try {
             let slackUser = await prisma.slackUser.upsert(
                 {
                     where: {
