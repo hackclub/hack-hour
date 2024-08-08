@@ -309,7 +309,7 @@ export const AirtableAPI = {
 
                 return records.length > 0;
             });
-        }
+        },
     },
     Session: {
         find: AirtableAPIFactory.find<AirtableSessionRead>(sessions, "Session"),
@@ -366,11 +366,22 @@ export const AirtableAPI = {
 
             return { id: records[0].id, fields: records[0].fields as unknown as AirtableScrapbookWrite };
         },
+
+        raw: scrapbooks,
     },
 };
 
 export const scrapbookMultifilter = async (filterRules: string[]) => {
     const filter = `AND(${filterRules.join(', ')})`
-    const records = await AirtableAPI.Scrapbook.filter(filter);
-    return records
+
+    // const records = await AirtableAPI.Scrapbook.filter(filter);
+    const records = await scrapbooks.select({
+        filterByFormula: filter,
+        sort: [{ field: "Created At", direction: "desc" }],
+    }).all();
+
+    return records as unknown as {
+        id: AirtableRecordID,
+        fields: AirtableScrapbookRead
+    }[];
 }
