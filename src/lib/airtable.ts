@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-  
+
 // A typed wrapper over airtable API
 
 import Airtable, { FieldSet } from "airtable";
@@ -159,21 +159,10 @@ const reviewers = base("Reviewers");
 const api = base("API");
 
 // 5 req per second
-const limiter = new Bottleneck({
-    // sanity
-    maxConcurrent: 5,
-    minTime: 1000,
-
-    // 5 req per second reservoir
-    reservoir: 5,
-    reservoirRefreshAmount: 5,
-    reservoirRefreshInterval: 1000,
-});
-
 const AirtableAPIFactory = {
     // Create
     create<T extends FieldSet>(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (record: Partial<T>): Promise<AirtableResponse<T>> => {
+        return async (record: Partial<T>): Promise<AirtableResponse<T>> => {
             console.log(`[AirtableAPI.${opName}.create] Creating ${record}`)
 
             const now = Date.now();
@@ -185,12 +174,12 @@ const AirtableAPIFactory = {
             console.log(`[AirtableAPI.${opName}.create] Took ${Date.now() - now}ms`)
 
             return { id: records[0].id, fields: records[0].fields as T };
-        });
+        };
     },
 
     // Read
     all<T>(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (): Promise<AirtableResponse<T>[]> => {
+        return async (): Promise<AirtableResponse<T>[]> => {
 
             console.log(`[AirtableAPI.${opName}.all] Finding all records`)
 
@@ -201,11 +190,11 @@ const AirtableAPIFactory = {
             console.log(`[AirtableAPI.${opName}.all] Took ${Date.now() - now}ms`)
 
             return records.map(record => ({ id: record.id, fields: record.fields as T }));
-        });
+        };
     },
 
     filter<T>(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (filter: string): Promise<AirtableResponse<T>[]> => {
+        return async (filter: string): Promise<AirtableResponse<T>[]> => {
             console.log(`[AirtableAPI.${opName}.filter] Looking up ${filter}`)
 
             const now = Date.now();
@@ -217,11 +206,11 @@ const AirtableAPIFactory = {
             console.log(`[AirtableAPI.${opName}.filter] Took ${Date.now() - now}ms`)
 
             return records.map(record => ({ id: record.id, fields: record.fields as T }));
-        });
+        };
     },
 
     find<T>(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (record: string): Promise<AirtableResponse<T> | null> => {
+        return async (record: string): Promise<AirtableResponse<T> | null> => {
             console.log(`[AirtableAPI.${opName}.find] Looking up ${record}`)
 
             const now = Date.now();
@@ -233,12 +222,12 @@ const AirtableAPIFactory = {
             if (!records) { return null; }
 
             return { id: records.id, fields: records.fields as T };
-        });
+        };
     },
 
     // Update
     update<T extends FieldSet>(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (id: AirtableRecordID, fields: Partial<T>): Promise<AirtableResponse<T>> => {
+        return async (id: AirtableRecordID, fields: Partial<T>): Promise<AirtableResponse<T>> => {
             console.log(`[AirtableAPI.${opName}.update] Updating ${id} with ${fields}`)
 
             const now = Date.now();
@@ -251,12 +240,12 @@ const AirtableAPIFactory = {
             console.log(`[AirtableAPI.${opName}.update] Took ${Date.now() - now}ms`)
 
             return { id: records[0].id, fields: records[0].fields as T };
-        });
+        };
     },
 
     // Delete
     delete(table: Airtable.Table<FieldSet>, opName: string) {
-        return limiter.wrap(async (id: AirtableRecordID): Promise<void> => {
+        return async (id: AirtableRecordID): Promise<void> => {
             console.log(`[AirtableAPI.${opName}.delete] Deleting ${id}`)
 
             const now = Date.now();
@@ -268,7 +257,7 @@ const AirtableAPIFactory = {
             } catch (error) {
                 console.error(error);
             }
-        });
+        };
     }
 }
 
@@ -283,32 +272,26 @@ export const AirtableAPI = {
         filter: AirtableAPIFactory.filter<AirtableUserRead>(users, "User"),
 
         async lookupById(id: string): Promise<AirtableResponse<AirtableUserRead> | null> {
-            return await limiter.schedule(async () => {
-                const records = await this.filter(`{Hack Hour ID} = "${id}"`);
+            const records = await this.filter(`{Hack Hour ID} = "${id}"`);
 
-                if (records.length === 0) { return null; }
-                return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
-            });
+            if (records.length === 0) { return null; }
+            return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
         },
 
         async lookupBySlack(slack: string): Promise<{ id: AirtableRecordID, fields: AirtableUserRead } | null> {
-            return await limiter.schedule(async () => {
-                const records = await this.filter(`{Slack ID} = "${slack}"`);
+            const records = await this.filter(`{Slack ID} = "${slack}"`);
 
-                if (records.length === 0) { return null; }
-                return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
-            });
+            if (records.length === 0) { return null; }
+            return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
         },
         create: AirtableAPIFactory.create<AirtableUserWrite>(users, "User"),
         update: AirtableAPIFactory.update<AirtableUserWrite>(users, "User"),
         delete: AirtableAPIFactory.delete(users, "User"),
 
         async isAuthorized(slackId: string): Promise<boolean> {
-            return await limiter.schedule(async () => {
-                const records = await this.filter(`AND({Slack ID} = "${slackId}", {API Authorization} = 1`);
+            const records = await this.filter(`AND({Slack ID} = "${slackId}", {API Authorization} = 1`);
 
-                return records.length > 0;
-            });
+            return records.length > 0;
         },
     },
     Session: {
@@ -318,14 +301,12 @@ export const AirtableAPI = {
         findAll: AirtableAPIFactory.all<AirtableSessionRead>(sessions, "Session"),
 
         async fromScrapbook(scrapbook: AirtableRecordID): Promise<AirtableRecordID[]> {
-            return await limiter.schedule(async () => {
-                const records = await sessions.select({
-                    filterByFormula: `{Scrapbook: Record ID} = '${scrapbook}'`,
-                    sort: [{ field: "Created At", direction: "asc" }],
-                }).all();
+            const records = await sessions.select({
+                filterByFormula: `{Scrapbook: Record ID} = '${scrapbook}'`,
+                sort: [{ field: "Created At", direction: "asc" }],
+            }).all();
 
-                return records.map(record => record.id);
-            });
+            return records.map(record => record.id);
         },
 
         filter: AirtableAPIFactory.filter<AirtableSessionRead>(sessions, "Session"),
@@ -339,11 +320,9 @@ export const AirtableAPI = {
 
             const now = Date.now();
 
-            const record = await limiter.schedule(async () => { 
-                return await scrapbooks.create([{
-                    "fields": scrapbook as any
-                }]);
-            });
+            const record = await scrapbooks.create([{
+                "fields": scrapbook as any
+            }]);
 
             console.log(`[AirtableAPI.Scrapbook.create] Took ${Date.now() - now}ms`)
 
@@ -355,12 +334,10 @@ export const AirtableAPI = {
 
             const now = Date.now();
 
-            const records = await limiter.schedule(async () => {
-                return await scrapbooks.update([{
-                    "id": id,
-                    "fields": scrapbook as any
-                }]);
-            });
+            const records = await scrapbooks.update([{
+                "id": id,
+                "fields": scrapbook as any
+            }]);
 
             console.log(`[AirtableAPI.Scrapbook.update] Took ${Date.now() - now}ms`)
 

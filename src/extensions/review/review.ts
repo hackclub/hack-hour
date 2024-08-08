@@ -129,7 +129,7 @@ export class Review {
         scrapbook: {
             id: string,
             fields: AirtableScrapbookRead
-        }, 
+        },
         reviewerSlackId: string,
         respond: any
     }) {
@@ -145,7 +145,7 @@ export class Review {
             return;
         }
 
-        await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId});
+        await Review.assignReviewer({ scrapbookID: scrapbook.id, reviewerSlackId });
 
         const user = await AirtableAPI.User.find(scrapbook.fields['User'][0]);
 
@@ -995,7 +995,7 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
             //return;
         }
 
-        await lock.acquire('review', async () => {
+        const records = await lock.acquire('review', async () => {
             // get a random unreviewed scrapbook
             const records = await scrapbookMultifilter([
                 '{Count Unreviewed Sessions} > 0',
@@ -1005,53 +1005,55 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 '{User: Fraud Formula} = "✅ Didn\'t Commit Fraud"'
             ]);
 
-            if (records.length === 0) {
-                await Slack.chat.postEphemeral({
-                    user: slackId,
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    text: 'No scrapbooks to review',
-                    thread_ts: messageTs
-                });
-
-                console.error('No scrapbooks to review');
-                return;
-            }
-
-            const scrapbook = records[0];
-
-            await Slack.chat.update({
-                channel: Environment.REVIEW_CHANNEL,
-                ts: scrapbook.fields['Review TS'],
-                blocks: [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": `Review started by <@${body.user.id}>. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
-                        }
-                    },
-                ]
-            });
-
-            await Slack.chat.postEphemeral({
-                user: body.user.id,
-                channel: Environment.SCRAPBOOK_CHANNEL,
-                thread_ts: messageTs,
-                "text": `Review started. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
-            })
-
-            // start the review process, like the start review button
-
-            await Review.startReview({
-                scrapbook,
-                reviewerSlackId: slackId,
-                respond
-            });
+            return records;
         })
             .catch((error) => console.error(`[Error] ` + error));
+        
+        if (!records || records.length === 0) {
+            await Slack.chat.postEphemeral({
+                user: slackId,
+                channel: Environment.SCRAPBOOK_CHANNEL,
+                text: 'No scrapbooks to review',
+                thread_ts: messageTs
+            });
+
+            console.error('No scrapbooks to review');
+            return;
+        }
+
+        const scrapbook = records[0];
+
+        await Slack.chat.update({
+            channel: Environment.REVIEW_CHANNEL,
+            ts: scrapbook.fields['Review TS'],
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Review started by <@${body.user.id}>. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
+                    }
+                },
+            ]
+        });
+
+        await Slack.chat.postEphemeral({
+            user: body.user.id,
+            channel: Environment.SCRAPBOOK_CHANNEL,
+            thread_ts: messageTs,
+            "text": `Review started. <${scrapbook.fields['Scrapbook URL']}|View in Scrapbook>`
+        })
+
+        // start the review process, like the start review button
+
+        await Review.startReview({
+            scrapbook,
+            reviewerSlackId: slackId,
+            respond
+        });
     } catch (e) {
-        console.error(e);
-    }
+    console.error(e);
+}
 });
 
 // Misc
