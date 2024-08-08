@@ -11,6 +11,7 @@ import { ScrapbookCache } from "./batch.js";
 import Bottleneck from "bottleneck";
 
 import { lock } from "../../lib/lock.js";
+import { Records } from "airtable";
 
 let slackReviewerCache: string[] | undefined = [];
 let reviewerCacheUpdatedTs = new Date();
@@ -995,7 +996,6 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
         }
 
         await lock.acquire('review', async () => {
-
             // get a random unreviewed scrapbook
             const records = await scrapbookMultifilter([
                 '{Count Unreviewed Sessions} > 0',
