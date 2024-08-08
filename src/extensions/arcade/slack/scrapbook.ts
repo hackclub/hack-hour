@@ -120,18 +120,18 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     });
 
     for (const session of selectedSessions) {
-        // if (session.metadata?.airtable?.status === "Approved") {
-        //     session.metadata.airtable.status = "Banked";
+        if (!session.metadata?.airtable?.id) {
+            await Slack.chat.postMessage({
+                channel: body.user.id,
+                text: `An error occurred while linking the session ${session.messageTs} to the scrapbook post. Please try again.`,
+            });
 
-        //     await AirtableAPI.Session.update(session.metadata?.airtable?.id, {
-        //         "Scrapbook": [scrapbook.data.record],
-        //         "Status": "Banked",
-        //     });
-        // } else {
+            continue;
+        }
+
         const airtableScrapbook = await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
             "Scrapbook": [scrapbook.data.record],
         });
-        // }
 
         if (!airtableScrapbook) {
             const permalink = await Slack.chat.getPermalink({
@@ -142,7 +142,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             await Slack.chat.postMessage({
                 user: body.user.id,
                 channel: body.user.id,
-                text: "An error occurred while linking the session to the scrapbook post. Please try again. This is the link to the post: " + (permalink?.permalink ?? ""),
+                text: `An error occurred while linking the session ${session.messageTs} to the scrapbook post.`
             });
 
             continue;
