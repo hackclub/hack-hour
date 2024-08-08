@@ -163,7 +163,7 @@ const AirtableAPIFactory = {
     // Create
     create<T extends FieldSet>(table: Airtable.Table<FieldSet>, opName: string) {
         return async (record: Partial<T>): Promise<AirtableResponse<T>> => {
-            console.log(`[AirtableAPI.${opName}.create] Creating ${record}`)
+            console.log(`[AirtableAPI.${opName}.create] Creating ${JSON.stringify(record)}`)
 
             const now = Date.now();
 
@@ -171,7 +171,7 @@ const AirtableAPIFactory = {
                 "fields": record
             }]);
 
-            console.log(`[AirtableAPI.${opName}.create] Took ${Date.now() - now}ms`)
+            console.log(`[AirtableAPI.${opName}.create] Took ${Date.now() - now}ms. Record is now ${records[0].id}`)
 
             return { id: records[0].id, fields: records[0].fields as T };
         };
@@ -228,7 +228,7 @@ const AirtableAPIFactory = {
     // Update
     update<T extends FieldSet>(table: Airtable.Table<FieldSet>, opName: string) {
         return async (id: AirtableRecordID, fields: Partial<T>): Promise<AirtableResponse<T>> => {
-            console.log(`[AirtableAPI.${opName}.update] Updating ${id} with ${fields}`)
+            console.log(`[AirtableAPI.${opName}.update] Updating ${id} with ${JSON.stringify(fields)}`)
 
             const now = Date.now();
 
