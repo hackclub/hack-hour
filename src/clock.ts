@@ -22,12 +22,14 @@ emitter.on('minute', async () => {
         }
 
         for (const session of sessions) {
+            let updatedSession = session;
+
             if (session.paused) {
                 // in minutes
                 let elapsedSincePause = getElapsedSincePaused(session);
 
                 if (elapsedSincePause > Constants.AUTO_CANCEL) {
-                    await prisma.session.update({
+                    updatedSession = await prisma.session.update({
                         where: {
                             id: session.id
                         },
@@ -37,16 +39,16 @@ emitter.on('minute', async () => {
                         }
                     });
 
-                    emitter.emit('cancel', session);
+                    emitter.emit('cancel', updatedSession);
                 } else {
                     if (updateWithRatelimit) {
                         if (elapsedSincePause % 5 === 0) {
-                            emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
+                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                         } else {
-                            emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: false });
+                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
                         }
                     } else {
-                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                     }
                 }
 
@@ -68,7 +70,7 @@ emitter.on('minute', async () => {
             });
 
             if (elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
-                await prisma.session.update({
+                updatedSession = await prisma.session.update({
                     where: {
                         id: session.id
                     },
