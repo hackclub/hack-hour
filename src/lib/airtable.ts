@@ -354,7 +354,7 @@ export const scrapbookMultifilter = async (filterRules: string[]) => {
     // const records = await AirtableAPI.Scrapbook.filter(filter);
     const records = await scrapbooks.select({
         filterByFormula: filter,
-        sort: [{ field: "Created At", direction: "desc" }],
+        sort: [{ field: "Created At", direction: "asc" }],
     }).all();
 
     return records as unknown as {
