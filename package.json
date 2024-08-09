@@ -6,7 +6,8 @@
     "prisma_deploy": "prisma migrate deploy && prisma generate",
     "debug": "npm run prisma_deploy && tsx ./src/entry.ts",
     "debug_reset": "prisma migrate reset",
-    "start": "npm run prisma_deploy && tsx ./src/entry.ts"
+    "start": "npm run prisma_deploy && tsx ./src/entry.ts",
+    "start_api": "tsx ./src/api.ts"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.2",
     "express": "^4.19.2",
+    "express-http-proxy": "^2.0.0",
     "express-rate-limit": "^7.3.1",
     "get-urls": "^12.1.0",
     "lowdb": "^7.0.1",
