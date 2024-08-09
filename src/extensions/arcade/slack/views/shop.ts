@@ -45,7 +45,7 @@ export class Shop {
 
 _How do I get tickets?_\n- Provide <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-documenting-progress|scraps> for every session.\n- *When your project is complete,* post a demo to <#C01504DCLVD> for review.\n- If your project gets approved, your hours become tickets! Be patient and keep hacking.
 
-*Reviews rejected for reasons covered in the <https://github.com/hackclub/arcade-constitution|Constitution> will cost you one ticket!* So make sure you _post valid scraps_ and _ship_ _completed projects_.
+*Reviews rejected for reasons covered in the <https://github.com/hackclub/arcade-constitution|Constitution> will result in that ticket being rejected!* So make sure you _post valid scraps_ and _ship_ _completed projects_.
 
 _More questions? Check the <https://hack.club/arcade-faq|FAQ>!_`
                     },
