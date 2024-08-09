@@ -170,7 +170,7 @@ export class Review {
                 sessions: scrapbook.fields['Sessions'].length,
                 reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
                 flagged: user?.fields['Fraud Formula'] ?? 'error',
-                category: user?.fields['User Category'] ?? 'normal'
+                category: user?.fields['User Category'] ?? 'normal',
                 notes: user?.fields['Notes'] ?? 'no notes'
             })
         })
