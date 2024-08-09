@@ -1,5 +1,5 @@
 import { Slack } from "../../../lib/bolt.js";
-import { prisma, uid } from "../../../lib/prisma.js";
+import { getElapsed, prisma, uid } from "../../../lib/prisma.js";
 
 import { Goals } from "../views/goals.js";
 import { Actions, Callbacks } from "../../../lib/constants.js";
@@ -12,7 +12,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ body, client }) => {
     try {
         const slackId: string = body.user.id;
         const trigger_id: string = (body as any).trigger_id
-        
+
         const view = await Slack.views.open({
             trigger_id: trigger_id,
             view: Loading.loading()
@@ -30,7 +30,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ body, client }) => {
                 }
             }
         });
-        
+
         if (!session.user.slackUser) {
             throw new Error(`Slack user not found`);
         }
@@ -59,7 +59,7 @@ Slack.action(Actions.OPEN_GOAL, async ({ body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -109,7 +109,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ body, client }) => {
                 },
                 data: {
                     minutes: {
-                        decrement: session.elapsed
+                        decrement: getElapsed(session)
                     }
                 }
             });
@@ -120,7 +120,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ body, client }) => {
                 },
                 data: {
                     minutes: {
-                        increment: session.elapsed
+                        increment: getElapsed(session)
                     }
                 }
             });
@@ -134,11 +134,11 @@ Slack.action(Actions.SELECT_GOAL, async ({ body, client }) => {
             view: await Goals.main(session.id)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
-Slack.view(Callbacks.MAIN_GOAL, async ({}) => {});
+Slack.view(Callbacks.MAIN_GOAL, async ({ }) => { });
 
 Slack.action(Actions.CREATE_GOAL, async ({ body, client }) => {
     try {
@@ -150,7 +150,7 @@ Slack.action(Actions.CREATE_GOAL, async ({ body, client }) => {
             view: await Goals.create(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -180,10 +180,10 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ body, view, client }) => {
             await client.views.update({
                 view_id: body.view.root_view_id!,
                 view: await Goals.main(sessionId, 'Please enter a goal name')
-            });            
+            });
 
             // updating views is broken
- 
+
             return;
         }
 
@@ -235,7 +235,7 @@ Slack.view(Callbacks.CREATE_GOAL, async ({ body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -273,7 +273,7 @@ Slack.action(Actions.DELETE_GOAL, async ({ body, client }) => {
             view: await Goals.delete(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -335,7 +335,7 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ body, view, client }) => {
         (await prisma.session.findMany({
             where: {
                 goal: {
-                    id: oldGoal.id                
+                    id: oldGoal.id
                 }
             }
         })).forEach(async (session) => {
@@ -351,7 +351,7 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ body, view, client }) => {
                 },
                 data: {
                     minutes: {
-                        decrement: session.elapsed
+                        decrement: getElapsed(session)
                     }
                 }
             });
@@ -362,11 +362,11 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ body, view, client }) => {
                 },
                 data: {
                     minutes: {
-                        increment: session.elapsed
+                        increment: getElapsed(session)
                     }
                 }
             });
-        }        
+        }
 
         updateController(session);
         updateTopLevel(session);
@@ -376,6 +376,6 @@ Slack.view(Callbacks.DELETE_GOAL, async ({ body, view, client }) => {
             view: await Goals.main(sessionId)
         });
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });

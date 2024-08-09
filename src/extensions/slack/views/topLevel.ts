@@ -1,5 +1,5 @@
 import { Session } from "@prisma/client";
-import { prisma } from "../../../lib/prisma.js"
+import { getElapsed, prisma } from "../../../lib/prisma.js"
 import { formatHour, t, t_format } from "../../../lib/templates.js";
 
 export class TopLevel {
@@ -37,7 +37,7 @@ export class TopLevel {
         } else if (session.completed) {
             topLevelMessage.text.text = t('complete', { slackId: slackUser?.slackId })
         } else {
-            topLevelMessage.text.text = t_format(metadata.slack.template, { slackId: slackUser?.slackId, minutes: session.time - session.elapsed });
+            topLevelMessage.text.text = t_format(metadata.slack.template, { slackId: slackUser?.slackId, minutes: session.time - getElapsed(session) });
         }
 
         blocks.push(topLevelMessage);
@@ -105,7 +105,7 @@ export class TopLevel {
                 alt_text: "attachment"
             });
         }
-        
+
         blocks.push({
             type: "context",
             elements: [
@@ -115,7 +115,7 @@ export class TopLevel {
                 }
             ]
         });
-        
+
         return blocks;
     }
 }

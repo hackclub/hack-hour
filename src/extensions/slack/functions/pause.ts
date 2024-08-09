@@ -3,7 +3,7 @@ Pause Management
 */
 import { Slack } from "../../../lib/bolt.js";
 import { Environment, Actions, Commands } from "../../../lib/constants.js";
-import { prisma } from "../../../lib/prisma.js";
+import { getElapsed, prisma } from "../../../lib/prisma.js";
 import { emitter } from "../../../lib/emitter.js";
 import { Session } from "../../../lib/corelib.js";
 
@@ -40,14 +40,14 @@ Slack.action(Actions.PAUSE, async ({ body }) => {
                 channel: Environment.MAIN_CHANNEL,
                 text: t(`error.not_yours`),
                 thread_ts: (body as any).message.thread_ts
-            });                
+            });
 
             return;
         }
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -65,7 +65,7 @@ Slack.action(Actions.RESUME, async ({ body }) => {
         });
 
         if (!session) {
-            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);          
+            informUser(slackId, t('error.not_yours'), Environment.MAIN_CHANNEL, (body as any).message.thread_ts, pfps['threat']);
 
             return;
         }
@@ -80,7 +80,7 @@ Slack.action(Actions.RESUME, async ({ body }) => {
 
         await Session.pause(session);
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -113,16 +113,16 @@ Slack.command(Commands.PAUSE, async ({ body }) => {
         const updatedSession = await Session.pause(session);
 
         const toggleMessage = updatedSession.paused ?
-        t('action.paused', {
-            minutes: updatedSession.time - updatedSession.elapsed
-        }) :
-        t('action.resumed', {
-            minutes: updatedSession.time - updatedSession.elapsed
-        });
+            t('action.paused', {
+                minutes: updatedSession.time - getElapsed(updatedSession)
+            }) :
+            t('action.resumed', {
+                minutes: updatedSession.time - getElapsed(updatedSession)
+            });
 
         informUser(slackId, toggleMessage, body.channel_id);
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });
 
@@ -160,9 +160,9 @@ Slack.command(Commands.START, async ({ body }) => {
 
         // Send a message to the user in the channel they ran the command
         informUser(slackId, t('action.resumed', {
-            minutes: updatedSession.time - updatedSession.elapsed
+            minutes: updatedSession.time - getElapsed(updatedSession)
         }), body.channel_id);
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });

@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma.js";
+import { getElapsed, prisma } from "../../../lib/prisma.js";
 import { Session, User } from "@prisma/client";
 import { AirtableAPI } from "../../../lib/airtable.js";
 import { app, Slack } from "../../../lib/bolt.js";
@@ -71,7 +71,7 @@ const findOrCreateUser = async (userId: string) => {
 
         return user;
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 };
 
@@ -109,9 +109,9 @@ const registerSession = async (session: Session) => {
 
         console.log(`[registerSession] Fetched or created user ${user.metadata.airtable.id}`);
 
-        const { activity, evidenced } = await Evidence.check({ 
-            messageTs: session.messageTs, 
-            slackId: user.slackUser!.slackId 
+        const { activity, evidenced } = await Evidence.check({
+            messageTs: session.messageTs,
+            slackId: user.slackUser!.slackId
         });
 
         const permalink = await Slack.chat.getPermalink({
@@ -129,7 +129,7 @@ const registerSession = async (session: Session) => {
             "Control TS": session.controlTs,
             "User": [user.metadata.airtable.id],
             "Work": (session.metadata as any).work,
-            "Minutes": session.elapsed,
+            "Minutes": getElapsed(session),
             "Status": "Unreviewed",
             "Created At": session.createdAt.toISOString(),
             "Activity": activity,
@@ -175,7 +175,7 @@ const registerSession = async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 };
 
@@ -212,7 +212,7 @@ app.event("message", async ({ event }) => {
 
         await surfaceEvidence(thread_ts, session.user.slackUser!.slackId);
 
-        if (!session.metadata.airtable) { 
+        if (!session.metadata.airtable) {
             if (session.metadata.firstTime && session.user.metadata.airtable) {
                 // Use this as an alternative flow - the user is learning how hack hour works
                 const airtableUser = await AirtableAPI.User.find(session.user.metadata.airtable.id);
@@ -227,7 +227,7 @@ app.event("message", async ({ event }) => {
                                 "type": "mrkdwn",
                                 "text": t('firstTime.walkthrough.complete', {
                                     slackId: session.user.slackUser!.slackId,
-                                    minutes: session.elapsed
+                                    minutes: getElapsed(session)
                                 })
                             },
                             "accessory": {
@@ -256,14 +256,14 @@ app.event("message", async ({ event }) => {
 
                 return;
             }
-            
+
             // throw new Error(`Session ${session.id} is missing an Airtable ID`); 
             return;
         }
 
         if (session) {
             const airtableSession = await AirtableAPI.Session.find(session.metadata.airtable.id);
- 
+
             if (!airtableSession) {
                 const permalink = (await Slack.chat.getPermalink({
                     channel: Environment.MAIN_CHANNEL,
@@ -285,7 +285,7 @@ app.event("message", async ({ event }) => {
             });
 
             const { activity, evidenced, image } = await Evidence.check({
-                messageTs: session.messageTs, 
+                messageTs: session.messageTs,
                 slackId: user.slackUser!.slackId
             });
 
@@ -350,7 +350,7 @@ app.event("message", async ({ event }) => {
 //         }
 //     });
 
-//     if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && session.metadata.firstTime) {
+//     if ((session.time - getElapsed(session)) % 15 == 0 && getElapsed(session) > 0 && session.metadata.firstTime) {
 //         // Send a reminder every 15 minutes
 //         await Slack.chat.postMessage({
 //             thread_ts: session.messageTs,
@@ -358,7 +358,7 @@ app.event("message", async ({ event }) => {
 //             channel: Environment.MAIN_CHANNEL,
 //             text: t(`onboarding.update`, {
 //                 slackId: slackUser.slackId,
-//                 minutes: session.time - session.elapsed
+//                 minutes: session.time - getElapsed(session)
 //             })
 //         });
 //     }
@@ -460,7 +460,7 @@ emitter.on('start', async (session: Session) => {
             }
         });
 
-        
+
 
         if (!user.metadata.airtable) { throw new Error(`Airtable user not found for ${user.id}`); }
 
@@ -487,6 +487,6 @@ emitter.on('start', async (session: Session) => {
             });
         }
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });

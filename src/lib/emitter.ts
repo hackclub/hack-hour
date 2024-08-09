@@ -24,7 +24,7 @@ type EventMap = {
     cancel: (session: Session) => void,
     pause: (session: Session) => void,
     resume: (session: Session) => void,
-    
+
     firstTime: (user: User) => void,
 }
 
@@ -51,9 +51,9 @@ class Emitter {
         if (!this.listeners[event]) {
             return;
         }
-        this.listeners[event]!.forEach(listener => { 
+        this.listeners[event]!.forEach(listener => {
             try {
-                listener(...args) 
+                listener(...args)
             } catch (error) {
                 this.emit("error", error);
                 console.error(error);
