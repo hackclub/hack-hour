@@ -3,6 +3,7 @@ import type { Session as SessionType } from "@prisma/client";
 
 import { prisma } from "./prisma.js";
 import { emitter } from "./emitter.js";
+import { updateController, updateTopLevel } from "../extensions/slack/lib/lib.js";
 
 interface SessionAction {
     userId?: string;
@@ -73,6 +74,67 @@ export class Session {
             }
         });
 
+        return updatedSession;
+    }
+
+    public static async changeGoal(session: SessionType, goalId: string) {
+        const oldGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: session?.goalId as string
+            }
+        });
+
+        const newGoal = await prisma.goal.findUniqueOrThrow({
+            where: {
+                id: goalId
+            }
+        });
+
+        const updatedSession = await prisma.session.update({
+            where: {
+                id: session.id,
+                goal: {
+                    completed: false
+                },
+            },
+            data: {
+                goal: {
+                    connect: {
+                        id: newGoal.id
+                    }
+                }
+            }
+        });
+
+        if (session.completed || session.cancelled) {
+            await prisma.goal.update({
+                where: {
+                    id: oldGoal.id
+                },
+                data: {
+                    minutes: {
+                        decrement: session.elapsed
+                    }
+                }
+            });
+
+            await prisma.goal.update({
+                where: {
+                    id: newGoal.id
+                },
+                data: {
+                    minutes: {
+                        increment: session.elapsed
+                    }
+                }
+            });
+        }
+
+        await Promise.all([
+            updateController(updatedSession),
+            updateTopLevel(updatedSession)
+        ])
+        
         return updatedSession;
     }
 }
