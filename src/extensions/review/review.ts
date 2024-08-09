@@ -321,6 +321,7 @@ export class Review {
                             text: t('review.completion.rejected'),
                             thread_ts: scrapbook.fields['Scrapbook TS']
                         });
+                        break;
                     }
                 }
 
