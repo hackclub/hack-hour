@@ -120,8 +120,7 @@ export class View {
                     "type": "mrkdwn",
                     "text":
 `*User Overview* ${pfps['info']}
-total hours logged: ${formatHour(hours)} hours
-total hours approved: ${formatHour(reviewed)} hours
+total hours (approved / logged): ${formatHour(reviewed)} / ${formatHour(hours)} hours
 sessions: ${sessions}
 flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}
 user category: ${category}
