@@ -59,7 +59,7 @@ Slack.command(Commands.EXTEND, async ({ body }) => {
         /*
                 const updatedSession = await Session.extend(session, minutes);
         
-                informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedgetElapsed(session)} out of ${updatedSession.time} minutes`, body.channel_id);
+                informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-getElapsed(updatedSession)} out of ${updatedSession.time} minutes`, body.channel_id);
         
                 // Update the session ts
                 await updateController(updatedSession);

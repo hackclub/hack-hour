@@ -75,12 +75,12 @@ emitter.on('minute', async () => {
             } else {
                 if (updateWithRatelimit) {
                     if (elapsed % 5 === 0) {
-                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                     } else {
-                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: false });
+                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
                     }
                 } else {
-                    emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
+                    emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
                 }
             }
         }

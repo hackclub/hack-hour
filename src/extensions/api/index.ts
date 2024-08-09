@@ -244,7 +244,7 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
                 id: slackUser.slackId,
                 createdAt: result.createdAt,
                 time: result.time,
-                elapsed: getElapsed(result),
+                elapsed,
                 remaining: result.time - elapsed,
                 endTime: endTime,
                 paused: result.paused,

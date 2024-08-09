@@ -502,7 +502,7 @@ emitter.on('sessionUpdate', async (update: {
                 channel: Environment.MAIN_CHANNEL,
                 text: t(`update`, {
                     slackId: slackUser.slackId,
-                    minutes: elapsed
+                    minutes: session.time - elapsed
                 })
             });
 
