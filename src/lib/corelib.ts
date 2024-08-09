@@ -19,6 +19,7 @@ export class Session {
      * @param {SessionType} session - The session to cancel
      */
     public static async cancel(session: SessionType) {
+        const elapsed = getElapsed(session);
         const updatedSession = await prisma.session.update({
             where: {
                 id: session.id
@@ -26,13 +27,56 @@ export class Session {
             data: {
                 cancelled: true,
                 elapsed: {
-                    set: getElapsed(session)
+                    set: elapsed
                 }
+            }
+        });
+
+        await prisma.user.update({
+            where: {
+                id: session.userId
+            },
+            data: {
+                lifetimeMinutes: {
+                    increment: elapsed
+                },
             }
         });
 
         emitter.emit('cancel', updatedSession);
     }
+
+    /**
+     * Completes a hack hour session
+     * @param {SessionType} session - The session to complete
+     */
+    public static async complete(session: SessionType) {
+        const updatedSession = await prisma.session.update({
+            where: {
+                id: session.id
+            },
+            data: {
+                cancelled: true,
+                elapsed: {
+                    set: session.time
+                }
+            }
+        });
+
+        await prisma.user.update({
+            where: {
+                id: session.userId
+            },
+            data: {
+                lifetimeMinutes: {
+                    increment: session.time
+                },
+            }
+        });
+
+        emitter.emit('complete', updatedSession);
+    }
+
 
     /**
      * Pauses or resumes a hack hour session

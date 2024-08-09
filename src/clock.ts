@@ -1,6 +1,7 @@
 import { getElapsed, getElapsedSincePaused, prisma } from "./lib/prisma.js";
 import { emitter } from "./lib/emitter.js";
 import { Constants } from "./lib/constants.js";
+import { Session } from "./lib/corelib.js";
 
 emitter.on('minute', async () => {
     try {
@@ -69,32 +70,8 @@ emitter.on('minute', async () => {
                 }
             });
 
-            if (elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
-                updatedSession = await prisma.session.update({
-                    where: {
-                        id: session.id
-                    },
-                    data: {
-                        completed: true,
-                        elapsed: {
-                            set: session.time
-                        }
-                    }
-                });
-
-                // update lifetime minutes
-                await prisma.user.update({
-                    where: {
-                        id: session.userId
-                    },
-                    data: {
-                        lifetimeMinutes: {
-                            increment: session.time
-                        },
-                    }
-                });
-
-                emitter.emit('complete', session);
+            if (elapsed >= updatedSession.time) { // TODO: Commit hours to goal, verify hours with events                
+                await Session.complete(updatedSession);
             } else {
                 if (updateWithRatelimit) {
                     if (elapsed % 5 === 0) {
