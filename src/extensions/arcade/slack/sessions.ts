@@ -29,6 +29,7 @@ Slack.command(Commands.SESSIONS, async ({ command }) => {
         where: {
             userId: slackUser.userId,
         },
+        orderBy: [{createdAt: 'desc'}],
         skip: 0,
         take: 3,
     });
@@ -108,6 +109,7 @@ Slack.action(Actions.SESSIONS_PREVIOUS, async ({ body }) => {
             where: {
                 userId,
             },
+            orderBy: [{createdAt: 'desc'}],
             skip: 0,
             take: 3,
         });
@@ -131,6 +133,7 @@ Slack.action(Actions.SESSIONS_PREVIOUS, async ({ body }) => {
         where: {
             userId,
         },
+        orderBy: [{createdAt: 'desc'}],
         skip: page <= 0 ? 0 : page * 3,
         take: 3,
     });
@@ -159,6 +162,7 @@ Slack.action(Actions.SESSIONS_NEXT, async ({ body }) => {
         where: {
             userId
         },
+        orderBy: [{createdAt: 'desc'}],
         skip: page <= 0 ? 0 : page * 3,
         take: 3,
     });
@@ -170,6 +174,7 @@ Slack.action(Actions.SESSIONS_NEXT, async ({ body }) => {
             where: {
                 userId,
             },
+            orderBy: [{createdAt: 'desc'}],
             skip:  page <= 0 ? 0 : page * 3,
             take: 3,
         });
