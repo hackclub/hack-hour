@@ -1,4 +1,4 @@
-import pkg from '@prisma/client';
+import pkg, { type Session } from '@prisma/client';
 const { PrismaClient } = pkg
 
 import cuid2 from '@paralleldrive/cuid2';
@@ -20,7 +20,7 @@ declare global {
             firstTime?: {
                 step: number
             }
-            banked: boolean, 
+            banked: boolean,
         }
         type UserMetadata = {
             airtable?: {
@@ -57,3 +57,26 @@ export const prisma = new PrismaClient().$extends({
 cuid2.init();
 
 export const uid = () => { return cuid2.createId() };
+
+// This method provides a safe way to get the elapsed time from a session.
+//
+// This method returns minutes.
+export function getElapsed(session: Session): number {
+    if (session.cancelled || session.completed) {
+        return session.elapsed;
+    }
+
+    return Math.min(session.time, session.elapsed + (session.paused ? 0 : (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000));
+}
+
+// This method provides a safe way to get the elapsed pause time from a session.
+//
+// This method returns minutes.
+export function getElapsedSincePaused(session: Session) {
+    if (!session.paused) {
+        console.error("getElapsedSincePaused has been called on a session that is not paused. This is likely a mistake.");
+        return 0;
+    }
+
+    return (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000;
+}

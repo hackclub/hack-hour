@@ -1,4 +1,4 @@
-import { prisma } from "./lib/prisma.js";
+import { getElapsed, getElapsedSincePaused, prisma } from "./lib/prisma.js";
 import { emitter } from "./lib/emitter.js";
 import { Constants } from "./lib/constants.js";
 
@@ -22,22 +22,12 @@ emitter.on('minute', async () => {
         }
 
         for (const session of sessions) {
-            let updatedSession = session;
-
             if (session.paused) {
-                updatedSession = await prisma.session.update({
-                    where: {
-                        id: session.id
-                    },
-                    data: {
-                        elapsedSincePause: {
-                            increment: 1
-                        }
-                    }
-                });
+                // in minutes
+                let elapsedSincePause = getElapsedSincePaused(session);
 
-                if (updatedSession.elapsedSincePause > Constants.AUTO_CANCEL) {
-                    updatedSession = await prisma.session.update({
+                if (elapsedSincePause > Constants.AUTO_CANCEL) {
+                    await prisma.session.update({
                         where: {
                             id: session.id
                         },
@@ -47,32 +37,24 @@ emitter.on('minute', async () => {
                         }
                     });
 
-                    emitter.emit('cancel', updatedSession);
+                    emitter.emit('cancel', session);
                 } else {
                     if (updateWithRatelimit) {
-                        if (updatedSession.elapsedSincePause % 5 === 0) {
-                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                        if (elapsedSincePause % 5 === 0) {
+                            emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
                         } else {
-                            emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
+                            emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: false });
                         }
                     } else {
-                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
                     }
                 }
 
                 continue;
-            } else {
-                updatedSession = await prisma.session.update({
-                    where: {
-                        id: session.id
-                    },
-                    data: {
-                        elapsed: {
-                            increment: 1
-                        }
-                    }
-                });
             }
+
+            let elapsed = getElapsed(session);
+
 
             await prisma.user.update({
                 where: {
@@ -85,26 +67,41 @@ emitter.on('minute', async () => {
                 }
             });
 
-            if (updatedSession.elapsed >= updatedSession.time) { // TODO: Commit hours to goal, verify hours with events                
-                updatedSession = await prisma.session.update({
+            if (elapsed >= session.time) { // TODO: Commit hours to goal, verify hours with events                
+                await prisma.session.update({
                     where: {
                         id: session.id
                     },
                     data: {
-                        completed: true
+                        completed: true,
+                        elapsed: {
+                            set: session.time
+                        }
                     }
                 });
 
-                emitter.emit('complete', updatedSession);
+                // update lifetime minutes
+                await prisma.user.update({
+                    where: {
+                        id: session.userId
+                    },
+                    data: {
+                        lifetimeMinutes: {
+                            increment: session.time
+                        },
+                    }
+                });
+
+                emitter.emit('complete', session);
             } else {
                 if (updateWithRatelimit) {
-                    if (updatedSession.elapsed % 5 === 0) {
-                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                    if (elapsed % 5 === 0) {
+                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
                     } else {
-                        emitter.emit('sessionUpdate', { updatedSession, updateSlack: false });
+                        emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: false });
                     }
                 } else {
-                    emitter.emit('sessionUpdate', { updatedSession, updateSlack: true });
+                    emitter.emit('sessionUpdate', { updatedSession: session, updateSlack: true });
                 }
             }
         }

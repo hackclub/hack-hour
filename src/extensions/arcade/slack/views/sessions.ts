@@ -4,7 +4,7 @@ import { Slack } from "../../../../lib/bolt.js";
 import { Actions, Environment } from "../../../../lib/constants.js";
 import { AirtableAPI } from "../../../../lib/airtable.js";
 import { formatHour, pfps } from "../../../../lib/templates.js";
-import { prisma } from "../../../../lib/prisma.js";
+import { getElapsed, prisma } from "../../../../lib/prisma.js";
 import { Loading } from "../../../slack/views/loading.js";
 
 export class Sessions {
@@ -45,7 +45,7 @@ export class Sessions {
                 text: {
                     type: "plain_text",
                     text:
-`You have ${airtableUser.fields['Balance (Hours)']} :tw_admission_tickets: remaining.`,
+                        `You have ${airtableUser.fields['Balance (Hours)']} :tw_admission_tickets: remaining.`,
                     emoji: true
                 }
             }, {
@@ -74,8 +74,8 @@ _Lifetime minutes: ${airtableUser.fields['Minutes (All)']} minutes (${formatHour
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: 
-`Tickets spent: ${Math.floor(airtableUser.fields['Spent Incl. Pending (Minutes)'] / 60)} :tw_admission_tickets:`                
+                    text:
+                        `Tickets spent: ${Math.floor(airtableUser.fields['Spent Incl. Pending (Minutes)'] / 60)} :tw_admission_tickets:`
                 }
             }, {
                 "type": "actions",
@@ -133,7 +133,7 @@ _Lifetime minutes: ${airtableUser.fields['Minutes (All)']} minutes (${formatHour
                         type: "section",
                         text: {
                             type: "mrkdwn",
-                            text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${session.elapsed} minutes\n${session.metadata?.work}\n*Status: In Progress*\n<${permalink?.permalink}|View Session>`
+                            text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${getElapsed((session))} minutes\n${session.metadata?.work}\n*Status: In Progress*\n<${permalink?.permalink}|View Session>`
                         }
                     }, {
                         type: "divider"
@@ -146,7 +146,7 @@ _Lifetime minutes: ${airtableUser.fields['Minutes (All)']} minutes (${formatHour
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${session.elapsed} minutes\n${session.metadata?.work}\n*Status: Not Found*\n<${permalink?.permalink}|View Session>`
+                        text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${getElapsed(session)} minutes\n${session.metadata?.work}\n*Status: Not Found*\n<${permalink?.permalink}|View Session>`
                     }
                 }, {
                     type: "divider"
@@ -162,7 +162,7 @@ _Lifetime minutes: ${airtableUser.fields['Minutes (All)']} minutes (${formatHour
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${session.elapsed} minutes\n${session.metadata?.work}\n*Status: Not Found*\n<${permalink?.permalink}|View Session>`
+                        text: `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${getElapsed(session)} minutes\n${session.metadata?.work}\n*Status: Not Found*\n<${permalink?.permalink}|View Session>`
                     }
                 }, {
                     type: "divider"
@@ -183,7 +183,7 @@ _Lifetime minutes: ${airtableUser.fields['Minutes (All)']} minutes (${formatHour
                     text: {
                         type: "mrkdwn",
                         text:
-                            `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${session.elapsed} minutes
+                            `*${session.createdAt.getMonth() + 1}/${session.createdAt.getDate()}* - ${getElapsed(session)} minutes
 ${session.metadata?.work}
 *Status: ${airtableSession.fields["Status"]}*${airtableSession.fields["Reason"] ? `- ${airtableSession.fields["Reason"]}` : ""}
 ${approved ? `*Has Scrapbook?*: ${banked ? `yup!` : `noo ):`}` : ``}

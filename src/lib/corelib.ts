@@ -1,7 +1,7 @@
 // Library for interacting with hack hour 
 import type { Session as SessionType } from "@prisma/client";
 
-import { prisma } from "./prisma.js";
+import { getElapsed, prisma } from "./prisma.js";
 import { emitter } from "./emitter.js";
 
 interface SessionAction {
@@ -24,7 +24,10 @@ export class Session {
                 id: session.id
             },
             data: {
-                cancelled: true
+                cancelled: true,
+                elapsed: {
+                    set: getElapsed(session)
+                }
             }
         });
 
@@ -43,16 +46,21 @@ export class Session {
             },
             data: {
                 paused: !session.paused,
-                elapsedSincePause: session.paused ? 0 : session.elapsedSincePause
+                resumedOrPausedAt: {
+                    set: new Date()
+                },
+                elapsed: {
+                    set: getElapsed(session)
+                }
             }
         });
-    
+
         if (updatedSession.paused) {
             emitter.emit('pause', updatedSession);
         } else {
             emitter.emit('resume', updatedSession);
         }
-    
+
         return updatedSession;
     }
 

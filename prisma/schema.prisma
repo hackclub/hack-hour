@@ -54,6 +54,8 @@ model Session {
   time              Int
   elapsed           Int
   elapsedSincePause Int
+  // this timestamp is from when the session was last resumed or paused
+  resumedOrPausedAt DateTime @default(now())
 
   completed Boolean
   cancelled Boolean

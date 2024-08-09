@@ -10,7 +10,7 @@ Time Extension
 */
 Slack.action(Actions.EXTEND, async ({ body }) => {
     // TODO
-//    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
+    //    informUser(body.user.id, `Use \`${Commands.EXTEND}\` to extend the amount of time you have!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
     informUser(body.user.id, `This command is disabled for now!`, Environment.MAIN_CHANNEL, (body as any).message.thread_ts);
 });
 
@@ -21,9 +21,9 @@ Slack.command(Commands.EXTEND, async ({ body }) => {
         // Disable extend for now
         informUser(body.user_id, `This command is disabled for now!`, body.channel_id);
         return;
-        
+
         const slackId = body.user_id;
-        
+
         const session = await prisma.session.findFirst({
             where: {
                 user: {
@@ -33,7 +33,7 @@ Slack.command(Commands.EXTEND, async ({ body }) => {
                 },
                 completed: false,
                 cancelled: false,
-            }            
+            }
         });
 
         if (!session) {
@@ -56,15 +56,15 @@ Slack.command(Commands.EXTEND, async ({ body }) => {
             minutes = 60;
         }
 
-/*
-        const updatedSession = await Session.extend(session, minutes);
-
-        informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedSession.elapsed} out of ${updatedSession.time} minutes`, body.channel_id);
-
-        // Update the session ts
-        await updateController(updatedSession);
-        await updateTopLevel(updatedSession);*/
+        /*
+                const updatedSession = await Session.extend(session, minutes);
+        
+                informUser(slackId, `Session extended by ${minutes} minutes! Remaining time: ${updatedSession.time-updatedgetElapsed(session)} out of ${updatedSession.time} minutes`, body.channel_id);
+        
+                // Update the session ts
+                await updateController(updatedSession);
+                await updateTopLevel(updatedSession);*/
     } catch (error) {
-        emitter.emit('error', {error});
+        emitter.emit('error', { error });
     }
 });

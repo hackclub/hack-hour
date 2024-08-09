@@ -1,6 +1,6 @@
 import { app, Slack } from "../../lib/bolt.js";
 import { Actions, Commands, Constants, Environment } from "../../lib/constants.js";
-import { prisma, uid } from "../../lib/prisma.js";
+import { getElapsed, prisma, uid } from "../../lib/prisma.js";
 import { emitter } from "../../lib/emitter.js";
 
 import { t, t_fetch, t_format } from "../../lib/templates.js";
@@ -487,13 +487,14 @@ emitter.on('sessionUpdate', async (update: {
         //     }
         // }
 
+        const elapsed = getElapsed(session);
         if (session.paused) {
             if (updateSlack) {
                 await updateController(session);
             }
 
             return;
-        } else if ((session.time - session.elapsed) % 15 == 0 && session.elapsed > 0 && !session.metadata.firstTime) {
+        } else if ((session.time - elapsed) % 15 == 0 && elapsed > 0 && !session.metadata.firstTime) {
             // Send a reminder every 15 minutes
             await Slack.chat.postMessage({
                 thread_ts: session.messageTs,
@@ -501,7 +502,7 @@ emitter.on('sessionUpdate', async (update: {
                 channel: Environment.MAIN_CHANNEL,
                 text: t(`update`, {
                     slackId: slackUser.slackId,
-                    minutes: session.time - session.elapsed
+                    minutes: elapsed
                 })
             });
 
@@ -575,7 +576,7 @@ emitter.on('complete', async (session: Session) => {
         },
         data: {
             minutes: {
-                increment: session.elapsed
+                increment: getElapsed(session)
             }
         }
     });
@@ -619,14 +620,14 @@ emitter.on('cancel', async (session: Session) => {
             channel: Environment.MAIN_CHANNEL,
             text: /*session.metadata.firstTime ? t('onboarding.complete', {
                 slackId: slackUser.slackId,
-                minutes: session.elapsed
+                minutes: getElapsed(session)
             }) :*/t('cancel', {
                 slackId: slackUser.slackId,
-                minutes: session.elapsed
+                minutes: getElapsed(session)
             }),
             // text: t_format('hey <@${slackId}>! you cancelled your hour, but you still have ${minutes} minutes recorded - make sure to post something to count those!', {
             //     slackId: slackUser.slackId,
-            //     minutes: session.elapsed
+            //     minutes: getElapsed(session)
             // }),
             blocks: [
                 {
@@ -635,10 +636,10 @@ emitter.on('cancel', async (session: Session) => {
                         "type": "mrkdwn",
                         "text": /*session.metadata.firstTime ? t('onboarding.complete', {
                             slackId: slackUser.slackId,
-                            minutes: session.elapsed
+                            minutes: getElapsed(session)
                         }) :*/ t('cancel', {
                             slackId: slackUser.slackId,
-                            minutes: session.elapsed
+                            minutes: getElapsed(session)
                         })
                     },
                     "accessory": {
@@ -661,7 +662,7 @@ emitter.on('cancel', async (session: Session) => {
         },
         data: {
             minutes: {
-                increment: session.elapsed
+                increment: getElapsed(session)
             }
         }
     });
