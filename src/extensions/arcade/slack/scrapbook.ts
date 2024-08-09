@@ -75,6 +75,13 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
                     }
                 ]
             },
+            include: {
+                goal: {
+                    select: {
+                        name: true,
+                    }
+                },
+            },
         });
 
         log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
