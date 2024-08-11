@@ -1003,7 +1003,6 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 'BLANK() = Reviewer',
                 'BLANK() != {Review TS}',
                 '{Reviewed On} = "Other"',
-                '{User: Fraud Formula} = "✅ Didn\'t Commit Fraud"'
             ]);
 
             return records;
