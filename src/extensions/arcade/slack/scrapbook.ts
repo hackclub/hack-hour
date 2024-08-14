@@ -48,6 +48,9 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
 
         const sessions = await prisma.session.findMany({
             take: 50,
+            orderBy: {
+                createdAt: "desc"
+            },
             where: {
                 userId: scrapbook?.userId,
                 // createdAt: {
