@@ -125,10 +125,8 @@ export class View {
 total hours logged: ${formatHour(hours)} hours
 total hours approved: ${formatHour(reviewed)} hours
 sessions: ${sessions}
-flag: ${flagged == `✅ Didn't Commit Fraud` ? `none` : flagged}
 user category: ${category}
-notes: ${notes}
-${hours <= 5*60 ? `woah, looks like they're just getting started! ${pfps['woah']}` : `they've been at it for a while now! ${pfps['thumbs']}`}`
+notes: ${notes}`
                 }                    
             }, 
             {
