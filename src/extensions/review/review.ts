@@ -170,7 +170,8 @@ export class Review {
                 sessions: scrapbook.fields['Sessions'].length,
                 reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
                 flagged: user?.fields['Fraud Formula'] ?? 'error',
-                category: user?.fields['User Category'] ?? 'error'
+                category: user?.fields['User Category'] ?? 'normal',
+                notes: user?.fields['Notes'] ?? 'no notes'
             })
         })
 
@@ -1003,7 +1004,6 @@ Slack.action(Actions.NEXT_REVIEW, async ({ body, respond }) => {
                 'BLANK() = Reviewer',
                 'BLANK() != {Review TS}',
                 '{Reviewed On} = "Other"',
-                '{User: Fraud Formula} = "✅ Didn\'t Commit Fraud"'
             ]);
 
             return records;
