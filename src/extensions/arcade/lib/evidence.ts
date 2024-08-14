@@ -23,13 +23,13 @@ export const Evidence = {
             });
         
             if (!evidence || !evidence.messages) {
-                console.error("No evidence found for messageTs: ", messageTs, " and slackId: ", slackId);
+                console.error("[Error] No evidence found for messageTs: ", messageTs, " and slackId: ", slackId);
                 return [];
             }
 
             return evidence.messages.filter(message => message.user === slackId);
         } catch (error) {
-            console.error("Error fetching evidence for messageTs: ", messageTs, " and slackId: ", slackId);
+            console.error("[Error] Error fetching evidence for messageTs: ", messageTs, " and slackId: ", slackId);
             return [];
         }
     },

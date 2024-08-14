@@ -118,17 +118,27 @@ export const Actions = {
     SESSIONS_NEXT: 'sessionsnext',
 
     START_REVIEW: 'startreview',
+    
     APPROVE: 'approve',
+    APPROVEMIN: 'approvemin',
+    APPROVEMIN100: 'approvemin100',
+    APPROVEMIN75: 'approvemin75',
+    APPROVEMIN50: 'approvemin50',
+    APPROVEMIN25: 'approvemin25',
+
     REJECT: 'reject',
     REJECT_LOCK: 'rejectlock',
     UNDO: 'undo',
     UNSUBMIT: 'unsubmit',
     MAGIC: 'magic',
+
+    NEXT_REVIEW: 'nextreview',
+    SHIP: 'ship',
+    WIP: 'wip',
 };
 
 export const Callbacks = {
     //  EXTEND_HOUR: 'extendhour',
-
     MAIN_GOAL: 'maingoal',
     CREATE_GOAL: 'callback_creategoal',
     DELETE_GOAL: 'callback_deletegoal',

@@ -20,7 +20,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
             await Slack.chat.postEphemeral({
                 user: body.user.id,
                 channel: body.user.id,
-                text: "An error occurred while opening the view. Please try again.",
+                text: "oopsies! an error occurred while opening the view. please try again.",
             });
             return;
         }
@@ -47,6 +47,7 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         // });
 
         const sessions = await prisma.session.findMany({
+            take: 50,
             where: {
                 userId: scrapbook?.userId,
                 // createdAt: {
@@ -81,10 +82,9 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
         await Slack.views.update({
             view_id: view?.view?.id,
             view: ChooseSessions.chooseSessionsModal(sessions, scrapbook?.internalId),
-        }).catch((err) => console.log(err));
+        }).catch((err) => console.error('[Error]', err));
     } catch (error) {
-        console.log(error);
-        emitter.emit("error", error);
+        console.error('[Error]', error);
     }
 });
 
@@ -104,7 +104,7 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
         await Slack.chat.postEphemeral({
             user: body.user.id,
             channel: body.user.id,
-            text: "No sessions selected. Please try again.",
+            text: "uh oh. no sessions were selected. please try again!",
         });
         return;
     }
@@ -120,18 +120,33 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     });
 
     for (const session of selectedSessions) {
-        // if (session.metadata?.airtable?.status === "Approved") {
-        //     session.metadata.airtable.status = "Banked";
+        if (!session.metadata?.airtable?.id) {
+            await Slack.chat.postMessage({
+                channel: body.user.id,
+                text: `haii frend! while i was taking your sessions, i accidentally dropped one while trying to scrap it!
 
-        //     await AirtableAPI.Session.update(session.metadata?.airtable?.id, {
-        //         "Scrapbook": [scrapbook.data.record],
-        //         "Status": "Banked",
-        //     });
-        // } else {
+but wait! don't fear - ask in <#C077TSWKER0> for help. also make sure ya share the following information (copy & paste it!):
+\`\`\`
+Scrapbook Information:
+- Scrapbook TS: ${scrapbook.ts}
+- Scrapbook URL: https://hackclub.slack.com/archives/C01504DCLVD/p${scrapbook.ts.replace(".", "")}
+
+Session Information:
+- Session ID: ${session.id}
+- Session Timestamp: ${session.messageTs}
+- Session URL: https://hackclub.slack.com/archives/C06SBHMQU8G/p${session.messageTs.replace(".", "")}
+
+Error Details:
+- No Airtable ID was saved to the session metadata. This is likely a bug.
+\`\`\``,
+            });
+
+            continue;
+        }
+
         const airtableScrapbook = await AirtableAPI.Session.update(session.metadata?.airtable?.id!, {
             "Scrapbook": [scrapbook.data.record],
         });
-        // }
 
         if (!airtableScrapbook) {
             const permalink = await Slack.chat.getPermalink({
@@ -142,7 +157,22 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
             await Slack.chat.postMessage({
                 user: body.user.id,
                 channel: body.user.id,
-                text: "An error occurred while linking the session to the scrapbook post. Please try again. This is the link to the post: " + permalink?.permalink ?? "",
+                text: `haii frend! while i was taking your sessions, i accidentally dropped one while trying to scrap it!
+
+but wait! don't fear - ask in <#C077TSWKER0> for help. also make sure ya share the following information (copy & paste it!):
+\`\`\`
+Scrapbook Information:
+- Scrapbook TS: ${scrapbook.ts}
+- Scrapbook URL: https://hackclub.slack.com/archives/C01504DCLVD/p${scrapbook.ts.replace(".", "")}
+
+Session Information:
+- Session ID: ${session.id}
+- Session Timestamp: ${session.messageTs}
+- Session URL: https://hackclub.slack.com/archives/C06SBHMQU8G/p${session.messageTs.replace(".", "")}
+
+Error Details:
+- Airtable returned an error when trying to update the session record. The session will need to be linked manually, or you can optionally make a new scrapbook post.
+\`\`\``,
             });
 
             continue;
@@ -165,13 +195,12 @@ Slack.view(Callbacks.CHOOSE_SESSIONS, async ({ ack, body, view }) => {
     await Slack.chat.update({
         channel: scrapbook.flowChannel,
         ts: scrapbook.flowTs,
-        text: "🎉 Sessions linked!",
+        text: "woohoo! i've linked your sessions!",
         blocks: ChooseSessions.completedSessions(selectedSessions),
     });
 
     await Slack.chat.postMessage({
         channel: scrapbook.flowChannel,
-        text: `🎉 Congratulations! Your sessions have been linked to your scrapbook post, and ${bankedSessions} session${bankedSessions === 1 ? " has" : "s have"
-            } been marked as banked.`,
+        text: `haii frend! thanks for your scraps! i've linked them to your scrapbook post! I linked ${bankedSessions} session${bankedSessions === 1 ? "" : "s"} to your post - you'll have to wait for a reviewer to review your post!`,
     });
 });

@@ -43,59 +43,59 @@ declare global {
     }
 }
 
-const endpoints: string[] = [];
+// const endpoints: string[] = [];
 
-AirtableAPI.API.getAllActive().then(records => {
-    records.forEach(record => {
-        endpoints.push(record.fields['Endpoint']);
-    });
-})
+// AirtableAPI.API.getAllActive().then(records => {
+//     records.forEach(record => {
+//         endpoints.push(record.fields['Endpoint']);
+//     });
+// })
 
-const postEndpoints = async (session: SessionType) => {
-    const user = await prisma.slackUser.findUnique({
-        where: {
-            userId: session.userId,
-        },
-    });
+// const postEndpoints = async (session: SessionType) => {
+//     const user = await prisma.slackUser.findUnique({
+//         where: {
+//             userId: session.userId,
+//         },
+//     });
 
-    for (const endpoint of endpoints) {
-        await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                slackId: user?.slackId,
-                userId: session.userId,
-                sessionId: session.id,
-                sessionTs: session.messageTs,
-                createdAt: session.createdAt,
-                endedAt: new Date(),
-                time: session.time,
-                elapsed: session.elapsed,
-                completed: session.completed,
-                cancelled: session.cancelled,
-                paused: session.paused,
-                metadata: session.metadata,
-            }),
-        });
-    }
-}
+//     for (const endpoint of endpoints) {
+//         await fetch(endpoint, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 slackId: user?.slackId,
+//                 userId: session.userId,
+//                 sessionId: session.id,
+//                 sessionTs: session.messageTs,
+//                 createdAt: session.createdAt,
+//                 endedAt: new Date(),
+//                 time: session.time,
+//                 elapsed: session.elapsed,
+//                 completed: session.completed,
+//                 cancelled: session.cancelled,
+//                 paused: session.paused,
+//                 metadata: session.metadata,
+//             }),
+//         });
+//     }
+// }
 
-emitter.on('complete', async (session: SessionType) => {
-    await postEndpoints(session);
-});
+// emitter.on('complete', async (session: SessionType) => {
+//     await postEndpoints(session);
+// });
 
-emitter.on('cancel', async (session: SessionType) => {
-    await postEndpoints(session);
-});
+// emitter.on('cancel', async (session: SessionType) => {
+//     await postEndpoints(session);
+// });
 
 express.set('trust proxy', true) 
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    console.log(`User agent: ${req.headers['user-agent']}`)
+    console.log(`[API] User agent: ${req.headers['user-agent']}`)
 
     if (authHeader) {
         const apiKey = authHeader.split(' ')[1];

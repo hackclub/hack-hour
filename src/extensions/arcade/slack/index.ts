@@ -204,7 +204,7 @@ Slack.command(Commands.ADMIN, async ({ command, client, respond }) => {
                 }),
             })
             .then((data) => {
-                console.log("Success:", data);
+                console.log("[Admin] Success:", data);
 
                 respond({
                     response_type: "ephemeral",
@@ -212,7 +212,7 @@ Slack.command(Commands.ADMIN, async ({ command, client, respond }) => {
                 });
             })
             .catch((error) => {
-                console.error("Error:", error);
+                console.error("[Error]", error);
 
                 respond({
                     response_type: "ephemeral",
@@ -220,7 +220,7 @@ Slack.command(Commands.ADMIN, async ({ command, client, respond }) => {
                 });
             });
         } catch (error) {
-            console.error(error);
+            console.error("[Error]", error);
             respond({
                 text: "Error: " + error,
             });

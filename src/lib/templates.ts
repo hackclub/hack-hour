@@ -39,6 +39,8 @@ type Template =
     'error.not_authorized' |
     'error.cant_go_back' |
     'error.cant_go_next' |
+    'error.not_full_user' |
+    'error.no_scrapbook' |
 
     'airtable.approved' |
     'airtable.rejected' |
@@ -114,8 +116,6 @@ export const templates: {
     [key in Template]: string[]
 } = flatten(templatesRaw);
 
-console.log(templates);
-
 export const pfps = {
     question: ":rac_question:",
     info: ":rac_info:",
@@ -159,7 +159,7 @@ export function formatHour(minutes: number | undefined | null): string {
 
     const hours = minutes / 60
 
-    return hours.toFixed(1);
+    return hours.toFixed(2);
 }
 
 export async function arcadeUrl(slackId: string) {

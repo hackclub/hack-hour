@@ -28,7 +28,7 @@ const ensureChannelJoined = async (channelID: string) => {
   ]);
 
   if (!usersInChannel.includes(ownBotID)) {
-    console.error(`⚠️ Bot is not in required channel ${channelID}`);
+    console.error(`[Error] ⚠️ Bot is not in required channel ${channelID}`);
   }
 }
 
@@ -52,9 +52,15 @@ app.event('message', async ({ event }) => {
     if (userInfo.user?.is_admin) { return }
     if (userInfo.user?.is_owner) { return }
     if (userInfo.user?.is_primary_owner) { return }
-    // not an admin, delete the message
-    await Slack.chat.delete({channel: event.channel, ts: event.ts});
+
     const thread_ts = (event as any)?.thread_ts || "";
+
+    if (thread_ts) {
+      return;
+    }        
+
+      // not an admin, delete the message
+    await Slack.chat.delete({channel: event.channel, ts: event.ts});
 
     await Slack.chat.postEphemeral({
       channel: event.channel,
@@ -63,6 +69,6 @@ app.event('message', async ({ event }) => {
       text: "This is a read-only channel. Only admins can post here."
     });
   } catch (error) {
-    console.error(error);
+    console.error('[Error]', error);
   }
 });

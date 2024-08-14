@@ -11,14 +11,14 @@ emitter.on('minute', async () => {
             }
         });
 
-        console.log(`[${new Date().toISOString()}] 🕒 Updating ${sessions.length} sessions`);
+        console.log(`[Clock] 🕒 Updating ${sessions.length} sessions`);
 
         let updateWithRatelimit = true
 
         if (sessions.length < 20) {
             updateWithRatelimit = false
         } else {
-            console.log(`[${new Date().toISOString()}] Ratelimiting updates`);
+            console.log(`[Clock] Ratelimiting updates`);
         }
 
         for (const session of sessions) {
@@ -114,15 +114,15 @@ emitter.on('minute', async () => {
 });
 
 emitter.on('start', async (session) => {
-    console.log(`[${new Date().toISOString()}] 🚀 Session started: ${session.messageTs}`);
+    console.log(`[Clock] 🚀 Session started: ${session.messageTs}`);
 });
 
 emitter.on('cancel', async (session) => {
-    console.log(`[${new Date().toISOString()}] 🚫 Session cancelled: ${session.messageTs}`);
+    console.log(`[Clock] 🚫 Session cancelled: ${session.messageTs}`);
 });
 
 emitter.on('complete', async (session) => {
-    console.log(`[${new Date().toISOString()}] 🏁 Session ${session.messageTs} completed by ${session.userId}`);
+    console.log(`[Clock] 🏁 Session ${session.messageTs} completed by ${session.userId}`);
 });
 
 emitter.on('error', async (errorRef) => {
@@ -136,9 +136,9 @@ emitter.on('error', async (errorRef) => {
     if (!error.stack) {
         return;
     }
-    console.error(`[${new Date().toISOString()}] 🚨 Error: ${error.message}\n${error.stack}`);
+    console.error(`[Error] 🚨 Error: ${error.message}\n${error.stack}`);
 });
 
 emitter.on('init', async () => {
-    console.log('🕒 Core Subroutine Initialized!');
+    console.log('[Clock] 🕒 Core Subroutine Initialized!');
 });

@@ -2,7 +2,6 @@ import { app, Slack } from "../../../lib/bolt.js";
 import { Actions, Environment } from "../../../lib/constants.js";
 import { prisma } from "../../../lib/prisma.js";
 import { updateController } from "../../slack/lib/lib.js";
-import { fetchEvidence } from "../lib/helper.js";
 import { t } from "../../../lib/templates.js";
 
 Slack.action(Actions.TUTORIAL_ADVANCE, async ({ body, client }) => {

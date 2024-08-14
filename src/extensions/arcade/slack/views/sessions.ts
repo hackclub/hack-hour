@@ -57,8 +57,7 @@ export class Sessions {
                     text:
                         `
 *Tickets earned: ${Math.floor(airtableUser.fields['Minutes (Banked)'] / 60)} :tw_admission_tickets:*
-Minutes approved with scrapbook: ${airtableUser.fields['Minutes (Banked)']} minutes (${formatHour(airtableUser.fields['Minutes (Banked)'])} hours)
-Minutes approved: ${airtableUser.fields['Minutes (Approved)']} minutes (${formatHour(airtableUser.fields['Minutes (Approved)'])} hours)
+Minutes approved & qualifying for tickets: ${airtableUser.fields['Minutes (Banked)']} minutes (${formatHour(airtableUser.fields['Minutes (Banked)'])} hours)
 
 *Tickets pending: ${Math.floor(airtableUser.fields['Minutes (Pending Approval)'] / 60)} :tw_admission_tickets:*
 Minutes pending: ${airtableUser.fields['Minutes (Pending Approval)']} minutes (${formatHour(airtableUser.fields['Minutes (Pending Approval)'])} hours)
