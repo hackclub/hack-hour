@@ -66,7 +66,8 @@ export function getElapsed(session: Session): number {
         return session.elapsed;
     }
 
-    return Math.min(session.time, session.elapsed + (session.paused ? 0 : (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000));
+    const elapsedSince = (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000;
+    return Math.floor(Math.min(session.time, session.elapsed + (session.paused ? 0 : elapsedSince)));
 }
 
 // This method provides a safe way to get the elapsed pause time from a session.
@@ -78,5 +79,6 @@ export function getElapsedSincePaused(session: Session) {
         return 0;
     }
 
-    return (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000;
+    const elapsedSince = (Date.now() - session.resumedOrPausedAt.getTime()) / 60_000;
+    return Math.floor(elapsedSince);
 }
