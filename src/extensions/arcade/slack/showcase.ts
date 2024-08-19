@@ -7,7 +7,7 @@ import { Shop } from "./views/shop.js";
 import { prisma, uid } from "../../../lib/prisma.js";
 import { Showcase } from "./views/showcase.js";
 
-Slack.command(Commands.SHOP, async ({ command }) => {
+Slack.command(Commands.SHOWCASE, async ({ command }) => {
     const view = await Slack.views.open({
         trigger_id: command.trigger_id,
         view: Loading.loading()
