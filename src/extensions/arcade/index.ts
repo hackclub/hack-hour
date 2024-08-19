@@ -8,7 +8,9 @@ import "./slack/index.js";
 import "./slack/sessions.js";
 import "./slack/scrapbook.js";
 import "./slack/shop.js";
-import "./slack/walkthrough.js"
+import "./slack/walkthrough.js";
+import "./slack/showcase.js";
+
 import { emitter } from "../../lib/emitter.js";
 
 emitter.on('init', () => {
