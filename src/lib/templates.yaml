@@ -97,7 +97,7 @@ error:
   not_yours:
     - hands to yourself buddy
     - 'this is not your session!!!'
-
+    - ":rac_threat: paws to yourself buddy"
   generic:
     - something went wrong! try again!
 
@@ -112,7 +112,7 @@ error:
   not_authorized:
     - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
     - "i'm sorry dave, i'm afraid i can't do that. _*scamper*_"
-
+    - "come back with some garbage and maybe then we can talk"
   cant_go_back:
     - "i tried, i really did, but there's literally nothing here"
     - "knock knock. who's there? not you"
