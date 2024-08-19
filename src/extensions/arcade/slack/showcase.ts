@@ -27,7 +27,7 @@ Slack.command(Commands.SHOWCASE, async ({ command }) => {
 
     let loginLink = airtableUser.fields['Login Link'];
 
-    if (loginLink == '') {
+    if (!loginLink) {
         await AirtableAPI.User.update(airtableUser.id, {
             'Login Token': uid()
         });
