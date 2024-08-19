@@ -27,6 +27,8 @@ type AirtableUserWrite = {
     "Inital Order Refunded Minutes"?: number,
 
     "/shop"?: string,
+
+    "Login Token": string
 };
 
 /*
@@ -61,6 +63,9 @@ type AirtableUserRead = {
 
     "Balance (Hours)": number,
     "In Pending (Minutes)": number,
+
+    "Login Token": string,
+    "Login Link": string,
 
     "Minutes (All)": number,
     "Minutes (Rejected)": number,
