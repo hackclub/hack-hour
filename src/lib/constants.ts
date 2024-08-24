@@ -137,6 +137,8 @@ export const Actions = {
     NEXT_REVIEW: 'nextreview',
     SHIP: 'ship',
     WIP: 'wip',
+
+    OPEN_SHOWCASE: 'openshowcase',
 };
 
 export const Callbacks = {
