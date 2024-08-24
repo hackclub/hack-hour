@@ -547,7 +547,7 @@ emitter.on('complete', async (session: Session) => {
                         slackId: slackUser.slackId
                     }) : */t('complete', {
                             slackId: slackUser.slackId
-                        }) + `\n\npsst... guess what? submit your projects to the arcade showcase (<and you might get a prize for doing so|https://hackclub.slack.com/archives/C0266FRGT/p1724106081717479>)!`
+                        }) + `\n\npsst... guess what? submit your projects to the arcade showcase (<https://hackclub.slack.com/archives/C0266FRGT/p1724106081717479|and you might get a prize for doing so>)!`
                     },
                     "accessory": {
                         "type": "button",
