@@ -224,7 +224,7 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
     // Grab the latest session
     const result = await prisma.session.findFirst({
         where: {
-            userId: req.params.userId,
+            userId: req.params.slackId,
         },
         orderBy: {
             createdAt: 'desc',
