@@ -43,59 +43,59 @@ declare global {
     }
 }
 
-const endpoints: string[] = [];
+// const endpoints: string[] = [];
 
-AirtableAPI.API.getAllActive().then(records => {
-    records.forEach(record => {
-        endpoints.push(record.fields['Endpoint']);
-    });
-})
+// AirtableAPI.API.getAllActive().then(records => {
+//     records.forEach(record => {
+//         endpoints.push(record.fields['Endpoint']);
+//     });
+// })
 
-const postEndpoints = async (session: SessionType) => {
-    const user = await prisma.slackUser.findUnique({
-        where: {
-            userId: session.userId,
-        },
-    });
+// const postEndpoints = async (session: SessionType) => {
+//     const user = await prisma.slackUser.findUnique({
+//         where: {
+//             userId: session.userId,
+//         },
+//     });
 
-    for (const endpoint of endpoints) {
-        await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                slackId: user?.slackId,
-                userId: session.userId,
-                sessionId: session.id,
-                sessionTs: session.messageTs,
-                createdAt: session.createdAt,
-                endedAt: new Date(),
-                time: session.time,
-                elapsed: session.elapsed,
-                completed: session.completed,
-                cancelled: session.cancelled,
-                paused: session.paused,
-                metadata: session.metadata,
-            }),
-        });
-    }
-}
+//     for (const endpoint of endpoints) {
+//         await fetch(endpoint, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 slackId: user?.slackId,
+//                 userId: session.userId,
+//                 sessionId: session.id,
+//                 sessionTs: session.messageTs,
+//                 createdAt: session.createdAt,
+//                 endedAt: new Date(),
+//                 time: session.time,
+//                 elapsed: session.elapsed,
+//                 completed: session.completed,
+//                 cancelled: session.cancelled,
+//                 paused: session.paused,
+//                 metadata: session.metadata,
+//             }),
+//         });
+//     }
+// }
 
-emitter.on('complete', async (session: SessionType) => {
-    await postEndpoints(session);
-});
+// emitter.on('complete', async (session: SessionType) => {
+//     await postEndpoints(session);
+// });
 
-emitter.on('cancel', async (session: SessionType) => {
-    await postEndpoints(session);
-});
+// emitter.on('cancel', async (session: SessionType) => {
+//     await postEndpoints(session);
+// });
 
 express.set('trust proxy', true)
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    console.log(`User agent: ${req.headers['user-agent']}`)
+    console.log(`[API] User agent: ${req.headers['user-agent']}`)
 
     if (authHeader) {
         const apiKey = authHeader.split(' ')[1];
@@ -155,6 +155,7 @@ type Response = ResponseOk | ResponseError;
  * deprecated
  */
 express.get('/api/clock/:slackId', readLimit, async (req, res) => {
+    try {
     const slackId = req.params.slackId;
     const slackUser = await prisma.slackUser.findFirst({
         where: {
@@ -188,12 +189,16 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
     } else {
         return res.status(200).send((-1).toString());
     }
+} catch (error) {
+    console.error(`[API] Error in /api/clock/:slackId: ${error}`);
+}
 });
 
 /**
  * Get the latest session
  */
 express.get('/api/session/:slackId', readLimit, async (req, res) => {
+    try {
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -266,12 +271,16 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
 
         return res.status(200).send(response);
     }
+} catch (error) {
+    console.error(`[API] Error in /api/session/:slackId: ${error}`);
+}
 });
 
 /**
  * Get stats for a user, including number of sessions and number of hours
  */
 express.get('/api/stats/:slackId', readLimit, async (req, res) => {
+    try {
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -326,12 +335,16 @@ express.get('/api/stats/:slackId', readLimit, async (req, res) => {
 
         return res.status(200).send(response);
     }
+} catch (error) {
+    console.error(`[API] Error in /api/stats/:slackId: ${error}`);
+}
 });
 
 /**
  * Get the goals of a user
  */
 express.get('/api/goals/:slackId', readLimit, async (req, res) => {
+    try {
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -375,12 +388,16 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
     }
 
     return res.status(200).send(response);
+} catch (error) {
+    console.error(`[API] Error in /api/goals/:slackId: ${error}`);
+}
 });
 
 /**
  * Get the user's session history
  */
 express.get('/api/history/:slackId', readLimit, async (req, res) => {
+    try {
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -435,6 +452,9 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
     }
 
     return res.status(200).send(response);
+} catch (error) {
+    console.error(`[API] Error in /api/history/:slackId: ${error}`);
+}
 });
 
 /*
@@ -445,6 +465,8 @@ Write API
  * Start a session
  */
 express.post('/api/start/:slackId', limiter, async (req, res) => {
+    try {
+
     if (!req.apiKey) {
         return res.status(401).send({
             ok: false,
@@ -575,6 +597,10 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
             createdAt: session.createdAt,
         },
     });
+
+} catch (error) {
+    console.error(`[API] Error in /api/start/:slackId: ${error}`);
+}
 });
 
 /**
@@ -637,7 +663,7 @@ express.post('/api/cancel/:slackId', limiter, async (req, res) => {
             },
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(`[API] Error in /api/cancel/:slackId: ${error}`);
     }
 });
 
@@ -702,6 +728,6 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
             },
         });
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(`[API] Error in /api/pause/:slackId: ${error}`);
     }
 });

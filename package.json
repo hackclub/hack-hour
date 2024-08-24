@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "",
   "scripts": {
-    "prisma_deploy": "prisma migrate deploy",
+    "prisma_deploy": "prisma migrate deploy && prisma generate",
     "debug": "npm run prisma_deploy && tsx ./src/entry.ts",
     "debug_reset": "prisma migrate reset",
     "start": "npm run prisma_deploy && tsx ./src/entry.ts"
@@ -20,10 +20,12 @@
   "homepage": "https://github.com/techpixel/hackhour#readme",
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "^5.12.1",
+    "@prisma/client": "^5.17.0",
     "@slack/bolt": "^3.17.1",
     "airtable": "^0.12.2",
+    "async-lock": "^1.4.1",
     "body-parser": "^1.20.2",
+    "bottleneck": "^2.19.5",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "csv-parser": "^3.0.0",
@@ -33,6 +35,7 @@
     "express-rate-limit": "^7.3.1",
     "get-urls": "^12.1.0",
     "lowdb": "^7.0.1",
+    "prisma": "^5.17.0",
     "prisma-json-types-generator": "^3.0.4",
     "tsx": "^4.10.5",
     "ws": "^8.17.0",
@@ -43,11 +46,11 @@
     "node": ">=16"
   },
   "devDependencies": {
+    "@types/async-lock": "^1.4.2",
     "@types/express": "^4.17.21",
     "@types/lowdb": "^1.0.15",
     "@types/node": "^20.12.7",
     "@types/ws": "^8.5.10",
-    "prisma": "^5.12.1",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.4.5"

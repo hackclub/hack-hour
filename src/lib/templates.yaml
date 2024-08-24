@@ -7,6 +7,7 @@ init:
   - '∗rustles through trash∗ <#${main}>'
   - '∗rustles through rubbish∗ <#${main}>'
   - '∗rustles through scraps∗ <#${main}>'
+  - '∗eyes the nearest pile of scraps∗ <#${main}>'
 
 update:
   - _∗twitch∗_ <@${slackId}>! you got `${minutes}` minutes, `${minutes}` minutes!!
@@ -37,6 +38,8 @@ complete:
   - you're a rockstar <@${slackId}>!! you finished!
   - legendary <@${slackId}>! you're done!
   - you're an epic wizard <@${slackId}>! awesome job magicking epic stuff up!
+  - zoinks, <@${slackId}>! another hour down!!
+  - HOUR you doing, <@${slackId}>!? that's one more!
 
 cancel:
   - <@${slackId}> ended their arcade session early!
@@ -47,6 +50,7 @@ pause:
   - <@${slackId}> is taking five!!
   - <@${slackId}> is on a break! _∗snuffle∗_
   - <@${slackId}> is getting coffee!! _coffee!!_
+  
 
 encouragement:
   - 'You have `${minutes}` ${minutes_units} remaining! Keep it up!'
@@ -54,6 +58,8 @@ encouragement:
   - "You have `${minutes}` ${minutes_units} remaining! You've got this!"
   - 'You have `${minutes}` ${minutes_units} remaining! You are ducktastic!'
   - 'You have `${minutes}` ${minutes_units} remaining! Wizard!'
+  - "Only `${minutes}` ${minutes_units} to go! If anyone can do it it's you!!"
+  - "You have `${minutes}` ${minutes_units} remaining! I minute!!"
 
 toplevel:
   main:
@@ -68,7 +74,7 @@ toplevel:
     - <@${slackId}> is drinking some coffee!
 
 evidence_reminder:
-  - show me some scraps!! commit links for code, pics/vids for anything else!!
+  - show me some scraps!! link me some git commits, i need them to feed my raccoon babies 🥺
 
 error:
   #context: attempting to start a new session while already in one
@@ -77,6 +83,7 @@ error:
 
   not_hacking:
     - hmph, whatcha doin? want some garbage? run `/hack`!
+    - if you want tickets, run `/arcade`!!!
 
   empty_text:
     - you need to provide something to work on!
@@ -89,30 +96,40 @@ error:
 
   not_yours:
     - hands to yourself buddy
-
+    - 'this is not your session!!!'
+    - ":rac_threat: paws to yourself buddy"
   generic:
     - something went wrong! try again!
 
   #context: trying to resume a session that hasn't been paused
   already_resumed:
     - you've already started your arcade session! keep going! and `/pause` if ya need a break!
+    - no no no no more nice guy... you've already in a session!! `/cancel` to stop it and `/pause`, well to pause it! 
 
   first_time:
     - hey hey! you need to finish your first arcade session before you can do that!
 
   not_authorized:
     - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
-
+    - "i'm sorry dave, i'm afraid i can't do that. _*scamper*_"
+    - "come back with some garbage and maybe then we can talk"
   cant_go_back:
     - "i tried, i really did, but there's literally nothing here"
     - "knock knock. who's there? not you"
     - "nope. not happening"
     - "why are you like this?"
+    - "nuh uh >:("
   
   cant_go_next:
     - "ow i hit a wall"
     - "that's all folks!"
     
+  not_full_user:
+    - "looks like you aren't a full user! you need to complete the tutorial first! (you can be promoted to a full user by spending a ticket at the shop)"
+    
+  no_scrapbook:
+    - "looks like you haven't scrapped anything yet! scrap something first before you can continue hacking1"
+
 action:
   paused:
     - i paused the clock for ya. you still got `${minutes}` ${minutes_units} left
@@ -122,18 +139,20 @@ action:
 
 detect:
   activity:
-    - share some scraps here!! git commits or photos,
+    - share some scraps here!! git commits (or photos in a git repository) pleaseeee
+    - i'm going to need some commit links from ya...
 
   evidence:
     - thanks for sharing, thanks for sharing!! 
     - scraps!! oh my god i love scraps _∗twitch∗_
     - _∗gentle purring∗_ with enough scraps like this i can build a whole new nest…
+    - gizmos... gadgets... whatchamacallits... whosawhatsits...
 
 airtable:
   approved:
     - great work <@${slackId}>! you've got a arcade session! you earned `${minutes}` minutes!!
   rejected:
-    - looks like this session was rejected <@${slackId}>! to resubmit this session, link a scrap in the thread!
+    - looks like this session was rejected <@${slackId}>! to resubmit this session, link a scrap (commit link) in the thread!
   rejectedlocked:
     - "looks like this session was rejected <@${slackId}>! you won't be able to resubmit this session, sorry ):"
 
@@ -160,7 +179,7 @@ firstTime:
       when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
 
   tutorial_step_2: # i had no clue what to name this
-    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!* for code, link to github commits. pics or videos for everything else.\n\npost your scraps here in your session thread (you need at least one for your minutes to count). as your scrap for this session, *post a screenshot of this thread!* _(in this thread)_"
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!!* that means links to commits in a public git repo, showing code, pics, or other files that tell the story of your project… <https://github.com/hackclub/site/commit/24bc32d13a958d665c331e0040077de232966ac2|like this>!! .\n\npost your scrap links here in your session thread (you need at least one for your minutes to count). this time, *just post a screenshot of this thread!!* _(in this thread)_"
 
   popup:
     footer:
@@ -172,7 +191,7 @@ firstTime:
 
   walkthrough:
     no_evidence:
-      - 'hey hey! you need to show me some scraps!! commit links for code, pics/vids for anything else!!'
+      - 'hey hey! you need to show me some scraps!! commit links with code, pics, vids, or other files for anything else!!'
 
     complete:
       - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
@@ -180,7 +199,7 @@ firstTime:
 scrapbook:
   prompt:
     select_sessions:
-      - 'oh hey hey i saw your post in scrapbook!! is your project <https://hackclub.slack.com/canvas/C077TSWKER0|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
+      - 'oh hey hey i saw your post in scrapbook!! is your project <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-shipped|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
     complete:
       - 'wow wow, great job!!'
 
@@ -196,6 +215,7 @@ loading:
   - "if you can read this, i'm going through a lot right now... (heavy load, please be patient) :spin-loading:"
   - "if you can read this, i'm dancing as fast as i can... (heavy load, please be patient) :spin-loading:"
   - "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:" 
+  - "if you can read this, i have a lot on my plate now... (heavy load, please be patient) :spin-loading:"
   
 review:
   start:
@@ -211,14 +231,14 @@ review:
 
   reviewer:  
     approved:
-      - "woo hoo! <@${slackId}> approved your arcade session!! you earned `${minutes}` minutes!!"
+      - "<@${slackId}> approved `${minutes}` minutes!!"
     rejected:
-      - "womp womp! <@${slackId}> rejected your arcade session!! you can get it re-reviewed by posting a scrap in the thread, but you might want to check the faq again on what counts!"
+      - "<@${slackId}> rejected `${minutes}` minutes\n\nyou can get it re-reviewed by posting a scrap in the thread, but you might want to check the <https://github.com/hackclub/arcade-constitution|Constitution> again on what counts!"
     rejectedlocked:
-      - "womp womp! <@${slackId}> rejected and closed your arcade session!!"
+      - "<@${slackId}> rejected and locked `${minutes}` minutes"
   
   completion:
     reviewed:
       - "sessions reviewed! reviewer, make sure you leave notes!"
-    rejection:
+    rejected:
       - "looks like there was a rejected session! for rejected sessions, you need to resubmit with a scrap in the thread! (you can't resubmit if the session is locked)"

@@ -253,20 +253,24 @@ export async function reactOnContent(data: {
     channel: string,
     ts: string
 }) {
-    Object.keys(emojis).forEach(async (keyword) => {
-        try {
-            if (
-                data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
-            ) {
-                await Slack.reactions.add({
-                    channel: data.channel,
-                    timestamp: data.ts,
-                    name: emojis[keyword]
-                });
+    try {
+        Object.keys(emojis).forEach(async (keyword) => {
+            try {
+                if (
+                    data.content.toLowerCase().search(new RegExp("\\b" + keyword + "\\b", "gi")) !== -1
+                ) {
+                    await Slack.reactions.add({
+                        channel: data.channel,
+                        timestamp: data.ts,
+                        name: emojis[keyword]
+                    });
+                }
             }
-        }
-        catch (error) {
-            emitter.emit('error', {error});
-        }
-    });
+            catch (error) {
+                emitter.emit('error', {error});
+            }
+        });
+    } catch (error) {
+        console.error(error);
+    }
 }

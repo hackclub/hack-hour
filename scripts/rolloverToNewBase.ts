@@ -1,5 +1,5 @@
 import { AirtableAPI as PowerHourAPI } from "./typedAirtableOld";
-import { AirtableAPI as ArcadeAPI } from "../src/extensions/arcade/lib/airtable.ts";
+import { AirtableAPI as ArcadeAPI } from "./airtable";
 
 /*
 steps:
@@ -21,14 +21,32 @@ edge cases:
 
 // Leave for PROD
 
-const users = await PowerHourAPI.User.fetchAll();
+const PWusers = await PowerHourAPI.User.fetchAll();
+const Ausers = await ArcadeAPI.User.findAll();
 
-for (const user of users) {
-    console.log(`Creating user ${user.fields["Name"]}...`);
-    await ArcadeAPI.User.create({
-        "Name": user.fields["Name"],
-        "Slack ID": user.fields["Slack ID"], 
-        "Initial Banked Minutes": user.fields["Total available balance (minutes)"],
-    });
+// for (const user of PWusers) {
+//     console.log(`\nIdentifying user ${user.fields["Name"]}...`);
+// }
+
+for (const user of Ausers) {
+    console.log(`\nIdentifying user ${user.fields["Name"]}...`);
 }
-console.log("Done!");
+
+// for (const user of users) {
+//     const updatedUser = await ArcadeAPI.User.lookupBySlack(user.fields["Slack ID"]);
+
+//     if (!updatedUser) { continue; }
+
+//     console.log(`\nIdentifying user ${user.fields["Name"]}...`);
+//     console.log(`   Their slack ID is ${user.fields["Slack ID"]}\n   ---`);
+//     console.log(`   They have ${user.fields["Total available balance (minutes)"]} minutes available`);
+//     console.log(`   They have ${user.fields["Refunded"]} minutes refunded`);
+//     // await ArcadeAPI.User.create({
+//     //     "Name": user.fields["Name"],
+//     //     "Slack ID": user.fields["Slack ID"], 
+//     //     "Initial Banked Minutes": user.fields["Total available balance (minutes)"],
+//     // });
+
+
+// }
+// console.log("Done!");

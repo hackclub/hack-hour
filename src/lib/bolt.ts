@@ -1,4 +1,4 @@
-import bolt, { SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
+import bolt, { SlackEventMiddlewareArgs, SlackViewAction, SlackViewMiddlewareArgs } from '@slack/bolt';
 import bodyParser from 'body-parser';
 
 import { AllMiddlewareArgs, Middleware, SlackAction, SlackActionMiddlewareArgs, SlackCommandMiddlewareArgs } from "@slack/bolt";
@@ -19,13 +19,13 @@ const expressReceiver = new bolt.ExpressReceiver({
 export const express = expressReceiver.app;
 
 export const app = new bolt.App({
-    token: Environment.SLACK_BOT_TOKEN,
-    appToken: Environment.SLACK_APP_TOKEN,
-    clientId: Environment.CLIENT_ID,
-    clientSecret: Environment.CLIENT_SECRET,
+        token: Environment.SLACK_BOT_TOKEN,
+        appToken: Environment.SLACK_APP_TOKEN,
+        clientId: Environment.CLIENT_ID,
+        clientSecret: Environment.CLIENT_SECRET,
 
-    receiver: expressReceiver,
-});
+        receiver: expressReceiver,
+    });
 
 express.use(bodyParser.json());
 
@@ -55,27 +55,34 @@ export const approvedUsers = [
     'U077XBJ3YPR',
 ]
 
+export const buggedUsers = [
+    'U0794S6UVCM'
+]
+
 export const recordCommands = [
     Commands.SHOP,
 ]
 
-async function callSlackClient<T extends (...args: any[]) => any>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
+async function callSlackClient<T extends (...args: any[]) => Promise<any>>(asyncFunction: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined> {
     try {
         const now = new Date();
 
-        console.log(`[${now.toISOString()}] calling Slack client method ${asyncFunction.name}`)
+        console.log(`[${asyncFunction.name}] calling Slack client method ${asyncFunction.name}`)
 
-        const result = await asyncFunction(...args);
+        const result = asyncFunction(...args) 
+            .then((result) => result)
+            .catch((error) => {
+                console.error(error);
+            });
  
         const diff = new Date().getTime() - now.getTime();
 
-        console.log(`[${now.toISOString()}] Slack client method succeeded after ${diff}ms`)
+        console.log(`[${asyncFunction.name}] Slack client method succeeded after ${diff}ms`)
 
         return result;
     } catch (error) {
-        emitter.emit('error', { error });
+        console.error(error);
     }
-
 }
 
 export const Slack = {
@@ -91,7 +98,7 @@ export const Slack = {
             try {
                 const { command: event, ack, respond } = payload;
 
-                console.log(`[${now.toISOString()}] <@${event.user_id}> ran \`${command} ${event.text}\``)
+                console.log(`[app.command] <@${event.user_id}> ran \`${command} ${event.text}\``)
 
                 await ack();
 
@@ -103,6 +110,10 @@ export const Slack = {
                     if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
                         return respond(t('maintanenceMode'))
                     }
+                }
+
+                if (buggedUsers.includes(event.user_id)) {
+                    return respond(t('maintanenceMode'))
                 }
 
                 if (recordCommands.includes(command) && Environment.PROD) {
@@ -152,7 +163,7 @@ export const Slack = {
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+            console.log(`[app.command] ${verb} after ${duration}ms`)
         })
     },
 
@@ -164,7 +175,7 @@ export const Slack = {
             try {
                 const { action, body, ack, respond } = payload;
 
-                console.log(`[${now.toISOString()}] <@${body.user.id}> used ${action.type} "${actionId}"`)
+                console.log(`[app.action] <@${body.user.id}> used ${action.type} "${actionId}"`)
 
                 await ack();
 
@@ -173,6 +184,10 @@ export const Slack = {
                 });
 
                 if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                    return respond(t('maintanenceMode'))
+                }
+
+                if (buggedUsers.includes(body.user.id)) {
                     return respond(t('maintanenceMode'))
                 }
 
@@ -220,7 +235,7 @@ export const Slack = {
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+            console.log(`[app.action] ${verb} after ${duration}ms`)
         })
     },
 
@@ -231,7 +246,7 @@ export const Slack = {
 
             const { body, ack } = payload;
 
-            console.log(`[${now.toISOString()}] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`);
+            console.log(`[app.view] <@${body.user.id}> ${body.type === "view_submission" ? "submitted" : "closed"} view "${callbackId}"`);
 
             await ack();
 
@@ -280,7 +295,60 @@ export const Slack = {
             }
 
             const duration = new Date().getTime() - now.getTime();
-            console.log(`[${now.toISOString()}] ${verb} after ${duration}ms`)
+            console.log(`[app.view] ${verb} after ${duration}ms`)
+        })
+    },
+
+    async event<T extends string>(event: T, ...listeners: Middleware<SlackEventMiddlewareArgs<T>, StringIndexed>[]) {
+        app.event(event, async (payload) => {
+            const now = new Date();
+            let verb = ""
+
+            try {
+                const { event } = payload;
+
+                console.log(`[app.event] received event "${event.type}"`)
+
+                if (Environment.VERBOSE) {
+                    await app.client.chat.postMessage({
+                        channel: Environment.INTERNAL_CHANNEL,
+                        blocks: [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": `> _Received event "${event.type}"_`
+                                }
+                            },
+                            {
+                                type: "context",
+                                elements: [
+                                    {
+                                        type: "mrkdwn",
+                                        text: `${event.type}\n${new Date().toString()} `,
+                                    },
+                                ],
+                            },
+                        ]
+                    })
+                }
+
+                verb = "succeeded"
+                listeners.forEach((listener) => {
+                    try {
+                        listener(payload)
+                    } catch (error) {
+                        verb = "failed"
+                        emitter.emit('error', { error });
+                    }
+                });
+            } catch (error) {
+                verb = "failed"
+                emitter.emit('error', { error });
+            }
+
+            const duration = new Date().getTime() - now.getTime();
+            console.log(`[app.event] ${verb} after ${duration}ms`)
         })
     },
 
@@ -293,21 +361,21 @@ export const Slack = {
 
         async postMessage(options: Parameters<typeof app.client.chat.postMessage>[0]) {
             if (options?.blocks) {
-                console.log(JSON.stringify(options.blocks))
+                console.log('[Blocks]', JSON.stringify(options.blocks))
             }
             return await assertVal(await callSlackClient(app.client.chat.postMessage, options));
         },
 
         async postEphemeral(options: Parameters<typeof app.client.chat.postEphemeral>[0]) {
             if (options?.blocks) {
-                console.log(JSON.stringify(options.blocks))
+                console.log('[Blocks]', JSON.stringify(options.blocks))
             }
             return await assertVal(await callSlackClient(app.client.chat.postEphemeral, options));
         },
 
         async update(options: Parameters<typeof app.client.chat.update>[0]) {
             if (options?.blocks) {
-                console.log(JSON.stringify(options.blocks))
+                console.log('[Blocks]', JSON.stringify(options.blocks))
             }
             return await assertVal(await callSlackClient(app.client.chat.update, options));
         },
@@ -324,11 +392,11 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] opening view"`)
+                console.log(`[views.open] opening view`)
 
                 const result = await app.client.views.open(options);
 
-                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+                console.log(`[views.open] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
                 return result;
             } catch (error) {
@@ -342,11 +410,11 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] updating view`)
+                console.log(`[views.update] updating view`)
 
                 const result = await app.client.views.update(options);
 
-                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+                console.log(`[views.update] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
                 return result;
             } catch (error) {
@@ -360,11 +428,11 @@ export const Slack = {
 
                 if (!options) { throw new Error('No options provided!') }
 
-                console.log(`[${now.toISOString()}] pushing view`)
+                console.log(`[views.push] pushing view`)
 
                 const result = await app.client.views.push(options);
 
-                console.log(`[${now.toISOString()}] succeeded after ${new Date().getTime() - now.getTime()}ms`)
+                console.log(`[views.push] succeeded after ${new Date().getTime() - now.getTime()}ms`)
 
                 return result;
             } catch (error) {
@@ -375,7 +443,19 @@ export const Slack = {
 
     reactions: {
         async add(options: Parameters<typeof app.client.reactions.add>[0]) {
-            return await assertVal(await callSlackClient(app.client.reactions.add, options));
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.add, options))
+            } catch (error) {
+                console.error(error);
+            }
+        },
+
+        async remove(options: Parameters<typeof app.client.reactions.remove>[0]) {
+            try {
+                return await assertVal(await callSlackClient(app.client.reactions.remove, options))
+            } catch (error) {
+                console.error(error);
+            }
         }
     },
 
@@ -454,4 +534,9 @@ export const Slack = {
     }
 }
 
-await Slack.helper.ensureChannels();
+try {
+    await Slack.helper.ensureChannels();
+} catch (error) {
+    console.error(`[Error] Failed to ensure channels`)
+    console.error('[Error]', error)
+}

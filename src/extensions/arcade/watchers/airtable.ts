@@ -16,7 +16,7 @@ express.post('/airtable/session/update', async (req, res) => {
             throw new Error(`No session found for ${record}`);
         }
 
-        console.log(`Received session ${record} from Airtable`);
+        console.log(`[Airtable Push] Received session ${record} from Airtable`);
 
         // const logData = await app.client.chat.postMessage({
         //     channel: Environment.INTERNAL_CHANNEL,
@@ -64,8 +64,7 @@ express.post('/airtable/session/update', async (req, res) => {
             }
         });
 
-        console.log(`Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
-        log(`Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
+        console.log(`[Airtable Push] Status of session ${session.messageTs} updated to ${airtableSession.fields["Status"]}`);
 
         // Check if it was approved & has a scrapbook
         if (airtableSession.fields["Status"] === "Approved" && airtableSession.fields["Scrapbook"].length > 0) {
@@ -84,8 +83,7 @@ express.post('/airtable/session/update', async (req, res) => {
                 }
             });
 
-            console.log(`Queued session ${session.messageTs} for banking`);
-            log(`Queued session ${session.messageTs} for banking`);
+            console.log(`[Airtable Push] Queued session ${session.messageTs} for banking`);
         }
 
         const slackUser = await prisma.slackUser.findUniqueOrThrow({
