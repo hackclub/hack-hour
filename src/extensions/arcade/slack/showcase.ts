@@ -43,3 +43,40 @@ Slack.command(Commands.SHOWCASE, async ({ command }) => {
         })
     })
 });
+
+Slack.action(Actions.OPEN_SHOWCASE, async ({ ack, body, client }) => {
+    const view = await Slack.views.open({
+        trigger_id: (body as any).trigger_id,
+        view: Loading.loading()
+    });
+
+    const airtableUser = await AirtableAPI.User.lookupBySlack(body.user.id);
+
+    if (!airtableUser) {
+        // informUser(command.user_id, t('error.first_time'), command.channel_id);
+        await Slack.views.update({
+            view_id: view?.view?.id,
+            view: Loading.error(t('error.first_time'))
+        });
+
+        return;
+    }
+
+    let loginLink = airtableUser.fields['Login Link'];
+
+    if (!loginLink) {
+        await AirtableAPI.User.update(airtableUser.id, {
+            'Login Token': uid()
+        });
+
+        const updatedUser = await AirtableAPI.User.lookupBySlack(body.user.id);
+        loginLink = updatedUser ? updatedUser.fields['Login Link'] : '';
+    }
+
+    await Slack.views.update({
+        view_id: view?.view?.id,
+        view: Showcase.showcase({
+            loginLink
+        })
+    })
+});

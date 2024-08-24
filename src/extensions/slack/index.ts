@@ -547,15 +547,15 @@ emitter.on('complete', async (session: Session) => {
                         slackId: slackUser.slackId
                     }) : */t('complete', {
                             slackId: slackUser.slackId
-                        })
+                        }) + `\n\npsst... guess what? submit your projects to the arcade showcase (<and you might get a prize for doing so|https://hackclub.slack.com/archives/C0266FRGT/p1724106081717479>)!`
                     },
                     "accessory": {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Shop"
+                            "text": "Open Showcase"
                         },
-                        "action_id": Actions.OPEN_SHOP,
+                        "action_id": Actions.OPEN_SHOWCASE,
                     }
                 }
             ]
@@ -645,9 +645,9 @@ emitter.on('cancel', async (session: Session) => {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "View Shop"
+                            "text": "Open Showcase"
                         },
-                        "action_id": Actions.OPEN_SHOP,
+                        "action_id": Actions.OPEN_SHOWCASE,
                     }
                 }
             ]

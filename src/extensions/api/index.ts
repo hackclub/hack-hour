@@ -208,9 +208,7 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
 
     const slackUser = await prisma.slackUser.findFirst({
         where: {
-            user: {
-                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
-            },
+            slackId: req.params.slackId,
         },
     });
 
