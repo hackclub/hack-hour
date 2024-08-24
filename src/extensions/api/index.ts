@@ -206,6 +206,21 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
         });
     }
 
+    const authorizedUser = await prisma.slackUser.findFirst({
+        where: {
+            user: {
+                apiKey: scryptSync(req.apiKey, 'salt', 64).toString('hex'),
+            },
+        },
+    });
+
+    if (!authorizedUser) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
     const slackUser = await prisma.slackUser.findFirst({
         where: {
             slackId: req.params.slackId,
