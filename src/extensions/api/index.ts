@@ -90,7 +90,7 @@ declare global {
 //     await postEndpoints(session);
 // });
 
-express.set('trust proxy', true) 
+express.set('trust proxy', true)
 
 express.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -224,7 +224,7 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
     // Grab the latest session
     const result = await prisma.session.findFirst({
         where: {
-            userId: slackUser.userId,
+            userId: req.params.userId,
         },
         orderBy: {
             createdAt: 'desc',
