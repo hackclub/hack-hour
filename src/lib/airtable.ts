@@ -277,7 +277,7 @@ export const AirtableAPI = {
         filter: AirtableAPIFactory.filter<AirtableUserRead>(users, "User"),
 
         async lookupById(id: string): Promise<AirtableResponse<AirtableUserRead> | null> {
-            const records = await this.filter(`{Hack Hour ID} = "${id}"`);
+            const records = await this.filter(`{Internal ID} = "${id}"`);
 
             if (records.length === 0) { return null; }
             return { id: records[0].id, fields: records[0].fields as AirtableUserRead };
