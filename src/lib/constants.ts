@@ -139,6 +139,8 @@ export const Actions = {
     WIP: 'wip',
 
     OPEN_SHOWCASE: 'openshowcase',
+
+    SKIP: 'skip',
 };
 
 export const Callbacks = {

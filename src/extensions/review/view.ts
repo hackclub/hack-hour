@@ -227,6 +227,16 @@ notes: ${notes}`
                         },
                         "action_id": Actions.WIP,
                         "value": recId
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Skip",
+                            "emoji": true
+                        },
+                        "action_id": Actions.SKIP,
+                        "value": recId
                     }
                 ]
             }

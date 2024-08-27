@@ -1,4 +1,4 @@
-import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../lib/airtable.js";
+import { AirtableAPI, AirtableScrapbookRead, AirtableScrapbookWrite, scrapbookMultifilter } from "../../lib/airtable.js";
 import { Slack, app } from "../../lib/bolt.js";
 import { Actions, Environment } from "../../lib/constants.js";
 import { t } from "../../lib/templates.js";
@@ -171,6 +171,7 @@ export class Review {
                 reviewed: (user?.fields['Minutes (Approved)'] ?? -1),
                 flagged: user?.fields['Fraud Formula'] ?? 'error',
                 category: user?.fields['User Category'] ?? 'normal',
+                //@ts-ignore
                 notes: user?.fields['Notes'] ?? 'no notes'
             })
         })
@@ -335,7 +336,7 @@ export class Review {
 
     public static async garbageCollection(scrapbookID: string) {
         try {
-            const scrapbook = await ScrapbookCache.find(scrapbookID);
+            const scrapbook = await AirtableAPI.Scrapbook.find(scrapbookID);
 
             if (!scrapbook) {
                 console.error(`Scrapbook not found: ${scrapbookID}`);
@@ -351,24 +352,32 @@ export class Review {
                     continue;
                 }
 
-                await app.client.chat.delete({
-                    channel: Environment.SCRAPBOOK_CHANNEL,
-                    ts: session.fields['Review Button TS']!
-                });
+                // await app.client.chat.delete({
+                //     channel: Environment.SCRAPBOOK_CHANNEL,
+                //     ts: session.fields['Review Button TS']!
+                // });
 
                 await AirtableAPI.Session.update(sessionId, {
                     "Review Button TS": undefined
                 });
             }
 
-            await ScrapbookCache.update(scrapbook.id, {
-                "Review Start Time": undefined,
-                "Reviewer": [],
-            });
+            // Extremely destructive. I hate doing this.
+            //@ts-ignore
+            await AirtableAPI.Scrapbook.raw.replace(scrapbook.id, {
+                "Scrapbook TS": scrapbook.fields['Scrapbook TS'],
+                "Scrapbook URL": scrapbook.fields['Scrapbook URL'],
+                "User": scrapbook.fields['User'],
+                Sessions: scrapbook.fields['Sessions'],
+                Attachments: scrapbook.fields['Attachments'],
+                Text: scrapbook.fields['Text'],
+                Reviewer: [],
+                "Reviewed On": "Other"
+            } as AirtableScrapbookWrite);
 
             await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
-                text: `kicking reviewer out for being too sleepy`,
+                text: `review cancelled! the scrapbook post will return to the review queue`,
                 thread_ts: scrapbook.fields['Scrapbook TS']
             });
         } catch (e) {
@@ -1090,6 +1099,54 @@ Slack.action(Actions.UNSUBMIT, async ({ body, respond }) => {
     }
 
     await Review.unsubmit(scrapbookId);
+});
+
+Slack.action(Actions.SKIP, async ({ body, respond }) => {
+    const slackId = body.user.id;
+
+    if (!(await Review.isReviewer(slackId))) {
+        await Slack.chat.postEphemeral({
+            channel: body.channel?.id!,
+            user: slackId,
+            text: 'You do not have permission to start a review.',
+            thread_ts: (body as any).message.ts!
+        });
+        return;
+    }
+
+    const scrapbookId = (body as any).actions[0].value;
+
+    // Check if the scrapbook exists
+    const scrapbook = await ScrapbookCache.find(scrapbookId);
+
+    if (!scrapbook) {
+        console.error(`Scrapbook not found: ${scrapbookId}`);
+
+        respond({
+            text: 'Scrapbook not found.',
+            response_type: 'ephemeral',
+            replace_original: false
+        });
+
+        return;
+    }
+
+    // Delete this is this a ship message
+    respond({
+        text: 'Skipping...',
+        response_type: 'ephemeral',
+        replace_original: true
+    });
+
+    await Review.garbageCollection(scrapbookId);
+
+    // Give the reviewer a new scrapbook
+    await Slack.chat.postEphemeral({
+        channel: Environment.SCRAPBOOK_CHANNEL,
+        blocks: View.gimme(),
+        thread_ts: scrapbook.fields['Scrapbook TS'],
+        user: slackId
+    });    
 });
 
 Slack.event('reaction_added', async ({ event }) => {
