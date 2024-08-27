@@ -1,4 +1,4 @@
-import { AirtableAPI, AirtableScrapbookRead, scrapbookMultifilter } from "../../lib/airtable.js";
+import { AirtableAPI, AirtableScrapbookRead, AirtableScrapbookWrite, scrapbookMultifilter } from "../../lib/airtable.js";
 import { Slack, app } from "../../lib/bolt.js";
 import { Actions, Environment } from "../../lib/constants.js";
 import { t } from "../../lib/templates.js";
@@ -362,10 +362,18 @@ export class Review {
                 });
             }
 
-            await AirtableAPI.Scrapbook.update(scrapbook.id, {
-                "Review Start Time": undefined,
-                "Reviewer": [],
-            });
+            // Extremely destructive. I hate doing this.
+            //@ts-ignore
+            await AirtableAPI.Scrapbook.raw.replace(scrapbook.id, {
+                "Scrapbook TS": scrapbook.fields['Scrapbook TS'],
+                "Scrapbook URL": scrapbook.fields['Scrapbook URL'],
+                "User": scrapbook.fields['User'],
+                Sessions: scrapbook.fields['Sessions'],
+                Attachments: scrapbook.fields['Attachments'],
+                Text: scrapbook.fields['Text'],
+                Reviewer: [],
+                "Reviewed On": "Other"
+            } as AirtableScrapbookWrite);
 
             await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
