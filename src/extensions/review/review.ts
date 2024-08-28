@@ -363,8 +363,10 @@ export class Review {
             }
 
             // Extremely destructive. I hate doing this.
-            //@ts-ignore
-            await AirtableAPI.Scrapbook.raw.replace(scrapbook.id, {
+            // Belle suggested an alternative method that I'll work on.
+            await AirtableAPI.Scrapbook.raw.destroy(scrapbook.id);
+            
+            await AirtableAPI.Scrapbook.create({
                 "Scrapbook TS": scrapbook.fields['Scrapbook TS'],
                 "Scrapbook URL": scrapbook.fields['Scrapbook URL'],
                 "User": scrapbook.fields['User'],
