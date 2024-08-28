@@ -185,7 +185,7 @@ Slack.command(Commands.ADMIN, async ({ command, client, respond }) => {
         });
 
         try {
-            fetch('https://optimum-stork-daily.ngrok-free.app/scrapbook/post', {
+            fetch('https://hackhour.hackclub.com/scrapbook/post', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
