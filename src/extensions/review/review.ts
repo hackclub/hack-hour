@@ -364,9 +364,7 @@ export class Review {
 
             // Extremely destructive. I hate doing this.
             // Belle suggested an alternative method that I'll work on.
-            await AirtableAPI.Scrapbook.raw.destroy(scrapbook.id);
-            
-            await AirtableAPI.Scrapbook.create({
+            await AirtableAPI.Scrapbook.raw.replace(scrapbook.id, {
                 "Scrapbook TS": scrapbook.fields['Scrapbook TS'],
                 "Scrapbook URL": scrapbook.fields['Scrapbook URL'],
                 "User": scrapbook.fields['User'],
@@ -375,7 +373,7 @@ export class Review {
                 Text: scrapbook.fields['Text'],
                 Reviewer: [],
                 "Reviewed On": "Other"
-            } as AirtableScrapbookWrite);
+            } as AirtableScrapbookWrite as any);
 
             await Slack.chat.postMessage({
                 channel: Environment.SCRAPBOOK_CHANNEL,
