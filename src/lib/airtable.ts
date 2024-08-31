@@ -140,6 +140,7 @@ export interface AirtableScrapbookWrite {
     "Update type": "WIP" | "Ship",
     readonly "User: Slack ID": [string],
     readonly "Reviewer: Slack ID": [string],
+    "Priority Queue"?: number,
 };
 
 export interface AirtableScrapbookRead extends Required<AirtableScrapbookWrite> {
@@ -359,7 +360,8 @@ export const scrapbookMultifilter = async (filterRules: string[]) => {
     // const records = await AirtableAPI.Scrapbook.filter(filter);
     const records = await scrapbooks.select({
         filterByFormula: filter,
-        sort: [{ field: "Created At", direction: "asc" }],
+        sort: [{ field: "Created At", direction: "asc" },
+               { field: "Priority Queue", direction: "asc" }]
     }).all();
 
     return records as unknown as {

@@ -372,7 +372,8 @@ export class Review {
                 Attachments: scrapbook.fields['Attachments'],
                 Text: scrapbook.fields['Text'],
                 Reviewer: [],
-                "Reviewed On": "Other"
+                "Reviewed On": "Other",
+                "Priority Queue": 1,
             } as AirtableScrapbookWrite as any);
 
             await Slack.chat.postMessage({
