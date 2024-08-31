@@ -82,9 +82,7 @@ Slack.action(Actions.OPEN_SHOP, async ({ body }) => {
     })
 });
 
-Slack.command('/quickshop', async ({ command, ack }) => {
-    await ack();
-
+Slack.command('/quickshop', async ({ command }) => {
     const user = await prisma.user.findFirst({
         where: {
             slackUser: {
