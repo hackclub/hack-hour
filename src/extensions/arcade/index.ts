@@ -9,7 +9,7 @@ import "./slack/sessions.js";
 import "./slack/scrapbook.js";
 import "./slack/shop.js";
 import "./slack/walkthrough.js";
-import "./slack/showcase.js";
+import "../slack/functions/showcase.js";
 
 import { emitter } from "../../lib/emitter.js";
 import { Slack } from "../../lib/bolt.js";

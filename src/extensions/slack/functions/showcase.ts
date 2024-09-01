@@ -1,11 +1,11 @@
 import { Slack } from "../../../lib/bolt.js";
 import { Actions, Commands } from "../../../lib/constants.js";
 import { formatHour, t } from "../../../lib/templates.js";
-import { Loading } from "../../slack/views/loading.js";
+import { Loading } from "../views/loading.js";
 import { AirtableAPI } from "../../../lib/airtable.js";
-import { Shop } from "./views/shop.js";
+import { Shop } from "../../arcade/slack/views/shop.js";
 import { prisma, uid } from "../../../lib/prisma.js";
-import { Showcase } from "./views/showcase.js";
+import { Showcase } from "../views/showcase.js";
 
 Slack.command(Commands.SHOWCASE, async ({ command }) => {
     const view = await Slack.views.open({

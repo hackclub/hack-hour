@@ -15,6 +15,8 @@ import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js";
 import "./functions/api.js";
+import "./functions/showcase.js";
+
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
 import { firstTime } from "../arcade/watchers/hackhour.js";

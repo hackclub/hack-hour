@@ -1,5 +1,5 @@
 import { View } from "@slack/bolt"
-import { Actions, Environment } from "../../../../lib/constants.js"
+import { Actions, Environment } from "../../../lib/constants.js"
 
 export class Showcase {
     public static showcase({ loginLink }: {
