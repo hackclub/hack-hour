@@ -73,7 +73,11 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
                     {
                         cancelled: true
                     }
-                ]
+                ],
+
+                createdAt: {
+                    lte: new Date("2024-08-31T23:59:59.999Z"),
+                }
             },
         });
 
