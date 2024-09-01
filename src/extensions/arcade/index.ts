@@ -56,4 +56,7 @@ import "./watchers/airtable_poll.js";
 //         user: command.user_id,
 //         text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
 //     });
+// } catch (e) {
+//     console.error(e);
+// }
 // });
