@@ -18,9 +18,9 @@ import './clock.js';
 //     await import(`./extensions/${extension}/index.js`);
 // }));
 
-if (process.env.ARCADE) {
-    await import("./extensions/arcade/index.js");
-}
+// if (process.env.ARCADE) {
+//     await import("./extensions/arcade/index.js");
+// }
 
 import "./extensions/api/index.js";
 import "./extensions/slack/index.js";
