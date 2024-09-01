@@ -83,6 +83,7 @@ Slack.action(Actions.OPEN_SHOP, async ({ body }) => {
 });
 
 Slack.command('/shop', async ({ command }) => {
+    try {
     const user = await prisma.user.findFirst({
         where: {
             slackUser: {
@@ -116,9 +117,13 @@ Slack.command('/shop', async ({ command }) => {
         user: command.user_id,
         text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
     });
+} catch (e) {
+    console.error(e);
+}
 });
 
 Slack.command('/quickshop', async ({ command }) => {
+    try {
     const user = await prisma.user.findFirst({
         where: {
             slackUser: {
@@ -152,4 +157,7 @@ Slack.command('/quickshop', async ({ command }) => {
         user: command.user_id,
         text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
     });
+} catch (e) {
+    console.error(e);
+}
 });
