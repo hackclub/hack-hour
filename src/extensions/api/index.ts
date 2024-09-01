@@ -1,4 +1,4 @@
-import { prisma, uid } from "../../lib/prisma.js";
+import { getElapsed, prisma, uid } from "../../lib/prisma.js";
 import { Slack, app, express } from "../../lib/bolt.js";
 import { AirtableAPI } from "../../lib/airtable.js";
 
@@ -72,7 +72,7 @@ declare global {
 //                 createdAt: session.createdAt,
 //                 endedAt: new Date(),
 //                 time: session.time,
-//                 elapsed: session.elapsed,
+//                 elapsed: getElapsed(session),
 //                 completed: session.completed,
 //                 cancelled: session.cancelled,
 //                 paused: session.paused,
@@ -175,16 +175,13 @@ express.get('/api/clock/:slackId', readLimit, async (req, res) => {
             userId: slackUser.userId,
             completed: false,
             cancelled: false,
-            paused: false,
+            // paused: false,
         },
     });
 
     if (result) {
-        const startTime = result.createdAt.getTime();
-        const duration = result.time * 60 * 1000; // convert from minutes to milliseconds
-        const currTime = new Date().getTime();
-        const elapsedTime = currTime - startTime;
-        const leftTime = duration - elapsedTime;
+        const elapsed = getElapsed(result);
+        const leftTime = result.time - elapsed;
         return res.status(200).send(leftTime.toString());
     } else {
         return res.status(200).send((-1).toString());
@@ -253,7 +250,8 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
 
     if (result) {
         const now = new Date();
-        const endTime = new Date(now.getTime() + (result.time - result.elapsed) * 60 * 1000);
+        const elapsed = getElapsed(result);
+        const endTime = new Date(now.getTime() + (result.time - elapsed) * 60 * 1000);
 
         endTime.setMilliseconds(0);
         endTime.setSeconds(0);
@@ -264,8 +262,8 @@ express.get('/api/session/:slackId', readLimit, async (req, res) => {
                 id: slackUser.slackId,
                 createdAt: result.createdAt,
                 time: result.time,
-                elapsed: result.elapsed,
-                remaining: result.time - result.elapsed,
+                elapsed,
+                remaining: result.time - elapsed,
                 endTime: endTime,
                 paused: result.paused,
                 completed: result.completed || result.cancelled,
@@ -454,7 +452,7 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
             return {
                 createdAt: r.createdAt,
                 time: r.time,
-                elapsed: r.elapsed,
+                elapsed: getElapsed(r),
 
                 goal: r.goal.name,
                 ended: r.completed || r.cancelled,

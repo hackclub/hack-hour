@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { Constants, Environment } from "../../../lib/constants.js";
 
 import { app, Slack } from "../../../lib/bolt.js";
-import { prisma } from "../../../lib/prisma.js";
+import { getElapsed, prisma } from "../../../lib/prisma.js";
 import { t } from "../../../lib/templates.js";
 
 import { Controller } from "../views/controller.js";
@@ -18,7 +18,7 @@ export async function updateController(session: Session) {
         ts: session.controlTs,
         channel: Environment.MAIN_CHANNEL,
         blocks: await Controller.panel(session),
-        text: `Time Remaining: ${session.time-session.elapsed} minutes - ${(() => {
+        text: `Time Remaining: ${session.time - getElapsed(session)} minutes - ${(() => {
             if (session.paused) {
                 return "Paused";
             } else if (session.cancelled) {
@@ -88,7 +88,7 @@ export async function informUser(slackId: string, message: string, channel: stri
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', {error});
+            emitter.emit('error', { error });
         }
     }
 }
@@ -115,8 +115,8 @@ export async function informUserBlocks(slackId: string, blocks: any[], channel: 
 
         if (response.error !== 'channel_not_found') {
             // Error not caused by access perms
-            emitter.emit('error', {error});
+            emitter.emit('error', { error });
         }
     }
-    
+
 }

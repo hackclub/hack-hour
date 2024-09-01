@@ -1,5 +1,5 @@
 import { Session } from "@prisma/client";
-import { prisma } from "../../../lib/prisma.js"
+import { getElapsed, getElapsedSincePaused, prisma } from "../../../lib/prisma.js"
 import { t, formatHour, t_format, templates } from "../../../lib/templates.js";
 import { Constants, Actions, Environment } from "../../../lib/constants.js";
 import { app, Slack } from "../../../lib/bolt.js";
@@ -46,16 +46,16 @@ export class Controller {
         if (session.metadata.firstTime) {
             info.text.text = t('firstTime.controller')
         } else if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes until the session is ended early.`
+            info.text.text = `You have paused your session. You have \`${session.time - getElapsed(session)}\` minutes remaining. \`${Constants.AUTO_CANCEL - getElapsedSincePaused(session)}\` minutes until the session is ended early.`
         } else if (session.cancelled) {
             info.text.text = `You have ended your session early.`
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
             info.text.text = t_format(session.metadata.slack.controllerTemplate, {
-                minutes: session.time - session.elapsed,
+                minutes: session.time - getElapsed(session),
             })
-            // info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement')}`
+            // info.text.text = `You have \`${session.time - getElapsed(session)}\` minutes remaining! ${t('encouragement')}`
         }
 
         if (session.metadata.firstTime) {
@@ -63,11 +63,11 @@ export class Controller {
                 info as KnownBlock,
                 {
                     "type": "divider"
-                }                
+                }
             ];
 
             if (session.metadata.firstTime.step === 0) {
-                blocks.push(                
+                blocks.push(
                     {
                         "type": "actions",
                         "elements": [
@@ -236,13 +236,13 @@ export class Controller {
         };
 
         if (session.paused) {
-            info.text.text = `You have paused your session. You have \`${session.time - session.elapsed}\` minutes remaining. \`${Constants.AUTO_CANCEL - session.elapsedSincePause}\` minutes until the session is ended early.`
+            info.text.text = `You have paused your session. You have \`${session.time - getElapsed(session)}\` minutes remaining. \`${Constants.AUTO_CANCEL - getElapsedSincePaused(session)}\` minutes until the session is ended early.`
         } else if (session.cancelled) {
             info.text.text = `You have ended your session early.`
         } else if (session.completed) {
             info.text.text = t(`complete`, { slackId: slackUser.slackId })
         } else {
-            info.text.text = `You have \`${session.time - session.elapsed}\` minutes remaining! ${t('encouragement')}`
+            info.text.text = `You have \`${session.time - getElapsed(session)}\` minutes remaining! ${t('encouragement')}`
         }
 
         const permalink = await Slack.chat.getPermalink({

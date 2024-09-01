@@ -1,7 +1,7 @@
 // Library for interacting with hack hour 
 import type { Session as SessionType } from "@prisma/client";
 
-import { prisma } from "./prisma.js";
+import { getElapsed, prisma } from "./prisma.js";
 import { emitter } from "./emitter.js";
 
 interface SessionAction {
@@ -19,17 +19,64 @@ export class Session {
      * @param {SessionType} session - The session to cancel
      */
     public static async cancel(session: SessionType) {
+        const elapsed = getElapsed(session);
         const updatedSession = await prisma.session.update({
             where: {
                 id: session.id
             },
             data: {
-                cancelled: true
+                cancelled: true,
+                elapsed: {
+                    set: elapsed
+                }
+            }
+        });
+
+        await prisma.user.update({
+            where: {
+                id: session.userId
+            },
+            data: {
+                lifetimeMinutes: {
+                    increment: elapsed
+                },
             }
         });
 
         emitter.emit('cancel', updatedSession);
     }
+
+    /**
+     * Completes a hack hour session
+     * @param {SessionType} session - The session to complete
+     */
+    public static async complete(session: SessionType) {
+        const updatedSession = await prisma.session.update({
+            where: {
+                id: session.id
+            },
+            data: {
+                cancelled: true,
+                elapsed: {
+                    set: session.time
+                }
+            }
+        });
+
+        await prisma.user.update({
+            where: {
+                id: session.userId
+            },
+            data: {
+                lifetimeMinutes: {
+                    increment: session.time
+                },
+            }
+        });
+
+        emitter.emit('complete', updatedSession);
+    }
+
 
     /**
      * Pauses or resumes a hack hour session
@@ -43,16 +90,21 @@ export class Session {
             },
             data: {
                 paused: !session.paused,
-                elapsedSincePause: session.paused ? 0 : session.elapsedSincePause
+                resumedOrPausedAt: {
+                    set: new Date()
+                },
+                elapsed: {
+                    set: getElapsed(session)
+                }
             }
         });
-    
+
         if (updatedSession.paused) {
             emitter.emit('pause', updatedSession);
         } else {
             emitter.emit('resume', updatedSession);
         }
-    
+
         return updatedSession;
     }
 
