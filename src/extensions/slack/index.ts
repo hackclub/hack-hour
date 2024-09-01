@@ -821,3 +821,90 @@ emitter.on('debug', async (message) => {
         emitter.emit('error', { error });
     }
 });
+
+
+Slack.command('/shop', async ({ command }) => {
+    try {
+    const user = await prisma.user.findFirst({
+        where: {
+            slackUser: {
+                slackId: command.user_id
+            }
+        }
+    });
+
+    if (!user) {
+        await Slack.chat.postMessage({
+            channel: command.channel_id,
+            text: t('error.first_time')
+        });
+
+        return;
+    }
+
+    const recordId = user.metadata.airtable?.id;
+
+    if (!recordId) {
+        await Slack.chat.postMessage({
+            channel: command.channel_id,
+            text: t('error.first_time')
+        });
+
+        return;
+    }
+
+    Slack.chat.postEphemeral({
+        channel: command.channel_id,
+        user: command.user_id,
+        text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
+    })
+        .catch((error) => {
+            console.error('[Error]', error);
+        });
+} catch (e) {
+    console.error(e);
+}
+});
+
+Slack.command('/quickshop', async ({ command }) => {
+    try {
+    const user = await prisma.user.findFirst({
+        where: {
+            slackUser: {
+                slackId: command.user_id
+            }
+        }
+    });
+
+    if (!user) {
+        await Slack.chat.postMessage({
+            channel: command.channel_id,
+            text: t('error.first_time')
+        });
+
+        return;
+    }
+
+    const recordId = user.metadata.airtable?.id;
+
+    if (!recordId) {
+        await Slack.chat.postMessage({
+            channel: command.channel_id,
+            text: t('error.first_time')
+        });
+
+        return;
+    }
+
+    Slack.chat.postEphemeral({
+        channel: command.channel_id,
+        user: command.user_id,
+        text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
+    })
+        .catch((error) => {
+            console.error('[Error]', error);
+        });
+} catch (e) {
+    console.error(e);
+}
+});
