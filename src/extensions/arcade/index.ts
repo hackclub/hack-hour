@@ -1,4 +1,4 @@
-import "./watchers/scrapbook.js";
+// import "./watchers/scrapbook.js";
 // import "./watchers/hackhour.js"
 import "./watchers/airtable.js";
 import "./watchers/protected_channels.js";
@@ -6,7 +6,7 @@ import "./watchers/airtable_poll.js";
 
 import "./slack/index.js";
 import "./slack/sessions.js";
-import "./slack/scrapbook.js";
+// import "./slack/scrapbook.js";
 // import "./slack/shop.js";
 import "./slack/walkthrough.js";
 // import "../slack/functions/showcase.js";
