@@ -145,4 +145,5 @@ async function main() {
     main();
 }
 
-main();
+// wait 6 min
+(new Promise(resolve => setTimeout(resolve, 1000 * 60 * 6))).then(() => main());

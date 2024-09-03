@@ -44,6 +44,8 @@ async function sleep(ms: number) {
 }
 
 const main = async () => {
+    await sleep(1000 * 60 * 4); // wait 4 minutes
+    
     const reviewJob = async (): Promise<void> => {
         console.log('[Review Job] Getting scrapbooks to review')
         try {
