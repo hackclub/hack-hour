@@ -823,7 +823,7 @@ emitter.on('debug', async (message) => {
 });
 
 
-Slack.command('/shop', async ({ command }) => {
+Slack.command('/shop', async ({ command, respond }) => {
 try {
     const user = await prisma.user.findFirst({
         where: {
@@ -834,8 +834,7 @@ try {
     });
 
     if (!user) {
-        await Slack.chat.postMessage({
-            channel: command.channel_id,
+        await respond({
             text: t('error.first_time')
         });
 
@@ -845,20 +844,56 @@ try {
     const recordId = user.metadata.airtable?.id;
 
     if (!recordId) {
-        await Slack.chat.postMessage({
-            channel: command.channel_id,
+        await respond({
             text: t('error.first_time')
         });
 
         return;
     }
 
-    Slack.chat.postEphemeral({
-        channel: command.channel_id,
-        user: command.user_id,
+    respond({
+        response_type: 'ephemeral',
         text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
     });
 } catch (e) {
     console.error(e);
 }
 });
+
+Slack.command('/quickshop', async ({ command, respond }) => {
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                slackUser: {
+                    slackId: command.user_id
+                }
+            }
+        });
+    
+        if (!user) {
+            await respond({
+                text: t('error.first_time')
+            });
+    
+            return;
+        }
+    
+        const recordId = user.metadata.airtable?.id;
+    
+        if (!recordId) {
+            await respond({
+                text: t('error.first_time')
+            });
+    
+            return;
+        }
+    
+        respond({
+            response_type: 'ephemeral',
+            text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
+        });
+    } catch (e) {
+        console.error(e);
+    }
+    });
+    
