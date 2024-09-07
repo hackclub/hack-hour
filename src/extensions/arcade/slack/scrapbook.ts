@@ -79,6 +79,13 @@ Slack.action(Actions.CHOOSE_SESSIONS, async ({ ack, body }) => {
                     lte: new Date("2024-08-31T23:59:59.999Z"),
                 }
             },
+            include: {
+                goal: {
+                    select: {
+                        name: true,
+                    }
+                },
+            },
         });
 
         log(`\`\`\`${JSON.stringify(sessions)}\`\`\``)
