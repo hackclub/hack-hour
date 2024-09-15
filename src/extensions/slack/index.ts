@@ -535,9 +535,7 @@ emitter.on('complete', async (session: Session) => {
         await Slack.chat.postMessage({
             thread_ts: session.messageTs,
             channel: Environment.MAIN_CHANNEL,
-            text: /*session.metadata.firstTime ? t('onboarding.complete', {
-            slackId: slackUser.slackId
-        }) :*/ t('complete', {
+            text: t('complete', {
                 slackId: slackUser.slackId
             }),
             blocks: [
@@ -545,19 +543,9 @@ emitter.on('complete', async (session: Session) => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": /*session.metadata.firstTime ? t('onboarding.complete', {
-                        slackId: slackUser.slackId
-                    }) : */t('complete', {
+                        "text": t('complete', {
                             slackId: slackUser.slackId
-                        }) + `\n\npsst... guess what? submit your projects to the arcade showcase (<https://hackclub.slack.com/archives/C0266FRGT/p1724106081717479|and you might get a prize for doing so>)!`
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Open Showcase"
-                        },
-                        "action_id": Actions.OPEN_SHOWCASE,
+                        })
                     }
                 }
             ]
