@@ -18,11 +18,8 @@ import './clock.js';
 //     await import(`./extensions/${extension}/index.js`);
 // }));
 
-import "./extensions/arcade/index.js";
-
 import "./extensions/api/index.js";
 import "./extensions/slack/index.js";
-import './extensions/review/index.js';
 
 try {
     await prisma.$connect();

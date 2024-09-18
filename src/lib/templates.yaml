@@ -42,8 +42,8 @@ complete:
   - HOUR you doing, <@${slackId}>!? that's one more!
 
 cancel:
-  - <@${slackId}> ended their arcade session early!
-  - <@${slackId}> cut their session short!!
+  - <@${slackId}> ended their hack hour early!
+  - <@${slackId}> cut their hour short!!
   - it looks like <@${slackId}> is already done! done already!!
 
 pause:
@@ -64,10 +64,10 @@ encouragement:
 toplevel:
   main:
     - 'it looks like <@${slackId}> is getting more power this hour! `${minutes}` ${minutes_units} remaining to work on:'
-    - '<@${slackId}> is keeping the doctor away with this arcade session! `${minutes}` ${minutes_units} remaining to work on:'
+    - '<@${slackId}> is keeping the doctor away with this hack hour! `${minutes}` ${minutes_units} remaining to work on:'
     - "let's go! <@${slackId}> has `${minutes}` ${minutes_units} to work on:"
   cancel:
-    - 'it looks like <@${slackId}> ended their session early'
+    - 'it looks like <@${slackId}> ended their hour early'
   pause:
     - <@${slackId}> is taking five!
     - <@${slackId}> is catching a break!
@@ -77,13 +77,13 @@ evidence_reminder:
   - show me some scraps!! link me some git commits, i need them to feed my raccoon babies 🥺
 
 error:
-  #context: attempting to start a new session while already in one
+  #context: attempting to start a new hour while already in one
   already_hacking:
-    - hey hey!! you're already in a <${url}|arcade session>! you can't start another one until you finish the one you're in!
+    - hey hey!! you're already in a <${url}|hack hour>! you can't start another one until you finish the one you're in!
 
   not_hacking:
     - hmph, whatcha doin? want some garbage? run `/hack`!
-    - if you want tickets, run `/arcade`!!!
+    - if you want tickets, run `/hack`!!!
 
   empty_text:
     - you need to provide something to work on!
@@ -96,18 +96,18 @@ error:
 
   not_yours:
     - hands to yourself buddy
-    - 'this is not your session!!!'
+    - 'this is not your hour!!!'
     - ":rac_threat: paws to yourself buddy"
   generic:
     - something went wrong! try again!
 
-  #context: trying to resume a session that hasn't been paused
+  #context: trying to resume a hour that hasn't been paused
   already_resumed:
-    - you've already started your arcade session! keep going! and `/pause` if ya need a break!
-    - no no no no more nice guy... you've already in a session!! `/cancel` to stop it and `/pause`, well to pause it! 
+    - you've already started your hack hour! keep going! and `/pause` if ya need a break!
+    - no no no no more nice guy... you've already in a hour!! `/cancel` to stop it and `/pause`, well to pause it! 
 
   first_time:
-    - hey hey! you need to finish your first arcade session before you can do that!
+    - hey hey! you need to finish your first hack hour before you can do that!
 
   not_authorized:
     - "sadly you don't have the power to do that! _∗snuffle∗_ but here's a cookie! _∗rustles through trash∗_ :cookie:"
@@ -150,18 +150,18 @@ detect:
 
 airtable:
   approved:
-    - great work <@${slackId}>! you've got a arcade session! you earned `${minutes}` minutes!!
+    - great work <@${slackId}>! you've got a hack hour! you earned `${minutes}` minutes!!
   rejected:
-    - looks like this session was rejected <@${slackId}>! to resubmit this session, link a scrap (commit link) in the thread!
+    - looks like this hour was rejected <@${slackId}>! to resubmit this hour, link a scrap (commit link) in the thread!
   rejectedlocked:
-    - "looks like this session was rejected <@${slackId}>! you won't be able to resubmit this session, sorry ):"
+    - "looks like this hour was rejected <@${slackId}>! you won't be able to resubmit this hour, sorry ):"
 
 maintanenceMode:
   - You hear some scurrying in an adjacent alley. Seems like the bot is a little busy right now.
 
 firstTime:
   start:
-    - woah, you started your first <${url}|arcade session>!
+    - woah, you started your first <${url}|hack hour>!
 
   existing_user:
     - you hear some scurrying in an adjacent alley. perhaps you should check your dms...
@@ -169,23 +169,23 @@ firstTime:
   toplevel:
     main:
 #      - 'wow wow! it looks like <@${slackId}> is learning how to use the arcade! `${minutes}` ${minutes_units} remaining to work on:'
-      - "hey <@${slackId}>! *open this thread to run your first arcade session*"
+      - "hey <@${slackId}>! *open this thread to run your first hack hour*"
 
   controller: 
     # Note: instead of being randomly shuffled, these are displayed in order [0->n]
-    - "welcome to your first arcade session!! today we'll just learn how this works. 
+    - "welcome to your first hack hour!! today we'll just learn how this works. 
         
         
-      when you hack on a project, start a session with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
+      when you hack on a project, start a hour with `/arcade` to earn minutes. later, you can exchange these minutes for tickets :admission_tickets:"
 
   tutorial_step_2: # i had no clue what to name this
-    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!!* that means links to commits in a public git repo, showing code, pics, or other files that tell the story of your project… <https://github.com/hackclub/site/commit/24bc32d13a958d665c331e0040077de232966ac2|like this>!! .\n\npost your scrap links here in your session thread (you need at least one for your minutes to count). this time, *just post a screenshot of this thread!!* _(in this thread)_"
+    - "to get your tickets :admission_tickets:, *you must share scraps of work as you go!!* that means links to commits in a public git repo, showing code, pics, or other files that tell the story of your project… <https://github.com/hackclub/site/commit/24bc32d13a958d665c331e0040077de232966ac2|like this>!! .\n\npost your scrap links here in your hour thread (you need at least one for your minutes to count). this time, *just post a screenshot of this thread!!* _(in this thread)_"
 
   popup:
     footer:
-      - (every session begins with this question)
+      - (every hour begins with this question)
     placeholder:
-      - 'hint: "the arcade tutorial" is a good answer for this session!!'
+      - 'hint: "the arcade tutorial" is a good answer for this hour!!'
     header:
       - 'what are you working on?'
 
@@ -194,20 +194,20 @@ firstTime:
       - 'hey hey! you need to show me some scraps!! commit links with code, pics, vids, or other files for anything else!!'
 
     complete:
-      - "way to go!! we'll end this session early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
+      - "way to go!! we'll end this hour early, but it would earn you `${minutes}` ${minutes_units}. now i think <@U0777CCQQCF> has something for you…"
 
 scrapbook:
   prompt:
-    select_sessions:
-      - 'oh hey hey i saw your post in scrapbook!! is your project <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-shipped|ready to ship>?? if so you can exchange those sessions for tickets :admission_tickets:!! just choose which sessions are part of your post!!'
+    select_hours:
+      - 'oh hey hey i saw your post in scrapbook!! is your project <https://github.com/hackclub/arcade-constitution?tab=readme-ov-file#what-counts-as-shipped|ready to ship>?? if so you can exchange those hours for tickets :admission_tickets:!! just choose which hours are part of your post!!'
     complete:
       - 'wow wow, great job!!'
 
   modal:
-    select_sessions:
-      - "choose the sessions that are associated with your project!!"
-    sessions_not_found:
-      - "oh no! i couldn't find any sessions for you!"
+    select_hours:
+      - "choose the hours that are associated with your project!!"
+    hours_not_found:
+      - "oh no! i couldn't find any hours for you!"
 
 loading:
   - "if you can read this, i'm trying my best... (heavy load, please be patient) :spin-loading:"
@@ -219,15 +219,15 @@ loading:
   
 review:
   start:
-    - "hey hey! it's time to review your arcade session!! today, <@${slackId}> will be your reviewer!"
+    - "hey hey! it's time to review your hack hour!! today, <@${slackId}> will be your reviewer!"
 
   preset:
     approved:
-      - "this arcade session is already approved!"
+      - "this hack hour is already approved!"
     rejected:
-      - "this arcade session is already rejected!"
+      - "this hack hour is already rejected!"
     rejectedlocked:
-      - "this arcade session is already closed!"
+      - "this hack hour is already closed!"
 
   reviewer:  
     approved:
@@ -239,6 +239,6 @@ review:
   
   completion:
     reviewed:
-      - "sessions reviewed! reviewer, make sure you leave notes!"
+      - "hours reviewed! reviewer, make sure you leave notes!"
     rejected:
-      - "looks like there was a rejected session! for rejected sessions, you need to resubmit with a scrap in the thread! (you can't resubmit if the session is locked)"
+      - "looks like there was a rejected hour! for rejected hours, you need to resubmit with a scrap in the thread! (you can't resubmit if the hour is locked)"

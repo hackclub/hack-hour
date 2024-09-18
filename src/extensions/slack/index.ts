@@ -19,7 +19,6 @@ import "./functions/showcase.js";
 
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
-import { firstTime } from "../arcade/watchers/hackhour.js";
 import { AirtableAPI } from "../../lib/airtable.js";
 import { KnownBlock } from "@slack/bolt";
 import { lock } from "../../lib/lock.js";
@@ -100,39 +99,6 @@ const hack = async ({ command }: CommandHandler) => {
                 }), command.channel_id);
 
                 return;
-            }
-
-
-            if (slackUser.user.metadata.firstTime && Environment.ARCADE) {
-                // TODO: remove arcade dependency & check if there are entities/subrountines listening to first time users
-                if (await firstTime(slackUser.user)) { // firstTime returns true if the user is existing, meaning I can redirect them through the arcadius flow
-                    const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
-
-                    if (airtableUser) {
-                        await informUserBlocks(slackId, [
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": /*session.metadata.firstTime ? t('onboarding.complete', {
-                            slackId: slackUser.slackId
-                        }) : */t('firstTime.existing_user')
-                                },
-                                "accessory": {
-                                    "type": "button",
-                                    "text": {
-                                        "type": "plain_text",
-                                        "text": "continue..."
-                                    },
-                                    "url": `https://hackclub.slack.com/archives/${airtableUser?.fields['dmChannel']}`,
-                                    "action_id": Actions.EXISTING_USER_FIRST_TIME,
-                                }
-                            }
-                        ], command.channel_id);
-                    }
-
-                    return;
-                }
             }
 
             // Check if the user is a full user or a MCG
