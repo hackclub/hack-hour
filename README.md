@@ -1,5 +1,5 @@
-# Hack Hour (Arcade)
-Hack Hour is a project tracker & time management tool for hacking on projects. It's currently being used to track hours as a part of [Hack Club's Arcade](https://hackclub.com/arcade) and is on slack as `@hakkuun` (but her name is heidi 😊).
+# Hack Hour 
+Hack Hour is a ~~trash collection service~~ project tracker & pomodoro timer for hacking on projects. It was used to track hours as a part of [Hack Club's Arcade](https://hackclub.com/arcade). She's on slack as `@hakkuun` and hangs out in the `#hack-hour` channel!
 
 ![](https://api.checklyhq.com/v1/badges/checks/271a416b-7810-47b0-b58c-7cd9e9e37f82?style=flat&theme=default&responseTime=false)
 
