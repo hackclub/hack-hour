@@ -69,7 +69,6 @@ export const Commands = Environment.PROD ? {
     ARCADE: '/arcade',
     ADMIN: '/admin',
     API: '/api',
-    SHOWCASE: '/showcase'
 } : {
     PAUSE: '/testpause',
     START: '/teststart',
@@ -83,7 +82,6 @@ export const Commands = Environment.PROD ? {
     ARCADE: '/testarcade',
     ADMIN: '/testadmin',
     API: '/testapi',
-    SHOWCASE: '/testshowcase'
 };
 
 export const Actions = {
@@ -137,8 +135,6 @@ export const Actions = {
     NEXT_REVIEW: 'nextreview',
     SHIP: 'ship',
     WIP: 'wip',
-
-    OPEN_SHOWCASE: 'openshowcase',
 
     SKIP: 'skip',
 };

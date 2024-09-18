@@ -15,7 +15,6 @@ import "./functions/extend.js";
 import "./functions/goals.js";
 import "./functions/stats.js";
 import "./functions/api.js";
-import "./functions/showcase.js";
 
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
@@ -596,14 +595,6 @@ emitter.on('cancel', async (session: Session) => {
                             slackId: slackUser.slackId,
                             minutes: session.elapsed
                         })
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Open Showcase"
-                        },
-                        "action_id": Actions.OPEN_SHOWCASE,
                     }
                 }
             ]
