@@ -7,6 +7,7 @@ import { informUser, updateController, updateTopLevel } from "../lib/lib.js";
 import { emitter } from "../../../lib/emitter.js";
 import { t } from "../../../lib/templates.js";
 import { Loading } from "../views/loading.js";
+import { Session } from "../../../lib/corelib.js";
 
 Slack.action(Actions.OPEN_GOAL, async ({ body, client }) => {
     try {
@@ -74,60 +75,7 @@ Slack.action(Actions.SELECT_GOAL, async ({ body, client }) => {
             }
         });
 
-        const oldGoal = await prisma.goal.findUniqueOrThrow({
-            where: {
-                id: session?.goalId as string
-            }
-        });
-
-        const newGoal = await prisma.goal.findUniqueOrThrow({
-            where: {
-                id: goalId
-            }
-        });
-
-        session = await prisma.session.update({
-            where: {
-                id: sessionId,
-                goal: {
-                    completed: false
-                },
-            },
-            data: {
-                goal: {
-                    connect: {
-                        id: newGoal.id
-                    }
-                }
-            }
-        });
-
-        if (session.completed || session.cancelled) {
-            await prisma.goal.update({
-                where: {
-                    id: oldGoal.id
-                },
-                data: {
-                    minutes: {
-                        decrement: session.elapsed
-                    }
-                }
-            });
-
-            await prisma.goal.update({
-                where: {
-                    id: newGoal.id
-                },
-                data: {
-                    minutes: {
-                        increment: session.elapsed
-                    }
-                }
-            });
-        }
-
-        updateTopLevel(session);
-        updateController(session);
+        session = await Session.changeGoal(session, goalId);
 
         await client.views.update({
             view_id: (body as any).view.root_view_id,
