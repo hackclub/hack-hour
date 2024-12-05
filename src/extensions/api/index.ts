@@ -319,7 +319,10 @@ express.get('/api/stats/:slackId', readLimit, async (req, res) => {
     const result = await prisma.session.aggregate({
         where: {
             userId: slackUser.userId,
-            completed: true,
+            OR: [
+                {completed: true},
+                {cancelled: true}
+            ]
         },
         _sum: {
             elapsed: true,
