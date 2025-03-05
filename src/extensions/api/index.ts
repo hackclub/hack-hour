@@ -385,6 +385,7 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
             userId: slackUser.userId,
         },
         select: {
+            id: true,
             name: true,
             minutes: true,
         },
@@ -394,8 +395,9 @@ express.get('/api/goals/:slackId', readLimit, async (req, res) => {
         ok: true,
         data: result.map(r => {
             return {
+                id: r.id,
                 name: r.name,
-                minutes: r.minutes
+                minutes: r.minutes,
             }
         }),
     }
@@ -460,6 +462,7 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
                 ended: r.completed || r.cancelled,
 
                 work: r.metadata?.work,
+                messageTs: r.messageTs,
             }
         })
     }
@@ -469,6 +472,60 @@ express.get('/api/history/:slackId', readLimit, async (req, res) => {
     console.error(`[API] Error in /api/history/:slackId: ${error}`);
 }
 });
+
+/**
+ * Get shop info of a user
+ */
+express.get('/api/shop/:slackId', readLimit, async (req, res) => {
+    if (!req.apiKey) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+
+    const user = await prisma.user.findUnique({
+        where: {
+            apiKey
+        },
+        include: {
+            slackUser: {
+                select: {
+                    slackId: true
+                }
+            }
+        }
+    });
+
+    if (!user || !user.slackUser?.slackId) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    const airtableUser = await AirtableAPI.User.lookupBySlack(user.slackUser.slackId);
+
+    if (!airtableUser) {
+        return res.status(401).send({
+            ok: false,
+            error: 'Unauthorized',
+        });
+    }
+
+    return res.status(200).send({
+        ok: true,
+        data: {
+            spendable: airtableUser.fields["Balance (Hours)"],
+            awaitingApproval: airtableUser.fields["Minutes (Pending Approval)"] / 60,
+            inOrders: airtableUser.fields["In Pending (Minutes)"] / 60,
+            spent: airtableUser.fields["Spent Fulfilled (Minutes)"] / 60,
+        }
+    })
+})
 
 /*
 Write API
@@ -591,8 +648,10 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
         }
     });
 
-    await updateController(session);
-    await updateTopLevel(session);
+    await Promise.all([
+        updateController(session),
+        updateTopLevel(session)
+    ])
 
     emitter.emit('start', session);
 
@@ -608,6 +667,7 @@ express.post('/api/start/:slackId', limiter, async (req, res) => {
             id: session.id,
             slackId: user.slackUser?.slackId,
             createdAt: session.createdAt,
+            messageTs: assertVal(topLevel!.ts),
         },
     });
 
@@ -673,6 +733,7 @@ express.post('/api/cancel/:slackId', limiter, async (req, res) => {
                 id: session.id,
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
+                messageTs: session.messageTs,
             },
         });
     } catch (error) {
@@ -738,9 +799,87 @@ express.post('/api/pause/:slackId', limiter, async (req, res) => {
                 slackId: session.user.slackUser?.slackId,
                 createdAt: session.createdAt,
                 paused: updatedSession.paused,
+                messageTs: session.messageTs,
             },
         });
     } catch (error) {
         console.error(`[API] Error in /api/pause/:slackId: ${error}`);
     }
 });
+
+/**
+ * Change the goal of an active session
+ */
+express.post('/api/goals/:slackId', limiter, async (req, res) => {
+    try {
+        if (!req.apiKey) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Unauthorized',
+            });
+        }
+
+        const apiKey = scryptSync(req.apiKey, 'salt', 64).toString('hex');
+
+        const session = await prisma.session.findFirst({
+            where: {
+                user: {
+                    apiKey
+                },
+                completed: false,
+                cancelled: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        slackUser: {
+                            select: {
+                                slackId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session || !session.user.slackUser?.slackId) {
+            return res.status(401).send({
+                ok: false,
+                error: 'Invalid user or no active session found',
+            });
+        }
+        
+        const result = await prisma.goal.findMany({
+            where: {
+                userId: session.user.slackUser.slackId,
+            },
+            select: {
+                id: true,
+                name: true,
+                minutes: true
+            },
+        });
+
+        if (typeof req.body.id !== 'string' || !result.find(i => i.id === req.body.id)) {
+            return res.status(400).send({
+                ok: false,
+                error: "Invalid Goal ID"
+            })
+        }
+
+        await Session.changeGoal(session, req.body.id);
+
+        return res.status(200).send({
+            ok: true,
+            data: {
+                id: session.id,
+                slackId: session.user.slackUser?.slackId,
+                createdAt: session.createdAt,
+                goal: result.find(i => i.id === req.body.id),
+                messageTs: session.messageTs,
+            },
+        });
+    } catch (error) {
+        emitter.emit('error', { error });
+    }
+})
