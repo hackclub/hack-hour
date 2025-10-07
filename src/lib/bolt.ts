@@ -8,7 +8,6 @@ import { Commands, Environment } from './constants.js';
 import { emitter } from './emitter.js';
 import { assertVal } from './assert.js';
 import { t } from './templates.js';
-import { AirtableAPI } from './airtable.js';
 
 const expressReceiver = new bolt.ExpressReceiver({
     signingSecret: Environment.SLACK_SIGNING_SECRET,
@@ -55,10 +54,6 @@ export const approvedUsers = [
     'U077XBJ3YPR',
 ]
 
-export const buggedUsers = [
-    'U0794S6UVCM'
-]
-
 export const recordCommands = [
     Commands.SHOP,
 ]
@@ -101,30 +96,6 @@ export const Slack = {
                 console.log(`[app.command] <@${event.user_id}> ran \`${command} ${event.text}\``)
 
                 await ack();
-
-                if (Environment.MAINTAINANCE_MODE) {
-                    const user = await app.client.users.info({
-                        user: event.user_id
-                    });
-
-                    if (!(approvedUsers.includes(event.user_id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ")) {
-                        return respond(t('maintanenceMode'))
-                    }
-                }
-
-                if (buggedUsers.includes(event.user_id)) {
-                    return respond(t('maintanenceMode'))
-                }
-
-                if (recordCommands.includes(command) && Environment.PROD) {
-                    const airtableUser = await AirtableAPI.User.lookupBySlack(event.user_id);
-
-                    if (airtableUser) {
-                        await AirtableAPI.User.update(airtableUser.id, {
-                            [command]: true
-                        });
-                    }
-                }
 
                 if (Environment.VERBOSE) {
                     await app.client.chat.postMessage({
@@ -183,13 +154,9 @@ export const Slack = {
                     user: body.user.id
                 });
 
-                if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
-                    return respond(t('maintanenceMode'))
-                }
-
-                if (buggedUsers.includes(body.user.id)) {
-                    return respond(t('maintanenceMode'))
-                }
+                // if (!(approvedUsers.includes(body.user.id) || user.user?.profile?.guest_invited_by === "U078MRX71TJ") && Environment.MAINTAINANCE_MODE) {
+                //     return respond(t('maintanenceMode'))
+                // }
 
                 if (Environment.VERBOSE) {
                     await app.client.chat.postMessage({

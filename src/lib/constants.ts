@@ -18,24 +18,16 @@ export const Environment = {
     DEV_CHANNEL: assertEnv('DEV_CHANNEL'),
     INTERNAL_CHANNEL: assertEnv('INTERNAL_CHANNEL'),
 
-    SCRAPBOOK_CHANNEL: assertEnv('SCRAPBOOK_CHANNEL'),
+    // SCRAPBOOK_CHANNEL: assertEnv('SCRAPBOOK_CHANNEL'),
     // SHIP_CHANNEL: assertEnv('SHIP_CHANNEL'),
 
-    REVIEW_CHANNEL: assertEnv('REVIEW_CHANNEL'),
+    // REVIEW_CHANNEL: assertEnv('REVIEW_CHANNEL'),
 
     // PING_USERGROUP: assertEnv('PING_USERGROUP'),
-    DEV_USERGROUP: assertEnv('DEV_USERGROUP'),
+    // DEV_USERGROUP: assertEnv('DEV_USERGROUP'),
 
     // Control Flags
     PROD: (process.env.PROD === 'true'),
-    ARCADE: (process.env.ARCADE === 'true'),
-
-    MAINTAINANCE_MODE: (process.env.MAINTAINANCE_MODE === 'true'),
-
-    // Arcade Config
-    ARCADIUS_URL: assertEnv('ARCADIUS_URL'),
-    ARCADIUS_SECRET: assertEnv('ARCADIUS_SECRET'),
-    SHOP_URL: assertEnv('SHOP_URL'),
 
     VERBOSE: (process.env.VERBOSE === 'true'),
 };

@@ -18,7 +18,7 @@ import "./functions/api.js";
 
 import { assertVal } from "../../lib/assert.js";
 import { Hack } from "./views/hack.js";
-import { AirtableAPI } from "../../lib/airtable.js";
+// import { AirtableAPI } from "../../lib/airtable.js";
 import { KnownBlock } from "@slack/bolt";
 import { lock } from "../../lib/lock.js";
 
@@ -109,49 +109,8 @@ const hack = async ({ command }: CommandHandler) => {
                 throw new Error(`Failed to fetch user info for ${slackId}`);
             }
 
-            if (!slackUser.user.metadata.firstTime && slackUserInfo.user.is_restricted) {
-                const airtable = await AirtableAPI.User.lookupBySlack(slackId);
-
-                await informUserBlocks(slackId, [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": t('error.not_full_user')
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "text": "Go to Tutorial",
-                                "type": "plain_text",
-                            },
-                            "url": `https://hackclub.slack.com/archives/${airtable?.fields['dmChannel']}`,
-                        }
-                    },
-                    {
-                        "type": "context",
-                        "elements": [
-                            {
-                                "type": "mrkdwn",
-                                "text": "Make sure you check your dms with arcadius and me & click the upgrade button if you see it! If you need help, ask <@UDK5M9Y13> in <#C077TSWKER0>"
-                            }
-                        ]
-                    }
-                ] as KnownBlock[], command.channel_id);
-
-                return;
-            }
-
             if (!command.text || command.text.length == 0) {
                 await informUserBlocks(slackId, Hack.hack(slackUser.user.metadata.firstTime), command.channel_id);
-
-                return;
-            }
-
-            const airtableUser = await AirtableAPI.User.lookupBySlack(slackId);
-
-            if (airtableUser?.fields['Scrapbook'].length == 0 && airtableUser?.fields['Sessions'].length >= 50) {
-                await informUser(slackId, t('error.no_scrapbook'), command.channel_id);
 
                 return;
             }
@@ -642,9 +601,9 @@ emitter.on('init', async () => {
             main: Environment.MAIN_CHANNEL
         });
 
-        let releaseVersion = process.env.HEROKU_RELEASE_VERSION || 'vDev';
+        let releaseVersion = 'vDev';
 
-        let buildDesc = process.env.HEROKU_BUILD_DESCRIPTION;
+        let buildDesc = '';
         if (buildDesc) {
             buildDesc = buildDesc.replace('Deploy ', '');
         } else {
@@ -768,77 +727,77 @@ emitter.on('debug', async (message) => {
 });
 
 
-Slack.command('/shop', async ({ command, respond }) => {
-try {
-    const user = await prisma.user.findFirst({
-        where: {
-            slackUser: {
-                slackId: command.user_id
-            }
-        }
-    });
+// Slack.command('/shop', async ({ command, respond }) => {
+// try {
+//     const user = await prisma.user.findFirst({
+//         where: {
+//             slackUser: {
+//                 slackId: command.user_id
+//             }
+//         }
+//     });
 
-    if (!user) {
-        await respond({
-            text: t('error.first_time')
-        });
+//     if (!user) {
+//         await respond({
+//             text: t('error.first_time')
+//         });
 
-        return;
-    }
+//         return;
+//     }
 
-    const recordId = user.metadata.airtable?.id;
+//     const recordId = user.metadata.airtable?.id;
 
-    if (!recordId) {
-        await respond({
-            text: t('error.first_time')
-        });
+//     if (!recordId) {
+//         await respond({
+//             text: t('error.first_time')
+//         });
 
-        return;
-    }
+//         return;
+//     }
 
-    respond({
-        response_type: 'ephemeral',
-        text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
-    });
-} catch (e) {
-    console.error(e);
-}
-});
+//     respond({
+//         response_type: 'ephemeral',
+//         text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
+//     });
+// } catch (e) {
+//     console.error(e);
+// }
+// });
 
-Slack.command('/quickshop', async ({ command, respond }) => {
-    try {
-        const user = await prisma.user.findFirst({
-            where: {
-                slackUser: {
-                    slackId: command.user_id
-                }
-            }
-        });
+// Slack.command('/quickshop', async ({ command, respond }) => {
+//     try {
+//         const user = await prisma.user.findFirst({
+//             where: {
+//                 slackUser: {
+//                     slackId: command.user_id
+//                 }
+//             }
+//         });
     
-        if (!user) {
-            await respond({
-                text: t('error.first_time')
-            });
+//         if (!user) {
+//             await respond({
+//                 text: t('error.first_time')
+//             });
     
-            return;
-        }
+//             return;
+//         }
     
-        const recordId = user.metadata.airtable?.id;
+//         const recordId = user.metadata.airtable?.id;
     
-        if (!recordId) {
-            await respond({
-                text: t('error.first_time')
-            });
+//         if (!recordId) {
+//             await respond({
+//                 text: t('error.first_time')
+//             });
     
-            return;
-        }
+//             return;
+//         }
     
-        respond({
-            response_type: 'ephemeral',
-            text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
-        });
-    } catch (e) {
-        console.error(e);
-    }
-    });
+//         respond({
+//             response_type: 'ephemeral',
+//             text: `<${Environment.SHOP_URL}/arcade/${recordId}/shop/|Open the shop!>`
+//         });
+//     } catch (e) {
+//         console.error(e);
+//     }
+//     });
     
