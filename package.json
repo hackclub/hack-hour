@@ -37,7 +37,7 @@
     "lowdb": "^7.0.1",
     "prisma": "^5.17.0",
     "prisma-json-types-generator": "^3.0.4",
-    "tsx": "^4.10.5",
+    "tsx": "^4.22.4",
     "ws": "^8.17.0",
     "yaml": "^2.4.2"
   },
